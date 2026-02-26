@@ -350,10 +350,15 @@
 
         <div class="subscribe-section">
             <p class="subscribe-tagline">No ads and no BS, just clean daily news.</p>
-            <form class="subscribe-form" id="subscribe-form">
-                <input type="email" placeholder="Your email" required id="subscribe-email" autocomplete="email">
+            <form class="subscribe-form" id="subscribe-form"
+                  action="https://buttondown.com/api/emails/embed-subscribe/jimcoleman1"
+                  method="post" target="subscribe-target">
+                <input type="email" name="email" placeholder="Your email" required id="subscribe-email" autocomplete="email">
+                <input type="hidden" name="embed" value="1">
+                <input type="hidden" name="tag" value="website">
                 <button type="submit">SUBSCRIBE</button>
             </form>
+            <iframe name="subscribe-target" id="subscribe-target" style="display:none"></iframe>
             <p class="subscribe-msg" id="subscribe-msg"></p>
         </div>
 
@@ -384,39 +389,20 @@
             var subEmail = document.getElementById('subscribe-email');
             var subMsg = document.getElementById('subscribe-msg');
 
-            subForm.addEventListener('submit', function(e) {
-                e.preventDefault();
+            var subTarget = document.getElementById('subscribe-target');
+
+            subForm.addEventListener('submit', function() {
                 var email = subEmail.value.trim();
                 if (!email) return;
-
                 subMsg.textContent = 'Subscribing...';
                 subMsg.className = 'subscribe-msg';
+            });
 
-                fetch('https://api.buttondown.com/v1/subscribers', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email_address: email, tags: ['website'] })
-                })
-                .then(function(resp) {
-                    if (resp.ok || resp.status === 201) {
-                        subMsg.textContent = "You're in. Watch for your first digest tomorrow morning.";
-                        subMsg.className = 'subscribe-msg success';
-                        subEmail.value = '';
-                    } else {
-                        return resp.json().then(function(data) {
-                            if (resp.status === 409) {
-                                subMsg.textContent = "You're already subscribed.";
-                                subMsg.className = 'subscribe-msg success';
-                            } else {
-                                throw new Error(data.detail || 'Something went wrong');
-                            }
-                        });
-                    }
-                })
-                .catch(function(err) {
-                    subMsg.textContent = err.message || 'Something went wrong. Try again.';
-                    subMsg.className = 'subscribe-msg error';
-                });
+            subTarget.addEventListener('load', function() {
+                if (!subEmail.value && !subMsg.textContent) return;
+                subMsg.textContent = "You're in! Check your email to confirm, then watch for your first digest.";
+                subMsg.className = 'subscribe-msg success';
+                subEmail.value = '';
             });
 
             // --- Digest rendering ---
