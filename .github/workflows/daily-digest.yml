@@ -1,14 +1,14 @@
-name: Daily Denver Digest
+name: 303 News Daily Digest
 
 on:
   schedule:
-    # Two cron schedules for DST-aware 7:00 AM Denver local time:
-    # 13:00 UTC = 7 AM MDT (March-November)
-    # 14:00 UTC = 7 AM MST (November-March)
+    # Two cron schedules for DST-aware 6:00 AM Denver local time:
+    # 12:00 UTC = 6 AM MDT (March-November)
+    # 13:00 UTC = 6 AM MST (November-March)
     # The Python script checks Denver local time and skips if too early,
     # so only the correct schedule produces output on any given day.
+    - cron: '0 12 * * *'
     - cron: '0 13 * * *'
-    - cron: '0 14 * * *'
   workflow_dispatch: # Manual trigger from GitHub UI
 
 permissions:
@@ -35,6 +35,7 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           BRAVE_SEARCH_API_KEY: ${{ secrets.BRAVE_SEARCH_API_KEY }}
+          BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
         run: python scripts/generate_digest.py
 
       - name: Prune old data files (keep 14 days)
@@ -44,7 +45,7 @@ jobs:
 
       - name: Commit and push
         run: |
-          git config user.name "Denver Digest Bot"
+          git config user.name "303 News Bot"
           git config user.email "digest-bot@users.noreply.github.com"
           git add site/data/
           git diff --cached --quiet && echo "No new data" && exit 0

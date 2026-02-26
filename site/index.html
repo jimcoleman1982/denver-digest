@@ -49,6 +49,81 @@
             margin-top: 6px;
         }
 
+        /* --- Subscribe form --- */
+        .subscribe-section {
+            text-align: center;
+            padding: 24px 16px;
+            margin-bottom: 32px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .subscribe-tagline {
+            font-size: 0.95em;
+            color: #444;
+            margin-bottom: 14px;
+            font-style: italic;
+        }
+
+        .subscribe-form {
+            display: flex;
+            gap: 8px;
+            max-width: 420px;
+            margin: 0 auto;
+        }
+
+        .subscribe-form input[type="email"] {
+            flex: 1;
+            padding: 10px 14px;
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 0.92em;
+            border: 1px solid #aaa;
+            background: #fff;
+            color: #1a1a1a;
+            min-width: 0;
+        }
+
+        .subscribe-form input[type="email"]::placeholder {
+            color: #999;
+        }
+
+        .subscribe-form input[type="email"]:focus {
+            outline: none;
+            border-color: #1a3a6a;
+        }
+
+        .subscribe-form button {
+            padding: 10px 20px;
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 0.88em;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            background: #1a1a1a;
+            color: #f5f0e8;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .subscribe-form button:hover {
+            background: #333;
+        }
+
+        .subscribe-msg {
+            font-size: 0.82em;
+            margin-top: 10px;
+            min-height: 1.2em;
+            color: #666;
+            font-style: italic;
+        }
+
+        .subscribe-msg.success {
+            color: #2d6a2e;
+        }
+
+        .subscribe-msg.error {
+            color: #8b1a1a;
+        }
+
         /* --- Empty state --- */
         .empty-state {
             text-align: center;
@@ -273,12 +348,21 @@
             <p class="site-subtitle">Denver Metro Area -- Local News Digest</p>
         </header>
 
+        <div class="subscribe-section">
+            <p class="subscribe-tagline">No ads and no BS, just clean daily news.</p>
+            <form class="subscribe-form" id="subscribe-form">
+                <input type="email" placeholder="Your email" required id="subscribe-email" autocomplete="email">
+                <button type="submit">SUBSCRIBE</button>
+            </form>
+            <p class="subscribe-msg" id="subscribe-msg"></p>
+        </div>
+
         <main id="digest-content">
             <div class="empty-state">Loading...</div>
         </main>
 
         <footer class="site-footer">
-            303 News -- Updated daily at 7:00 AM MT
+            303 News -- Updated daily at 6:00 AM MT
         </footer>
     </div>
 
@@ -294,6 +378,49 @@
                 crime: 'CRIME & PUBLIC SAFETY',
                 sports: 'SPORTS'
             };
+
+            // --- Subscribe form ---
+            var subForm = document.getElementById('subscribe-form');
+            var subEmail = document.getElementById('subscribe-email');
+            var subMsg = document.getElementById('subscribe-msg');
+
+            subForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var email = subEmail.value.trim();
+                if (!email) return;
+
+                subMsg.textContent = 'Subscribing...';
+                subMsg.className = 'subscribe-msg';
+
+                fetch('https://api.buttondown.com/v1/subscribers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email_address: email, tags: ['website'] })
+                })
+                .then(function(resp) {
+                    if (resp.ok || resp.status === 201) {
+                        subMsg.textContent = "You're in. Watch for your first digest tomorrow morning.";
+                        subMsg.className = 'subscribe-msg success';
+                        subEmail.value = '';
+                    } else {
+                        return resp.json().then(function(data) {
+                            if (resp.status === 409) {
+                                subMsg.textContent = "You're already subscribed.";
+                                subMsg.className = 'subscribe-msg success';
+                            } else {
+                                throw new Error(data.detail || 'Something went wrong');
+                            }
+                        });
+                    }
+                })
+                .catch(function(err) {
+                    subMsg.textContent = err.message || 'Something went wrong. Try again.';
+                    subMsg.className = 'subscribe-msg error';
+                });
+            });
+
+            // --- Digest rendering ---
+            var storyIndex = 0; // global counter for story IDs
 
             function getLastNDates(n) {
                 var dates = [];
@@ -347,9 +474,10 @@
                 return div.innerHTML;
             }
 
-            function renderStory(story) {
+            function renderStory(story, dateStr, idx) {
                 var item = document.createElement('div');
                 item.className = 'story-item';
+                item.id = 'story-' + dateStr + '-' + idx;
 
                 var headline = document.createElement('div');
                 headline.className = 'story-headline';
@@ -379,6 +507,7 @@
             function renderDay(data, isToday) {
                 var section = document.createElement('div');
                 section.className = 'day-section' + (isToday ? ' today' : '');
+                section.setAttribute('data-date', data.date);
 
                 var header = document.createElement('div');
                 header.className = 'day-header';
@@ -397,6 +526,7 @@
 
                 if (data.stories && data.stories.length > 0) {
                     var groups = groupByCategory(data.stories);
+                    var globalIdx = 0;
                     for (var c = 0; c < CATEGORY_ORDER.length; c++) {
                         var cat = CATEGORY_ORDER[c];
                         if (!groups[cat] || groups[cat].length === 0) continue;
@@ -410,7 +540,8 @@
                         catSection.appendChild(catHeader);
 
                         for (var s = 0; s < groups[cat].length; s++) {
-                            catSection.appendChild(renderStory(groups[cat][s]));
+                            catSection.appendChild(renderStory(groups[cat][s], data.date, globalIdx));
+                            globalIdx++;
                         }
 
                         content.appendChild(catSection);
@@ -426,6 +557,35 @@
                 }
 
                 return section;
+            }
+
+            function handleDeepLink() {
+                var hash = window.location.hash;
+                if (!hash || hash.length < 2) return;
+
+                // Format: #story-YYYY-MM-DD-N
+                var match = hash.match(/^#story-(\d{4}-\d{2}-\d{2})-(\d+)$/);
+                if (!match) return;
+
+                var targetDate = match[1];
+                var targetIdx = parseInt(match[2], 10);
+                var storyId = 'story-' + targetDate + '-' + targetIdx;
+
+                // Find the day section and expand it
+                var daySection = document.querySelector('.day-section[data-date="' + targetDate + '"]');
+                if (daySection) {
+                    daySection.classList.add('open');
+                }
+
+                // Find the story and expand it
+                var storyEl = document.getElementById(storyId);
+                if (storyEl) {
+                    storyEl.classList.add('open');
+                    // Scroll into view after a brief delay for DOM to update
+                    setTimeout(function() {
+                        storyEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
+                }
             }
 
             function init() {
@@ -454,6 +614,7 @@
                             pending--;
                             if (pending === 0) {
                                 renderAll(dates, results, todayStr, container, loadedCount);
+                                handleDeepLink();
                             }
                         });
                 });
@@ -474,6 +635,9 @@
                     container.appendChild(renderDay(results[dateStr], isToday));
                 }
             }
+
+            // Handle hash changes (e.g., back/forward navigation)
+            window.addEventListener('hashchange', handleDeepLink);
 
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);

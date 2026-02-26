@@ -29,6 +29,17 @@ ARTICLE_TEXT_LIMIT = 3000  # chars per article
 ANTHROPIC_MAX_TOKENS = 10000  # hard cap on output tokens
 ANTHROPIC_MODEL = "claude-sonnet-4-6"
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "site", "data")
+SITE_URL = "https://303news.org"
+
+# Category display order and labels (must match site JavaScript)
+CATEGORY_ORDER = ["other", "politics", "business", "crime", "sports"]
+CATEGORY_LABELS = {
+    "other": "GENERAL / METRO NEWS",
+    "politics": "POLITICS & GOVERNMENT",
+    "business": "BUSINESS & ECONOMY",
+    "crime": "CRIME & PUBLIC SAFETY",
+    "sports": "SPORTS",
+}
 
 # --- Budget Safety Limits ---
 MAX_BRAVE_QUERIES_PER_RUN = 20  # hard cap on search API calls per run
@@ -153,9 +164,9 @@ def parse_args():
 
 
 def check_denver_time():
-    """Exit early if Denver local time is before 7 AM (DST handling)."""
+    """Exit early if Denver local time is before 6 AM (DST handling)."""
     now = datetime.datetime.now(DENVER_TZ)
-    if now.hour < 7:
+    if now.hour < 6:
         print(f"Denver time is {now.strftime('%H:%M %Z')} -- too early, skipping.")
         sys.exit(0)
 
@@ -589,6 +600,113 @@ def get_freshness_for_date(target_date):
         return "pm"   # past month
 
 
+def build_email_html(stories_json, date_str, date_formatted):
+    """Build an HTML email with headlines, teasers, and deep links."""
+    # Group stories by category in display order
+    groups = {}
+    for story in stories_json:
+        cat = story.get("category", "other")
+        if cat not in CATEGORY_LABELS:
+            cat = "other"
+        if cat not in groups:
+            groups[cat] = []
+        groups[cat].append(story)
+
+    # Build a global index matching the site's rendering order
+    story_index = 0
+    sections_html = ""
+
+    for cat in CATEGORY_ORDER:
+        if cat not in groups or not groups[cat]:
+            continue
+        label = CATEGORY_LABELS[cat]
+        sections_html += f'''
+        <tr><td style="padding: 20px 0 8px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 13px; font-weight: 700; letter-spacing: 2px; color: #444; text-transform: uppercase; border-bottom: 1px solid #ddd;">{label}</td></tr>
+'''
+        for story in groups[cat]:
+            headline = story.get("headline", "")
+            summary = story.get("summary", "")
+            source = story.get("source", "")
+            # Get first sentence of first paragraph as teaser
+            first_para = summary.split("\n\n")[0] if summary else ""
+            sentences = re.split(r'(?<=[.!?])\s+', first_para)
+            teaser = sentences[0] if sentences else first_para[:150]
+            if len(teaser) > 200:
+                teaser = teaser[:197] + "..."
+
+            deep_link = f"{SITE_URL}/#story-{date_str}-{story_index}"
+
+            sections_html += f'''
+        <tr><td style="padding: 14px 0 2px 0;">
+            <a href="{deep_link}" style="font-family: Georgia, 'Times New Roman', serif; font-size: 17px; color: #1a3a6a; text-decoration: none; line-height: 1.4;">{headline}</a>
+        </td></tr>
+        <tr><td style="padding: 0 0 6px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #555; line-height: 1.5;">
+            {teaser} <span style="font-size: 12px; color: #888; font-style: italic;">-- {source}</span>
+        </td></tr>
+'''
+            story_index += 1
+
+    html = f'''<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
+<body style="margin: 0; padding: 0; background-color: #f5f0e8;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f0e8;">
+<tr><td align="center" style="padding: 20px 16px;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px;">
+    <tr><td style="text-align: center; padding: 24px 0 20px 0; border-bottom: 3px double #1a1a1a;">
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 28px; font-weight: 700; letter-spacing: 3px; color: #1a1a1a;">303 NEWS</div>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 13px; font-style: italic; color: #666; margin-top: 4px;">{date_formatted}</div>
+    </td></tr>
+{sections_html}
+    <tr><td style="padding: 28px 0 16px 0; text-align: center; border-top: 1px solid #ccc;">
+        <a href="{SITE_URL}" style="font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #1a3a6a; text-decoration: none;">Read full summaries at 303news.org</a>
+    </td></tr>
+    <tr><td style="text-align: center; padding: 0 0 20px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 11px; color: #999; font-style: italic;">
+        No ads and no BS, just clean daily news.
+    </td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>'''
+    return html
+
+
+def send_email(stories_json, date_str, date_formatted):
+    """Send the daily digest email via Buttondown API."""
+    buttondown_key = os.environ.get("BUTTONDOWN_API_KEY")
+    if not buttondown_key:
+        print("  BUTTONDOWN_API_KEY not set. Skipping email.")
+        return
+
+    email_html = build_email_html(stories_json, date_str, date_formatted)
+    subject = f"303 News -- {date_formatted}"
+
+    print(f"\n--- Sending Email ---")
+    print(f"  Subject: {subject}")
+
+    try:
+        resp = requests.post(
+            "https://api.buttondown.com/v1/emails",
+            headers={
+                "Authorization": f"Token {buttondown_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "subject": subject,
+                "body": email_html,
+                "status": "about_to_send",
+            },
+            timeout=30,
+        )
+        if resp.status_code in (200, 201):
+            print("  Email sent successfully.")
+        else:
+            print(f"  Email send failed ({resp.status_code}): {resp.text[:200]}")
+    except Exception as e:
+        print(f"  Email send error: {e}")
+
+
 def main():
     args = parse_args()
 
@@ -661,6 +779,13 @@ def main():
     # Step 5: Write output
     print("\n[Step 5] Writing JSON output...")
     filepath = write_output(summaries, target_date_str, target_formatted)
+
+    # Step 6: Send email (skip for backfill unless forced)
+    if not args.date:
+        print("\n[Step 6] Sending newsletter email...")
+        send_email(summaries, target_date_str, target_formatted)
+    else:
+        print("\n[Step 6] Skipping email (backfill mode).")
 
     print("\nDone!")
     return filepath
