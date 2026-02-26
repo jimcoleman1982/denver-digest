@@ -1,0 +1,52 @@
+name: Daily Denver Digest
+
+on:
+  schedule:
+    # Two cron schedules for DST-aware 7:00 AM Denver local time:
+    # 13:00 UTC = 7 AM MDT (March-November)
+    # 14:00 UTC = 7 AM MST (November-March)
+    # The Python script checks Denver local time and skips if too early,
+    # so only the correct schedule produces output on any given day.
+    - cron: '0 13 * * *'
+    - cron: '0 14 * * *'
+  workflow_dispatch: # Manual trigger from GitHub UI
+
+permissions:
+  contents: write  # Needed to commit and push JSON data files
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate today's digest
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          BRAVE_SEARCH_API_KEY: ${{ secrets.BRAVE_SEARCH_API_KEY }}
+        run: python scripts/generate_digest.py
+
+      - name: Prune old data files (keep 14 days)
+        run: |
+          cd site/data
+          ls -1 *.json 2>/dev/null | sort | head -n -14 | xargs -r rm -f
+
+      - name: Commit and push
+        run: |
+          git config user.name "Denver Digest Bot"
+          git config user.email "digest-bot@users.noreply.github.com"
+          git add site/data/
+          git diff --cached --quiet && echo "No new data" && exit 0
+          git commit -m "Add digest for $(date +%Y-%m-%d)"
+          git push
