@@ -305,6 +305,13 @@
             font-style: italic;
         }
 
+        /* --- Mobile text bump (under 600px) --- */
+        @media (max-width: 599px) {
+            body {
+                font-size: 18px;
+            }
+        }
+
         /* --- Small mobile tweaks (under 400px) --- */
         @media (max-width: 399px) {
             .site-title {
@@ -344,7 +351,7 @@
 <body>
     <div class="container">
         <header class="site-header">
-            <h1 class="site-title">303 NEWS</h1>
+            <h1 class="site-title"><span style="color:#8b1a1a">303</span> NEWS</h1>
             <p class="site-subtitle">Denver Metro Area -- Local News Digest</p>
         </header>
 
