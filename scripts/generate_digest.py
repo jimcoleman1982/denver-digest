@@ -386,6 +386,61 @@ def deduplicate_and_rank(results):
     return top_stories
 
 
+def load_recent_headlines(target_date_str, days_back=3):
+    """Load headlines from previous days' JSON files for cross-day dedup."""
+    target = datetime.date.fromisoformat(target_date_str)
+    previous_headlines = []
+    for i in range(1, days_back + 1):
+        prev_date = target - datetime.timedelta(days=i)
+        prev_file = os.path.join(OUTPUT_DIR, f"{prev_date.isoformat()}.json")
+        if os.path.exists(prev_file):
+            try:
+                with open(prev_file) as f:
+                    data = json.load(f)
+                for story in data.get("stories", []):
+                    previous_headlines.append(story.get("headline", "").lower())
+            except (json.JSONDecodeError, KeyError):
+                continue
+    return previous_headlines
+
+
+def filter_cross_day_duplicates(candidates, target_date_str):
+    """Remove candidates whose headlines are too similar to recent days' stories."""
+    previous_headlines = load_recent_headlines(target_date_str)
+    if not previous_headlines:
+        print("  No previous days' data found -- skipping cross-day dedup")
+        return candidates
+
+    print(f"  Checking against {len(previous_headlines)} headlines from previous days")
+    kept = []
+    removed = 0
+    for candidate in candidates:
+        title_lower = candidate["title"].lower()
+        is_duplicate = False
+        for prev_headline in previous_headlines:
+            similarity = SequenceMatcher(None, title_lower, prev_headline).ratio()
+            if similarity > 0.55:
+                is_duplicate = True
+                print(f"  Cross-day dup removed: '{candidate['title'][:60]}...'")
+                break
+            # Also check keyword overlap
+            candidate_words = extract_significant_words(title_lower)
+            prev_words = extract_significant_words(prev_headline)
+            shared = candidate_words & prev_words
+            if len(shared) >= 4:
+                is_duplicate = True
+                print(f"  Cross-day dup removed (keywords): '{candidate['title'][:60]}...'")
+                break
+        if is_duplicate:
+            removed += 1
+        else:
+            kept.append(candidate)
+
+    if removed > 0:
+        print(f"  Removed {removed} cross-day duplicates, {len(kept)} candidates remain")
+    return kept
+
+
 def fetch_article_text(url):
     """Fetch and extract article body text from a URL."""
     if any(s in url for s in UNRELIABLE_SOURCES):
@@ -621,7 +676,7 @@ def build_email_html(stories_json, date_str, date_formatted):
             continue
         label = CATEGORY_LABELS[cat]
         sections_html += f'''
-        <tr><td style="padding: 20px 0 8px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 13px; font-weight: 700; letter-spacing: 2px; color: #444; text-transform: uppercase; border-bottom: 1px solid #ddd;">{label}</td></tr>
+        <tr><td style="padding: 20px 0 8px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; font-weight: 700; letter-spacing: 2px; color: #444; text-transform: uppercase; border-bottom: 1px solid #ddd;">{label}</td></tr>
 '''
         for story in groups[cat]:
             headline = story.get("headline", "")
@@ -638,10 +693,10 @@ def build_email_html(stories_json, date_str, date_formatted):
 
             sections_html += f'''
         <tr><td style="padding: 14px 0 2px 0;">
-            <a href="{deep_link}" style="font-family: Georgia, 'Times New Roman', serif; font-size: 17px; color: #1a3a6a; text-decoration: none; line-height: 1.4;">{headline}</a>
+            <a href="{deep_link}" style="font-family: Georgia, 'Times New Roman', serif; font-size: 18px; color: #1a3a6a; text-decoration: none; line-height: 1.4;">{headline}</a>
         </td></tr>
-        <tr><td style="padding: 0 0 6px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #555; line-height: 1.5;">
-            {teaser} <span style="font-size: 12px; color: #888; font-style: italic;">-- {source}</span>
+        <tr><td style="padding: 0 0 8px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 15px; color: #555; line-height: 1.5;">
+            {teaser} <span style="font-size: 13px; color: #888; font-style: italic;">-- {source}</span>
         </td></tr>
 '''
             story_index += 1
@@ -651,17 +706,17 @@ def build_email_html(stories_json, date_str, date_formatted):
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
 <body style="margin: 0; padding: 0; background-color: #f5f0e8;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f0e8;">
-<tr><td align="center" style="padding: 20px 16px;">
-<table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px;">
+<tr><td align="center" style="padding: 12px 8px;">
+<table width="100%" cellpadding="0" cellspacing="0" style="max-width: 720px;">
     <tr><td style="text-align: center; padding: 24px 0 20px 0; border-bottom: 3px double #1a1a1a;">
-        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 28px; font-weight: 700; letter-spacing: 3px; color: #1a1a1a;">303 NEWS</div>
-        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 13px; font-style: italic; color: #666; margin-top: 4px;">{date_formatted}</div>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 32px; font-weight: 700; letter-spacing: 3px;"><span style="color: #8b1a1a;">303</span> <span style="color: #1a1a1a;">NEWS</span></div>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 14px; font-style: italic; color: #666; margin-top: 4px;">{date_formatted}</div>
     </td></tr>
 {sections_html}
     <tr><td style="padding: 28px 0 16px 0; text-align: center; border-top: 1px solid #ccc;">
-        <a href="{SITE_URL}" style="font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #1a3a6a; text-decoration: none;">Read full summaries at 303news.org</a>
+        <a href="{SITE_URL}" style="font-family: Georgia, 'Times New Roman', serif; font-size: 15px; color: #1a3a6a; text-decoration: none;">Read full summaries at 303news.org</a>
     </td></tr>
-    <tr><td style="text-align: center; padding: 0 0 20px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 11px; color: #999; font-style: italic;">
+    <tr><td style="text-align: center; padding: 0 0 20px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 12px; color: #999; font-style: italic;">
         No ads and no BS, just clean daily news.
     </td></tr>
 </table>
@@ -766,6 +821,13 @@ def main():
     top_stories = deduplicate_and_rank(raw_results)
     if not top_stories:
         print("ERROR: No stories after dedup")
+        sys.exit(1)
+
+    # Step 2b: Remove stories that appeared in previous days
+    print("\n[Step 2b] Filtering cross-day duplicates...")
+    top_stories = filter_cross_day_duplicates(top_stories, target_date_str)
+    if not top_stories:
+        print("ERROR: No stories after cross-day dedup")
         sys.exit(1)
 
     # Step 3: Fetch article content
