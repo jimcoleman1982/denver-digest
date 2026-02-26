@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-Denver Daily Digest — News gathering and summarization script.
+303 News -- News gathering and summarization script.
 
 Gathers Denver metro news via Brave Search API, fetches article content,
-sends to Anthropic API (Claude Sonnet 4.6) for summarization, and writes
-a dated JSON file for the static site.
+sends to Anthropic API (Claude Sonnet 4.6) for curation and summarization,
+and writes a dated JSON file for the static site.
 """
 
+import argparse
 import datetime
 import json
 import os
@@ -22,32 +23,44 @@ from bs4 import BeautifulSoup
 
 # --- Configuration ---
 DENVER_TZ = ZoneInfo("America/Denver")
-MAX_ARTICLES = 10
-ARTICLE_TEXT_LIMIT = 3000  # chars per article (increased for better summaries)
-ANTHROPIC_MAX_TOKENS = 8000  # hard cap on output tokens
+MAX_CANDIDATES = 25  # gather this many before curation
+MAX_ARTICLES = 12    # final output after Claude curation
+ARTICLE_TEXT_LIMIT = 3000  # chars per article
+ANTHROPIC_MAX_TOKENS = 10000  # hard cap on output tokens
 ANTHROPIC_MODEL = "claude-sonnet-4-6"
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "site", "data")
 
 # --- Budget Safety Limits ---
-MAX_BRAVE_QUERIES_PER_RUN = 15  # hard cap on search API calls per run
+MAX_BRAVE_QUERIES_PER_RUN = 20  # hard cap on search API calls per run
 MAX_ANTHROPIC_CALLS_PER_RUN = 2  # 1 primary + 1 retry max
 brave_query_count = 0
 anthropic_call_count = 0
 
-# Brave Search queries
+# Brave Search queries -- covers all categories including sports
 SEARCH_QUERIES = [
-    "Denver crime news today",
-    "Denver shooting arrest",
-    "Denver business economy news today",
-    "Denver politics government Colorado legislature",
+    # General / Metro
+    "Denver metro news today",
     "Denver wildfire fire today",
     "Denver traffic accident major incident",
     "Denver development housing construction",
+    # Crime
+    "Denver crime news today",
+    "Denver shooting arrest",
     "Denver metro area police",
+    # Business
+    "Denver business economy news today",
+    "Denver Business Journal news",
+    # Politics
+    "Denver politics government Colorado legislature",
+    "Colorado governor Polis legislation",
+    # Sports
+    "Denver Broncos NFL news",
+    "Denver Nuggets NBA news",
+    "Colorado Avalanche NHL news",
+    # Site-specific
     "site:denverpost.com Denver news",
     "site:denvergazette.com Denver news",
     "site:coloradosun.com Colorado news",
-    "site:9news.com Denver news",
 ]
 
 # Preferred sources for article fetching (most reliable HTML)
@@ -56,22 +69,22 @@ PREFERRED_SOURCES = [
     "denvergazette.com",
     "coloradosun.com",
     "cpr.org",
+    "bizjournals.com",
 ]
 
 # Sources that often block or require JS
 UNRELIABLE_SOURCES = [
-    "kdvr.com",
     "foxnews.com",
     "facebook.com",
     "twitter.com",
     "x.com",
     "youtube.com",
     "reddit.com",
+    "tiktok.com",
+    "instagram.com",
 ]
 
 # --- Denver/Colorado Geographic Relevance ---
-# Stories must mention at least one of these terms to be included.
-# Comprehensive list of Denver metro cities, counties, landmarks, and Colorado terms.
 DENVER_METRO_KEYWORDS = [
     # Denver and major suburbs
     "denver", "aurora", "lakewood", "westminster", "thornton", "arvada",
@@ -96,7 +109,7 @@ DENVER_METRO_KEYWORDS = [
     "fort collins", "loveland", "berthoud", "estes park",
     # Colorado Springs / south
     "colorado springs", "monument", "pueblo", "fountain",
-    # Denver neighborhoods often mentioned by name
+    # Denver neighborhoods
     "lodo", "rino", "five points", "capitol hill", "central park",
     "stapleton", "park hill", "cherry creek", "montbello",
     "green valley ranch", "globeville", "elyria", "swansea",
@@ -114,12 +127,29 @@ DENVER_METRO_KEYWORDS = [
     "dia", "denver international", "coors field", "empower field",
     "ball arena", "red rocks", "rocky mountain", "mile high",
     "16th street mall", "union station",
+    # Sports teams (always Denver-relevant)
+    "broncos", "nuggets", "avalanche", "colorado rockies", "rapids",
 ]
 
 # Request headers
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (compatible; DenverDigestBot/1.0)"
+    "User-Agent": "Mozilla/5.0 (compatible; 303NewsBot/1.0)"
 }
+
+
+def parse_args():
+    """Parse command line arguments for backfill support."""
+    parser = argparse.ArgumentParser(description="303 News digest generator")
+    parser.add_argument(
+        "--date",
+        help="Generate digest for a specific date (YYYY-MM-DD). Used for backfill.",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Overwrite existing digest file for the target date.",
+    )
+    return parser.parse_args()
 
 
 def check_denver_time():
@@ -130,12 +160,11 @@ def check_denver_time():
         sys.exit(0)
 
 
-def check_already_generated():
-    """Exit if today's digest file already exists."""
-    today = datetime.datetime.now(DENVER_TZ).strftime("%Y-%m-%d")
-    filepath = os.path.join(OUTPUT_DIR, f"{today}.json")
+def check_already_generated(date_str):
+    """Exit if the digest file already exists for the given date."""
+    filepath = os.path.join(OUTPUT_DIR, f"{date_str}.json")
     if os.path.exists(filepath):
-        print(f"Today's digest ({today}.json) already exists. Skipping.")
+        print(f"Digest for {date_str} already exists. Skipping. (Use --force to overwrite)")
         sys.exit(0)
 
 
@@ -164,7 +193,7 @@ def extract_significant_words(text):
     return set(w for w in words if len(w) >= 3 and w not in stop_words)
 
 
-def brave_search(query, api_key, count=10):
+def brave_search(query, api_key, count=10, freshness="pd"):
     """Run a single Brave Search API query. Returns list of result dicts."""
     global brave_query_count
     brave_query_count += 1
@@ -176,7 +205,7 @@ def brave_search(query, api_key, count=10):
     params = {
         "q": query,
         "count": count,
-        "freshness": "pd",  # past day
+        "freshness": freshness,
     }
     headers = {
         "Accept": "application/json",
@@ -213,6 +242,11 @@ def extract_source_name(url):
         "denver7.com": "Denver7",
         "cbsnews.com": "CBS News Colorado",
         "denverite.com": "Denverite",
+        "bizjournals.com": "Denver Business Journal",
+        "espn.com": "ESPN",
+        "theathletic.com": "The Athletic",
+        "nytimes.com": "New York Times",
+        "apnews.com": "Associated Press",
     }
     for domain, name in source_map.items():
         if domain in url:
@@ -226,12 +260,12 @@ def extract_source_name(url):
         return "Unknown"
 
 
-def gather_search_results(api_key):
+def gather_search_results(api_key, freshness="pd"):
     """Run all search queries and collect results."""
     all_results = []
     for query in SEARCH_QUERIES:
         print(f"  Searching: {query}")
-        results = brave_search(query, api_key)
+        results = brave_search(query, api_key, freshness=freshness)
         all_results.extend(results)
         time.sleep(0.3)  # be polite to the API
     print(f"  Total raw results: {len(all_results)}")
@@ -242,7 +276,7 @@ def deduplicate_and_rank(results):
     """
     Group similar results by headline similarity and keyword overlap.
     Filter out non-Denver stories. Rank by source coverage.
-    Return top MAX_ARTICLES stories.
+    Return top MAX_CANDIDATES stories for Claude to curate.
     """
     # Filter out unreliable sources
     filtered = [r for r in results if not any(s in r["url"] for s in UNRELIABLE_SOURCES)]
@@ -289,16 +323,13 @@ def deduplicate_and_rank(results):
         groups.append(group)
 
     # --- Pass 2: Merge groups that share the same event (keyword overlap) ---
-    # Extract significant words for each group's representative headline
     group_keywords = []
     for group in groups:
-        # Combine all headlines in the group for keyword extraction
         all_titles = " ".join(r["title"] for r in group)
         keywords = extract_significant_words(all_titles)
         group_keywords.append(keywords)
 
-    # Merge groups that share 3+ significant words
-    merged = [True] * len(groups)  # track which groups are still active
+    merged = [True] * len(groups)
     for i in range(len(groups)):
         if not merged[i]:
             continue
@@ -307,23 +338,20 @@ def deduplicate_and_rank(results):
                 continue
             shared = group_keywords[i] & group_keywords[j]
             if len(shared) >= 3:
-                # Merge group j into group i
                 groups[i].extend(groups[j])
                 group_keywords[i] = group_keywords[i] | group_keywords[j]
                 merged[j] = False
                 print(f"  Merged duplicate stories: '{groups[j][0]['title'][:60]}...' into existing group")
 
-    # Keep only active groups
     active_groups = [g for g, m in zip(groups, merged) if m]
 
     # Score each group by number of unique sources
     scored = []
     for group in active_groups:
         sources = set(r["source"] for r in group)
-        # Prefer groups from preferred sources
         preferred_count = sum(
             1 for s in sources
-            if any(p in s.lower() for p in ["denver post", "colorado sun", "gazette", "cpr"])
+            if any(p in s.lower() for p in ["denver post", "colorado sun", "gazette", "cpr", "business journal"])
         )
         score = len(sources) * 2 + preferred_count
         # Pick the best representative (prefer preferred sources)
@@ -334,23 +362,21 @@ def deduplicate_and_rank(results):
                 break
         scored.append((score, best, group))
 
-    # Sort by score descending, take top MAX_ARTICLES
+    # Sort by score descending, take top MAX_CANDIDATES
     scored.sort(key=lambda x: x[0], reverse=True)
     top_stories = []
-    for score, best, group in scored[:MAX_ARTICLES]:
-        # Combine snippet text from all sources in the group
+    for score, best, group in scored[:MAX_CANDIDATES]:
         all_snippets = " ".join(r["snippet"] for r in group if r["snippet"])
         best["combined_snippets"] = all_snippets
         best["source_count"] = len(set(r["source"] for r in group))
         top_stories.append(best)
 
-    print(f"  Selected {len(top_stories)} stories after dedup/ranking")
+    print(f"  Selected {len(top_stories)} candidate stories after dedup/ranking")
     return top_stories
 
 
 def fetch_article_text(url):
     """Fetch and extract article body text from a URL."""
-    # Skip unreliable sources
     if any(s in url for s in UNRELIABLE_SOURCES):
         return None
 
@@ -361,11 +387,9 @@ def fetch_article_text(url):
 
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        # Remove script, style, nav, header, footer, aside elements
         for tag in soup.find_all(["script", "style", "nav", "header", "footer", "aside", "figure", "figcaption"]):
             tag.decompose()
 
-        # Try common article body selectors
         article_body = None
         selectors = [
             "article",
@@ -385,7 +409,6 @@ def fetch_article_text(url):
         if not article_body:
             article_body = soup.body if soup.body else soup
 
-        # Extract paragraph text
         paragraphs = article_body.find_all("p")
         text = "\n".join(p.get_text(strip=True) for p in paragraphs if len(p.get_text(strip=True)) > 30)
 
@@ -413,11 +436,11 @@ def fetch_articles(stories):
     return stories
 
 
-def build_prompt(stories, today_str):
-    """Build the user prompt for the Anthropic API call."""
+def build_prompt(stories, target_date_str):
+    """Build the user prompt for the Anthropic API call with curation instructions."""
     story_blocks = []
     for i, story in enumerate(stories, 1):
-        block = f"""[STORY {i}]
+        block = f"""[CANDIDATE {i}]
 Headline: {story['title']}
 Source: {story['source']}
 URL: {story['url']}
@@ -426,14 +449,21 @@ Article text: {story['article_text']}"""
 
     stories_text = "\n\n".join(story_blocks)
 
-    return f"""Today is {today_str}. Below are the top Denver metro news stories from local sources.
+    return f"""Date: {target_date_str}. Below are {len(stories)} candidate Denver metro news stories.
+
+YOUR TASK: Select the top {MAX_ARTICLES} stories and write summaries. Use editorial judgment:
+- Prioritize stories with the highest impact on Denver metro residents
+- Ensure category balance: aim for at least 1-2 stories per category (other, politics, business, crime, sports)
+- Prefer stories from credible local sources (Denver Post, Colorado Sun, Denver Gazette, CPR News, Denver Business Journal)
+- Drop stories that are trivial, clickbait, or national news with weak Denver relevance
+- If two candidates cover the same event, pick the one with better sourcing
 
 {stories_text}
 
 ---
 
-Produce a JSON array of exactly {len(stories)} stories. For each story:
-- "category": one of "crime", "business", "politics", or "other"
+Produce a JSON array of exactly {MAX_ARTICLES} stories. For each story:
+- "category": one of "crime", "business", "politics", "sports", or "other"
 - "headline": clear, factual headline
 - "summary": 3-4 paragraphs, each 2-4 sentences. Use \\n\\n between paragraphs. Cover what happened, who is involved, where, why it matters.
 - "source": publication name
@@ -442,19 +472,21 @@ Produce a JSON array of exactly {len(stories)} stories. For each story:
 Return ONLY the JSON array, no other text."""
 
 
-SYSTEM_PROMPT = """You are a news editor producing a daily digest for Denver, Colorado. For each story, write a factual, detailed summary in 3-4 paragraphs. Clean newspaper style. No editorializing, no emojis."""
+SYSTEM_PROMPT = """You are the editor-in-chief of 303 News, a daily digest for the Denver, Colorado metro area. You select and summarize the most important local stories each day. Write factual, detailed summaries in clean newspaper style. No editorializing, no emojis. Categories: crime, business, politics, sports, other."""
 
 
-def call_anthropic(stories, today_str):
-    """Send stories to Anthropic API and get summarized JSON back."""
+def call_anthropic(stories, target_date_str):
+    """Send stories to Anthropic API and get curated, summarized JSON back."""
     global anthropic_call_count
 
     client = anthropic.Anthropic()
-    user_prompt = build_prompt(stories, today_str)
+    user_prompt = build_prompt(stories, target_date_str)
 
     print(f"\n--- Anthropic API Call ---")
     print(f"  Model: {ANTHROPIC_MODEL}")
     print(f"  Max output tokens: {ANTHROPIC_MAX_TOKENS}")
+    print(f"  Candidates sent: {len(stories)}")
+    print(f"  Target output: {MAX_ARTICLES} stories")
 
     anthropic_call_count += 1
     if anthropic_call_count > MAX_ANTHROPIC_CALLS_PER_RUN:
@@ -526,16 +558,16 @@ def call_anthropic(stories, today_str):
     sys.exit(1)
 
 
-def write_output(stories_json, today_str, today_formatted):
+def write_output(stories_json, date_str, date_formatted):
     """Write the final JSON data file."""
     output = {
-        "date": today_str,
-        "dateFormatted": today_formatted,
+        "date": date_str,
+        "dateFormatted": date_formatted,
         "stories": stories_json,
     }
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-    filepath = os.path.join(OUTPUT_DIR, f"{today_str}.json")
+    filepath = os.path.join(OUTPUT_DIR, f"{date_str}.json")
 
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(output, f, indent=2, ensure_ascii=False)
@@ -544,22 +576,50 @@ def write_output(stories_json, today_str, today_formatted):
     return filepath
 
 
+def get_freshness_for_date(target_date):
+    """Determine Brave Search freshness parameter for a given date."""
+    now = datetime.datetime.now(DENVER_TZ).date()
+    delta = (now - target_date).days
+
+    if delta <= 0:
+        return "pd"   # past day (today)
+    elif delta <= 7:
+        return "pw"   # past week
+    else:
+        return "pm"   # past month
+
+
 def main():
+    args = parse_args()
+
     print("=" * 60)
-    print("Denver Daily Digest -- Generate")
+    print("303 News -- Generate Digest")
     print("=" * 60)
 
-    # Check Denver time (DST-aware)
-    check_denver_time()
+    # Determine target date
+    if args.date:
+        try:
+            target_date = datetime.date.fromisoformat(args.date)
+        except ValueError:
+            print(f"ERROR: Invalid date format '{args.date}'. Use YYYY-MM-DD.")
+            sys.exit(1)
+        target_date_str = args.date
+        target_dt = datetime.datetime(target_date.year, target_date.month, target_date.day, tzinfo=DENVER_TZ)
+        target_formatted = target_dt.strftime("%A, %B %d, %Y").replace(" 0", " ")
+        print(f"Backfill mode: generating for {target_formatted}")
+    else:
+        # Normal daily mode
+        check_denver_time()
+        now = datetime.datetime.now(DENVER_TZ)
+        target_date = now.date()
+        target_date_str = now.strftime("%Y-%m-%d")
+        target_formatted = now.strftime("%A, %B %d, %Y").replace(" 0", " ")
+        print(f"Date: {target_formatted} ({target_date_str})")
+        print(f"Denver time: {now.strftime('%H:%M %Z')}")
 
-    # Check if already generated today
-    check_already_generated()
-
-    now = datetime.datetime.now(DENVER_TZ)
-    today_str = now.strftime("%Y-%m-%d")
-    today_formatted = now.strftime("%A, %B %d, %Y").replace(" 0", " ")
-    print(f"Date: {today_formatted} ({today_str})")
-    print(f"Denver time: {now.strftime('%H:%M %Z')}")
+    # Check if already generated (skip in force mode)
+    if not args.force:
+        check_already_generated(target_date_str)
 
     # Verify API keys
     brave_key = os.environ.get("BRAVE_SEARCH_API_KEY")
@@ -572,9 +632,13 @@ def main():
         print("ERROR: ANTHROPIC_API_KEY not set")
         sys.exit(1)
 
+    # Determine search freshness based on target date
+    freshness = get_freshness_for_date(target_date)
+    print(f"Search freshness: {freshness}")
+
     # Step 1: Search
     print("\n[Step 1] Searching for Denver news...")
-    raw_results = gather_search_results(brave_key)
+    raw_results = gather_search_results(brave_key, freshness=freshness)
     if not raw_results:
         print("ERROR: No search results found")
         sys.exit(1)
@@ -590,13 +654,13 @@ def main():
     print("\n[Step 3] Fetching article content...")
     stories_with_text = fetch_articles(top_stories)
 
-    # Step 4: Summarize via Anthropic
-    print("\n[Step 4] Sending to Anthropic API for summarization...")
-    summaries = call_anthropic(stories_with_text, today_str)
+    # Step 4: Curate and summarize via Anthropic
+    print(f"\n[Step 4] Sending {len(stories_with_text)} candidates to Anthropic for curation...")
+    summaries = call_anthropic(stories_with_text, target_date_str)
 
     # Step 5: Write output
     print("\n[Step 5] Writing JSON output...")
-    filepath = write_output(summaries, today_str, today_formatted)
+    filepath = write_output(summaries, target_date_str, target_formatted)
 
     print("\nDone!")
     return filepath

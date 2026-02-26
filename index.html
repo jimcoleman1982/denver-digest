@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Denver Daily Digest</title>
+    <title>303 News</title>
     <style>
         *, *::before, *::after {
             box-sizing: border-box;
@@ -269,8 +269,8 @@
 <body>
     <div class="container">
         <header class="site-header">
-            <h1 class="site-title">DENVER DAILY DIGEST</h1>
-            <p class="site-subtitle">Denver Metro Area -- Local News Summary</p>
+            <h1 class="site-title">303 NEWS</h1>
+            <p class="site-subtitle">Denver Metro Area -- Local News Digest</p>
         </header>
 
         <main id="digest-content">
@@ -278,7 +278,7 @@
         </main>
 
         <footer class="site-footer">
-            Denver Daily Digest -- Updated daily at 7:00 AM MT
+            303 News -- Updated daily at 7:00 AM MT
         </footer>
     </div>
 
@@ -286,12 +286,13 @@
         (function() {
             'use strict';
 
-            var CATEGORY_ORDER = ['crime', 'business', 'politics', 'other'];
+            var CATEGORY_ORDER = ['other', 'politics', 'business', 'crime', 'sports'];
             var CATEGORY_LABELS = {
-                crime: 'CRIME & PUBLIC SAFETY',
-                business: 'BUSINESS & ECONOMY',
+                other: 'GENERAL / METRO NEWS',
                 politics: 'POLITICS & GOVERNMENT',
-                other: 'GENERAL / METRO NEWS'
+                business: 'BUSINESS & ECONOMY',
+                crime: 'CRIME & PUBLIC SAFETY',
+                sports: 'SPORTS'
             };
 
             function getLastNDates(n) {
