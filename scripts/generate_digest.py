@@ -42,7 +42,7 @@ CATEGORY_LABELS = {
 }
 
 # --- Budget Safety Limits ---
-MAX_BRAVE_QUERIES_PER_RUN = 40  # hard cap on search API calls per run
+MAX_BRAVE_QUERIES_PER_RUN = 50  # hard cap on search API calls per run
 MAX_ANTHROPIC_CALLS_PER_RUN = 5  # news + weather + events (Fri) + retries
 brave_query_count = 0
 anthropic_call_count = 0
@@ -134,6 +134,13 @@ WEEKEND_EVENT_QUERIES = [
     "Denver weekend activities",
     "Denver concerts shows this weekend",
     "Denver festivals markets this weekend",
+    "Denver comedy shows this weekend",
+    "Denver sports events this weekend",
+    "Denver family events kids this weekend",
+    "Denver art gallery museum opening this weekend",
+    "site:westword.com Denver events this weekend",
+    "site:303magazine.com Denver events this weekend",
+    "site:denver.org things to do this weekend",
 ]
 
 EVENTS_SYSTEM_PROMPT = """You are the events editor for 303 News, a Denver metro daily digest. You curate weekend event picks for Denver metro residents. Be factual and helpful. No editorializing, no emojis."""
@@ -755,9 +762,11 @@ def fetch_weekend_events(brave_key, target_date_str, freshness):
 
     print("  Searching for Denver weekend events...")
     all_results = []
+    # Use past-week freshness for events (listings published days in advance)
+    events_freshness = "pw"
     for query in WEEKEND_EVENT_QUERIES:
         print(f"    Searching: {query}")
-        results = brave_search(query, brave_key, count=10, freshness=freshness)
+        results = brave_search(query, brave_key, count=10, freshness=events_freshness)
         all_results.extend(results)
         time.sleep(0.3)
 
@@ -776,8 +785,9 @@ def fetch_weekend_events(brave_key, target_date_str, freshness):
 
     print(f"  {len(unique)} unique event results")
 
-    # Fetch article text for top results (limit to 10)
-    for r in unique[:10]:
+    # Fetch article text for top results (limit to 20 for broader coverage)
+    fetch_limit = min(20, len(unique))
+    for r in unique[:fetch_limit]:
         text = fetch_article_text(r["url"])
         if text:
             r["article_text"] = text
@@ -785,7 +795,7 @@ def fetch_weekend_events(brave_key, target_date_str, freshness):
             r["article_text"] = r.get("snippet", "")
 
     # Send to Claude for curation
-    events = curate_weekend_events(unique[:10], target_date_str)
+    events = curate_weekend_events(unique[:fetch_limit], target_date_str)
 
     # Post-processing: validate event dates fall within Fri-Sun window
     if events:
@@ -827,7 +837,7 @@ Text: {r.get('article_text', r.get('snippet', ''))}"""
 
 IMPORTANT: ONLY include events happening on one of these three specific dates above. Do NOT include events from other weekends, future months, or recurring listings without a confirmed date this weekend.
 
-Below are {len(results)} search results about Denver weekend events and activities. Extract and curate the best 5-8 specific events happening THIS weekend in the Denver metro area.
+Below are {len(results)} search results about Denver weekend events and activities. Extract and curate the best 8-12 specific events happening THIS weekend in the Denver metro area. Aim for variety: mix concerts, comedy, sports, family-friendly, outdoor, food/drink, and cultural events.
 
 {events_text}
 
@@ -841,13 +851,13 @@ For each event, produce a JSON object with:
 - "location": venue and city
 - "url": link to event info or ticket page
 
-Return ONLY a JSON array. If you cannot find at least 3 specific events with real details for this weekend, return an empty array []."""
+Return ONLY a JSON array. If you cannot find at least 5 specific events with real details for this weekend, return an empty array []."""
 
     client = anthropic.Anthropic()
     try:
         response = client.messages.create(
             model=ANTHROPIC_MODEL,
-            max_tokens=2000,
+            max_tokens=3000,
             system=EVENTS_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": user_prompt}],
         )
@@ -1179,6 +1189,7 @@ def build_email_html(stories_json, date_str, date_formatted, comic=None, weather
         <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #888; text-transform: uppercase; margin-bottom: 8px;">TODAY'S WEATHER</div>
         <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 15px; color: #333; line-height: 1.6;">{weather["forecast"]}</div>
         <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 13px; color: #888; margin-top: 6px; font-style: italic;">High {weather["high"]}&deg;F / Low {weather["low"]}&deg;F &middot; {weather["conditions"]}</div>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 11px; color: #aaa; margin-top: 8px; font-style: italic;">Today's weather delivered by Comedy-ologist, Nate Bargatze</div>
     </td></tr>
 '''
 

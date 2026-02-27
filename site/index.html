@@ -200,6 +200,13 @@
             color: #333;
         }
 
+        .weather-credit {
+            font-size: 0.75em;
+            color: #aaa;
+            font-style: italic;
+            margin-top: 8px;
+        }
+
         /* --- Weekend Events section --- */
         .events-section {
             border-top: 3px solid #c9a959;
@@ -217,7 +224,7 @@
         }
 
         .event-item {
-            padding: 12px 0;
+            padding: 6px 0;
             border-bottom: 1px dotted #ccc;
         }
 
@@ -225,36 +232,82 @@
             border-bottom: none;
         }
 
+        .event-headline {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            padding: 10px 0;
+            cursor: pointer;
+            min-height: 44px;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .event-headline:hover .event-title {
+            color: #8b1a1a;
+        }
+
+        .event-arrow {
+            font-size: 0.65em;
+            color: #999;
+            transition: transform 0.2s ease;
+            flex-shrink: 0;
+            margin-top: 4px;
+            width: 12px;
+            text-align: center;
+        }
+
+        .event-item.open > .event-headline .event-arrow {
+            transform: rotate(90deg);
+        }
+
         .event-title {
             font-size: 1.05em;
             font-weight: 700;
             color: #1a3a6a;
             line-height: 1.4;
+            transition: color 0.15s ease;
         }
 
-        .event-title a {
-            color: #1a3a6a;
-            text-decoration: none;
-            border-bottom: 1px dotted #1a3a6a;
+        .event-body {
+            display: none;
+            padding: 8px 0 12px 20px;
+            border-left: 2px solid #c9a959;
+            margin-left: 6px;
+            margin-bottom: 6px;
         }
 
-        .event-title a:hover {
-            color: #8b1a1a;
-            border-bottom-color: #8b1a1a;
+        .event-item.open > .event-body {
+            display: block;
         }
 
         .event-meta {
             font-size: 0.88em;
             color: #666;
-            margin-top: 4px;
             font-style: italic;
+            margin-bottom: 6px;
         }
 
         .event-description {
             font-size: 0.95em;
             color: #333;
-            margin-top: 6px;
             line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .event-link {
+            font-size: 0.88em;
+        }
+
+        .event-link a {
+            color: #1a3a6a;
+            text-decoration: none;
+            border-bottom: 1px dotted #1a3a6a;
+        }
+
+        .event-link a:hover {
+            color: #8b1a1a;
+            border-bottom-color: #8b1a1a;
         }
 
         /* --- Empty state --- */
@@ -654,6 +707,11 @@
                 forecast.textContent = weather.forecast;
                 div.appendChild(forecast);
 
+                var credit = document.createElement('div');
+                credit.className = 'weather-credit';
+                credit.textContent = "Today's weather delivered by Comedy-ologist, Nate Bargatze";
+                div.appendChild(credit);
+
                 return div;
             }
 
@@ -672,16 +730,21 @@
                     var item = document.createElement('div');
                     item.className = 'event-item';
 
-                    var title = document.createElement('div');
-                    title.className = 'event-title';
-                    if (evt.url) {
-                        title.innerHTML = '<a href="' + escapeHTML(evt.url) +
-                            '" target="_blank" rel="noopener noreferrer">' +
-                            escapeHTML(evt.title) + '</a>';
-                    } else {
-                        title.textContent = evt.title;
-                    }
-                    item.appendChild(title);
+                    // Clickable headline row (arrow + title)
+                    var headline = document.createElement('div');
+                    headline.className = 'event-headline';
+                    headline.innerHTML = '<span class="event-arrow">&#9656;</span>' +
+                        '<span class="event-title">' + escapeHTML(evt.title) + '</span>';
+
+                    headline.addEventListener('click', (function(el) {
+                        return function() { el.classList.toggle('open'); };
+                    })(item));
+
+                    item.appendChild(headline);
+
+                    // Expandable body (meta, description, link)
+                    var body = document.createElement('div');
+                    body.className = 'event-body';
 
                     var metaParts = [];
                     if (evt.date) metaParts.push(evt.date);
@@ -691,16 +754,25 @@
                         var meta = document.createElement('div');
                         meta.className = 'event-meta';
                         meta.textContent = metaParts.join(' // ');
-                        item.appendChild(meta);
+                        body.appendChild(meta);
                     }
 
                     if (evt.description) {
                         var desc = document.createElement('div');
                         desc.className = 'event-description';
                         desc.textContent = evt.description;
-                        item.appendChild(desc);
+                        body.appendChild(desc);
                     }
 
+                    if (evt.url) {
+                        var linkDiv = document.createElement('div');
+                        linkDiv.className = 'event-link';
+                        linkDiv.innerHTML = '<a href="' + escapeHTML(evt.url) +
+                            '" target="_blank" rel="noopener noreferrer">More info &rarr;</a>';
+                        body.appendChild(linkDiv);
+                    }
+
+                    item.appendChild(body);
                     div.appendChild(item);
                 }
 
