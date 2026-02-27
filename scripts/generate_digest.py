@@ -185,6 +185,42 @@ def is_denver_relevant(title, snippet):
     return any(keyword in text for keyword in DENVER_METRO_KEYWORDS)
 
 
+def extract_publish_date_from_url(url):
+    """Extract publish date from URL path patterns like /2026/02/20/ or /2026-02-20."""
+    m = re.search(r'/(\d{4})/(\d{2})/(\d{2})/', url)
+    if m:
+        try:
+            return datetime.date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        except ValueError:
+            pass
+    m = re.search(r'/(\d{4})-(\d{2})-(\d{2})/', url)
+    if m:
+        try:
+            return datetime.date(int(m.group(1)), int(m.group(2)), int(m.group(3)))
+        except ValueError:
+            pass
+    return None
+
+
+def filter_by_publish_date(candidates, target_date_str, max_delta_days=1):
+    """Remove candidates whose URL-embedded publish date is too far from the target date."""
+    target = datetime.date.fromisoformat(target_date_str)
+    kept = []
+    removed = 0
+    for c in candidates:
+        pub_date = extract_publish_date_from_url(c["url"])
+        if pub_date is not None:
+            delta = abs((pub_date - target).days)
+            if delta > max_delta_days:
+                removed += 1
+                print(f"  Date filter: '{c['title'][:55]}...' (published {pub_date}, target {target_date_str})")
+                continue
+        kept.append(c)
+    if removed:
+        print(f"  Removed {removed} stories with wrong publish dates, {len(kept)} remain")
+    return kept
+
+
 def extract_significant_words(text):
     """Extract significant words from text for keyword-based dedup."""
     stop_words = {
@@ -570,6 +606,7 @@ YOUR TASK: Select the top {MAX_ARTICLES} stories and write summaries. Use editor
 - Drop stories that are trivial, clickbait, or national news with weak Denver relevance
 - If two candidates cover the same event, pick the one with better sourcing
 - CRITICAL: Do NOT include stories that were already covered on previous days (see list below)
+- EXCEPTION: If a previously covered story has a genuinely new development (arrest, verdict, policy change, new damage estimate, etc.), you may include it BUT you MUST prefix the headline with "Update: " (e.g., "Update: Suspect in Denver shooting arraigned on first-degree murder charge")
 {dedup_block}
 
 {stories_text}
@@ -880,8 +917,12 @@ def main():
         print("ERROR: No stories after dedup")
         sys.exit(1)
 
-    # Step 2b: Remove stories that appeared in previous days
-    print("\n[Step 2b] Filtering cross-day duplicates...")
+    # Step 2b: Filter out articles with wrong publish dates
+    print("\n[Step 2b] Filtering by publish date...")
+    top_stories = filter_by_publish_date(top_stories, target_date_str)
+
+    # Step 2c: Remove stories that appeared in previous days
+    print("\n[Step 2c] Filtering cross-day duplicates...")
     top_stories = filter_cross_day_duplicates(top_stories, target_date_str)
     if not top_stories:
         print("ERROR: No stories after cross-day dedup")
