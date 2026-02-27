@@ -670,7 +670,7 @@
                 var results = {};
 
                 dates.forEach(function(dateStr) {
-                    fetch('data/' + dateStr + '.json')
+                    fetch('site/data/' + dateStr + '.json')
                         .then(function(resp) {
                             if (!resp.ok) throw new Error('Not found');
                             return resp.json();
