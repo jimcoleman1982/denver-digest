@@ -43,7 +43,7 @@ CATEGORY_LABELS = {
 
 # --- Budget Safety Limits ---
 MAX_BRAVE_QUERIES_PER_RUN = 40  # hard cap on search API calls per run
-MAX_ANTHROPIC_CALLS_PER_RUN = 2  # 1 primary + 1 retry max
+MAX_ANTHROPIC_CALLS_PER_RUN = 5  # news + weather + events (Fri) + retries
 brave_query_count = 0
 anthropic_call_count = 0
 
@@ -94,6 +94,49 @@ NEWS_SEARCH_QUERIES = [
     "Denver metro news",
     "Colorado Front Range news",
 ]
+
+# --- Weather Configuration ---
+OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
+OPEN_METEO_PARAMS = {
+    "latitude": 39.74,
+    "longitude": -104.98,
+    "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,weathercode",
+    "temperature_unit": "fahrenheit",
+    "timezone": "America/Denver",
+}
+
+# WMO Weather Code to human-readable conditions
+WMO_WEATHER_CODES = {
+    0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
+    45: "Fog", 48: "Depositing rime fog",
+    51: "Light drizzle", 53: "Moderate drizzle", 55: "Dense drizzle",
+    61: "Slight rain", 63: "Moderate rain", 65: "Heavy rain",
+    71: "Slight snow", 73: "Moderate snow", 75: "Heavy snow", 77: "Snow grains",
+    80: "Slight rain showers", 81: "Moderate rain showers", 82: "Violent rain showers",
+    85: "Slight snow showers", 86: "Heavy snow showers",
+    95: "Thunderstorm", 96: "Thunderstorm with slight hail", 99: "Thunderstorm with heavy hail",
+}
+
+WEATHER_SYSTEM_PROMPT = """You are a weather forecaster for Denver, Colorado who writes exactly like comedian Nate Bargatze. Your style:
+- Deadpan, almost confused by your own observations
+- Relatable everyday observations taken to absurd conclusions
+- Short sentences. Lots of pauses (use periods, not ellipses).
+- Wholesome. Never mean, never political, never sarcastic.
+- You sound like a guy who genuinely doesn't understand weather but is trying his best.
+- Reference Denver-specific things when natural (altitude, dry air, sun, mountains, etc.)
+- Do NOT mention Nate Bargatze or any comedian by name. Do NOT reference comedy or stand-up. Just write the forecast naturally in this voice.
+Write 3-5 sentences. Be funny but make sure the actual forecast information (temperatures, conditions) is accurate and included."""
+
+# --- Weekend Events Configuration (Friday only) ---
+WEEKEND_EVENT_QUERIES = [
+    "Denver events this weekend",
+    "things to do Denver this weekend",
+    "Denver weekend activities",
+    "Denver concerts shows this weekend",
+    "Denver festivals markets this weekend",
+]
+
+EVENTS_SYSTEM_PROMPT = """You are the events editor for 303 News, a Denver metro daily digest. You curate weekend event picks for Denver metro residents. Be factual and helpful. No editorializing, no emojis."""
 
 # Preferred sources for article fetching (most reliable HTML)
 PREFERRED_SOURCES = [
@@ -615,6 +658,268 @@ def fetch_comic_teaser(date_str):
         return {"url": comic_url, "teaser": "A fresh daily dose of classic Far Side humor."}
 
 
+def fetch_weather_forecast(target_date_str):
+    """Fetch Denver weather from Open-Meteo and generate Bargatze-voice forecast."""
+    # Step 1: Fetch raw forecast data from Open-Meteo (free, no key)
+    print("  Fetching Open-Meteo forecast...")
+    try:
+        resp = requests.get(OPEN_METEO_URL, params=OPEN_METEO_PARAMS, timeout=10)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        print(f"  Weather API failed: {e}")
+        return None
+
+    # Step 2: Extract today's forecast from the daily arrays
+    daily = data.get("daily", {})
+    dates = daily.get("time", [])
+    try:
+        idx = dates.index(target_date_str)
+    except ValueError:
+        print(f"  Target date {target_date_str} not found in forecast data")
+        return None
+
+    high = daily["temperature_2m_max"][idx]
+    low = daily["temperature_2m_min"][idx]
+    precip = daily.get("precipitation_sum", [0])[idx] or 0
+    wind = daily.get("windspeed_10m_max", [0])[idx] or 0
+    code = daily.get("weathercode", [0])[idx]
+    conditions = WMO_WEATHER_CODES.get(code, "Unknown")
+
+    raw_weather = {
+        "high": round(high),
+        "low": round(low),
+        "precipitation_inches": round(precip / 25.4, 2) if precip else 0,
+        "wind_mph": round(wind / 1.609, 1) if wind else 0,
+        "conditions": conditions,
+    }
+
+    print(f"  Weather: {conditions}, High {raw_weather['high']}F, Low {raw_weather['low']}F")
+
+    # Step 3: Send to Claude for Bargatze-voice treatment
+    forecast_text = generate_weather_commentary(raw_weather, target_date_str)
+
+    if not forecast_text:
+        return None
+
+    return {
+        "forecast": forecast_text,
+        "high": raw_weather["high"],
+        "low": raw_weather["low"],
+        "conditions": conditions,
+    }
+
+
+def generate_weather_commentary(raw_weather, target_date_str):
+    """Call Claude to generate Bargatze-style weather commentary."""
+    global anthropic_call_count
+    anthropic_call_count += 1
+    if anthropic_call_count > MAX_ANTHROPIC_CALLS_PER_RUN:
+        print(f"  LIMIT: Anthropic call cap reached. Skipping weather commentary.")
+        return None
+
+    client = anthropic.Anthropic()
+    user_prompt = (
+        f"Today's Denver weather forecast for {target_date_str}:\n"
+        f"High: {raw_weather['high']} degrees F\n"
+        f"Low: {raw_weather['low']} degrees F\n"
+        f"Conditions: {raw_weather['conditions']}\n"
+        f"Precipitation: {raw_weather['precipitation_inches']} inches\n"
+        f"Max wind: {raw_weather['wind_mph']} mph\n\n"
+        f"Write a short, funny weather report in the style described. "
+        f"Include the actual high and low temps. 3-5 sentences max."
+    )
+
+    try:
+        response = client.messages.create(
+            model=ANTHROPIC_MODEL,
+            max_tokens=300,
+            system=WEATHER_SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": user_prompt}],
+        )
+        text = response.content[0].text.strip()
+        usage = response.usage
+        cost = (usage.input_tokens * 3 + usage.output_tokens * 15) / 1_000_000
+        print(f"  Weather commentary: {usage.input_tokens + usage.output_tokens} tokens, ${cost:.4f}")
+        return text
+    except Exception as e:
+        print(f"  Weather commentary failed: {e}")
+        return None
+
+
+def fetch_weekend_events(brave_key, target_date_str, freshness):
+    """Search Brave for Denver weekend events and curate via Claude. Friday only."""
+    target_date = datetime.date.fromisoformat(target_date_str)
+    if target_date.weekday() != 4:  # 4 = Friday
+        return None
+
+    print("  Searching for Denver weekend events...")
+    all_results = []
+    for query in WEEKEND_EVENT_QUERIES:
+        print(f"    Searching: {query}")
+        results = brave_search(query, brave_key, count=10, freshness=freshness)
+        all_results.extend(results)
+        time.sleep(0.3)
+
+    if not all_results:
+        print("  No weekend event results found")
+        return []
+
+    # Deduplicate by URL
+    seen_urls = set()
+    unique = []
+    for r in all_results:
+        norm = r["url"].split("?")[0].rstrip("/")
+        if norm not in seen_urls:
+            seen_urls.add(norm)
+            unique.append(r)
+
+    print(f"  {len(unique)} unique event results")
+
+    # Fetch article text for top results (limit to 10)
+    for r in unique[:10]:
+        text = fetch_article_text(r["url"])
+        if text:
+            r["article_text"] = text
+        else:
+            r["article_text"] = r.get("snippet", "")
+
+    # Send to Claude for curation
+    events = curate_weekend_events(unique[:10], target_date_str)
+
+    # Post-processing: validate event dates fall within Fri-Sun window
+    if events:
+        events = validate_event_dates(events, target_date)
+
+    return events
+
+
+def curate_weekend_events(results, target_date_str):
+    """Send event search results to Claude for curation into structured event list."""
+    global anthropic_call_count
+    anthropic_call_count += 1
+    if anthropic_call_count > MAX_ANTHROPIC_CALLS_PER_RUN:
+        print(f"  LIMIT: Anthropic call cap reached. Skipping events curation.")
+        return []
+
+    target = datetime.date.fromisoformat(target_date_str)
+    fri = target
+    sat = target + datetime.timedelta(days=1)
+    sun = target + datetime.timedelta(days=2)
+    fri_str = fri.strftime("%A, %B %d").replace(" 0", " ")
+    sat_str = sat.strftime("%A, %B %d").replace(" 0", " ")
+    sun_str = sun.strftime("%A, %B %d").replace(" 0", " ")
+
+    event_blocks = []
+    for i, r in enumerate(results, 1):
+        block = f"""[SOURCE {i}]
+Title: {r['title']}
+URL: {r['url']}
+Text: {r.get('article_text', r.get('snippet', ''))}"""
+        event_blocks.append(block)
+
+    events_text = "\n\n".join(event_blocks)
+
+    user_prompt = f"""This weekend's dates:
+- {fri_str} (Friday)
+- {sat_str} (Saturday)
+- {sun_str} (Sunday)
+
+IMPORTANT: ONLY include events happening on one of these three specific dates above. Do NOT include events from other weekends, future months, or recurring listings without a confirmed date this weekend.
+
+Below are {len(results)} search results about Denver weekend events and activities. Extract and curate the best 5-8 specific events happening THIS weekend in the Denver metro area.
+
+{events_text}
+
+---
+
+For each event, produce a JSON object with:
+- "title": event name
+- "description": 1-2 sentences about what the event is
+- "date": the specific date(s) using format like "{fri_str}" or "{sat_str}-{sun_str}"
+- "time": time if known, otherwise "See venue for times"
+- "location": venue and city
+- "url": link to event info or ticket page
+
+Return ONLY a JSON array. If you cannot find at least 3 specific events with real details for this weekend, return an empty array []."""
+
+    client = anthropic.Anthropic()
+    try:
+        response = client.messages.create(
+            model=ANTHROPIC_MODEL,
+            max_tokens=2000,
+            system=EVENTS_SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": user_prompt}],
+        )
+        raw_text = response.content[0].text
+        usage = response.usage
+        cost = (usage.input_tokens * 3 + usage.output_tokens * 15) / 1_000_000
+        print(f"  Events curation: {usage.input_tokens + usage.output_tokens} tokens, ${cost:.4f}")
+
+        # Parse JSON (same pattern as call_anthropic)
+        try:
+            return json.loads(raw_text)
+        except json.JSONDecodeError:
+            pass
+        match = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", raw_text, re.DOTALL)
+        if match:
+            try:
+                return json.loads(match.group(1))
+            except json.JSONDecodeError:
+                pass
+        match = re.search(r"\[.*\]", raw_text, re.DOTALL)
+        if match:
+            try:
+                return json.loads(match.group(0))
+            except json.JSONDecodeError:
+                pass
+
+        print(f"  Failed to parse events JSON")
+        return []
+    except Exception as e:
+        print(f"  Events curation failed: {e}")
+        return []
+
+
+def validate_event_dates(events, target_friday):
+    """Remove events whose dates don't fall within the Fri-Sun weekend window."""
+    sat = target_friday + datetime.timedelta(days=1)
+    sun = target_friday + datetime.timedelta(days=2)
+
+    valid_months = set()
+    for d in [target_friday, sat, sun]:
+        valid_months.add(d.strftime("%B").lower())
+        valid_months.add(d.strftime("%b").lower())
+
+    valid_days = set()
+    for d in [target_friday, sat, sun]:
+        valid_days.add(str(d.day))
+
+    valid_day_names = {"friday", "saturday", "sunday"}
+
+    kept = []
+    for evt in events:
+        date_str = evt.get("date", "").lower()
+
+        # Check if the event date mentions valid day names or day numbers
+        has_valid_day_name = any(name in date_str for name in valid_day_names)
+        has_valid_day_number = any(
+            f" {d}" in f" {date_str}" or date_str.endswith(d)
+            for d in valid_days
+        )
+        has_valid_month = any(m in date_str for m in valid_months)
+
+        if has_valid_day_name or (has_valid_month and has_valid_day_number):
+            kept.append(evt)
+        else:
+            print(f"  Event date validation: removed '{evt.get('title', '')[:50]}' (date: '{evt.get('date', '')}')")
+
+    if len(kept) < len(events):
+        print(f"  Validated events: {len(kept)} of {len(events)} passed date check")
+
+    return kept
+
+
 def fetch_article_text(url):
     """Fetch and extract article body text from a URL."""
     if any(s in url for s in UNRELIABLE_SOURCES):
@@ -816,15 +1121,19 @@ def call_anthropic(stories, target_date_str):
     sys.exit(1)
 
 
-def write_output(stories_json, date_str, date_formatted, comic=None):
+def write_output(stories_json, date_str, date_formatted, comic=None, weather=None, weekend_events=None):
     """Write the final JSON data file."""
     output = {
         "date": date_str,
         "dateFormatted": date_formatted,
         "stories": stories_json,
     }
+    if weather:
+        output["weather"] = weather
     if comic:
         output["comic"] = comic
+    if weekend_events:
+        output["weekendEvents"] = weekend_events
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     filepath = os.path.join(OUTPUT_DIR, f"{date_str}.json")
@@ -850,7 +1159,7 @@ def get_freshness_for_date(target_date):
         return f"{start}to{end}"
 
 
-def build_email_html(stories_json, date_str, date_formatted, comic=None):
+def build_email_html(stories_json, date_str, date_formatted, comic=None, weather=None, weekend_events=None):
     """Build an HTML email with headlines, teasers, and deep links."""
     # Group stories by category in display order
     groups = {}
@@ -861,6 +1170,17 @@ def build_email_html(stories_json, date_str, date_formatted, comic=None):
         if cat not in groups:
             groups[cat] = []
         groups[cat].append(story)
+
+    # Build weather HTML (appears after header, before news)
+    weather_html = ""
+    if weather and weather.get("forecast"):
+        weather_html = f'''
+    <tr><td style="padding: 20px 16px; background-color: #eee8d5; border-left: 3px solid #c9a959;">
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #888; text-transform: uppercase; margin-bottom: 8px;">TODAY'S WEATHER</div>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 15px; color: #333; line-height: 1.6;">{weather["forecast"]}</div>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 13px; color: #888; margin-top: 6px; font-style: italic;">High {weather["high"]}&deg;F / Low {weather["low"]}&deg;F &middot; {weather["conditions"]}</div>
+    </td></tr>
+'''
 
     # Build a global index matching the site's rendering order
     story_index = 0
@@ -896,6 +1216,33 @@ def build_email_html(stories_json, date_str, date_formatted, comic=None):
 '''
             story_index += 1
 
+    # Build weekend events HTML (appears after news, before comic, Friday only)
+    events_html = ""
+    if weekend_events:
+        events_rows = ""
+        for evt in weekend_events:
+            meta_parts = []
+            if evt.get("date"):
+                meta_parts.append(evt["date"])
+            if evt.get("time"):
+                meta_parts.append(evt["time"])
+            if evt.get("location"):
+                meta_parts.append(evt["location"])
+            meta_str = " &middot; ".join(meta_parts)
+
+            events_rows += f'''
+        <tr><td style="padding: 10px 0 2px 0;">
+            <a href="{evt.get('url', '#')}" style="font-family: Georgia, 'Times New Roman', serif; font-size: 16px; color: #1a3a6a; text-decoration: none;">{evt.get('title', '')}</a>
+        </td></tr>
+        <tr><td style="padding: 0 0 8px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #555; line-height: 1.5;">
+            {evt.get('description', '')} <span style="font-size: 12px; color: #888; font-style: italic;">{meta_str}</span>
+        </td></tr>
+'''
+        events_html = f'''
+    <tr><td style="padding: 20px 0 8px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; font-weight: 700; letter-spacing: 2px; color: #444; text-transform: uppercase; border-bottom: 1px solid #ddd; border-top: 2px solid #c9a959;">WEEKEND PICKS</td></tr>
+{events_rows}
+'''
+
     html = f'''<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
@@ -907,7 +1254,9 @@ def build_email_html(stories_json, date_str, date_formatted, comic=None):
         <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 32px; font-weight: 700; letter-spacing: 3px;"><span style="color: #8b1a1a;">303</span> <span style="color: #1a1a1a;">NEWS</span></div>
         <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 14px; font-style: italic; color: #666; margin-top: 4px;">{date_formatted}</div>
     </td></tr>
+{weather_html}
 {sections_html}
+{events_html}
     <tr><td style="padding: 24px 0 10px 0; text-align: center; border-top: 1px solid #ddd;">
         <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #888; text-transform: uppercase;">Daily Comic</div>
         <a href="{comic['url'] if comic else 'https://www.thefarside.com'}" style="font-family: Georgia, 'Times New Roman', serif; font-size: 16px; color: #1a3a6a; text-decoration: none;">Today's Far Side</a>
@@ -928,14 +1277,15 @@ def build_email_html(stories_json, date_str, date_formatted, comic=None):
     return html
 
 
-def send_email(stories_json, date_str, date_formatted, comic=None):
+def send_email(stories_json, date_str, date_formatted, comic=None, weather=None, weekend_events=None):
     """Send the daily digest email via Buttondown API."""
     buttondown_key = os.environ.get("BUTTONDOWN_API_KEY")
     if not buttondown_key:
         print("  BUTTONDOWN_API_KEY not set. Skipping email.")
         return
 
-    email_html = build_email_html(stories_json, date_str, date_formatted, comic=comic)
+    email_html = build_email_html(stories_json, date_str, date_formatted,
+                                  comic=comic, weather=weather, weekend_events=weekend_events)
     subject = f"303 News -- {date_formatted}"
 
     print(f"\n--- Sending Email ---")
@@ -1103,14 +1453,39 @@ def main():
     comic = fetch_comic_teaser(target_date_str)
     print(f"  Comic: {comic.get('teaser', 'N/A')}")
 
+    # Step 4c: Fetch weather forecast
+    print("\n[Step 4c] Fetching weather forecast...")
+    weather = fetch_weather_forecast(target_date_str)
+    if weather:
+        print(f"  Weather: {weather['conditions']}, High {weather['high']}F / Low {weather['low']}F")
+        print(f"  Commentary: {weather['forecast'][:80]}...")
+    else:
+        print("  Weather: skipped (fetch failed or unavailable)")
+
+    # Step 4d: Fetch weekend events (Friday only)
+    weekend_events = None
+    target_date_obj = datetime.datetime.strptime(target_date_str, "%Y-%m-%d").date()
+    if target_date_obj.weekday() == 4:  # Friday
+        print("\n[Step 4d] Fetching weekend events (it's Friday!)...")
+        brave_key = os.environ.get("BRAVE_SEARCH_API_KEY")
+        weekend_events = fetch_weekend_events(brave_key, target_date_str, freshness)
+        if weekend_events:
+            print(f"  Found {len(weekend_events)} weekend events")
+        else:
+            print("  Weekend events: skipped (fetch/curation failed)")
+    else:
+        print("\n[Step 4d] Skipping weekend events (not Friday).")
+
     # Step 5: Write output
     print("\n[Step 5] Writing JSON output...")
-    filepath = write_output(summaries, target_date_str, target_formatted, comic=comic)
+    filepath = write_output(summaries, target_date_str, target_formatted,
+                            comic=comic, weather=weather, weekend_events=weekend_events)
 
     # Step 6: Send email (skip for backfill unless forced)
     if not args.date:
         print("\n[Step 6] Sending newsletter email...")
-        send_email(summaries, target_date_str, target_formatted, comic=comic)
+        send_email(summaries, target_date_str, target_formatted,
+                   comic=comic, weather=weather, weekend_events=weekend_events)
     else:
         print("\n[Step 6] Skipping email (backfill mode).")
 

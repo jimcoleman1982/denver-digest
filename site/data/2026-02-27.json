@@ -4,91 +4,125 @@
   "stories": [
     {
       "category": "crime",
-      "headline": "Hiker discovers human remains in Douglas County, investigation underway",
-      "summary": "A hiker found human remains in Douglas County on Wednesday, prompting a response from the Douglas County Sheriff's Office and the Douglas County Search and Rescue Team. Investigators searched the surrounding area for additional evidence, though authorities have not yet released details about the identity of the remains or the circumstances of the discovery.\n\nThe Douglas County Sheriff's Office has not indicated whether foul play is suspected. The investigation remains active and ongoing.",
+      "headline": "Hiker discovers human remains in Douglas County, prompting search",
+      "summary": "A hiker discovered human remains in Douglas County on Wednesday, prompting investigators and the Douglas County Search and Rescue Team to conduct a broader search of the area, according to the Douglas County Sheriff's Office.\n\nAuthorities did not release details about the location of the discovery, the identity of the remains, or whether foul play is suspected. The investigation remains ongoing.\n\nThe discovery adds to a busy week for emergency responders across the Denver metro area, which has been dealing with elevated fire danger, high winds, and multiple wildfire incidents.",
       "source": "Fox31 Denver",
       "url": "https://kdvr.com/news/local/hiker-finds-human-remains-in-douglas-county/"
     },
     {
       "category": "other",
-      "headline": "Auto shop operator launches fundraiser after Thornton fire destroys roughly 100 vehicles",
-      "summary": "Jason Rol, operator of Rol Race Motorsports on the 480 block of West 84th Avenue in Thornton, has launched a GoFundMe campaign after Wednesday's fast-moving grass fire destroyed approximately 100 vehicles stored at his automotive restoration shop. Rol said many of the cars consumed in the blaze belonged to customers who had entrusted them to his care, calling the aftermath heartbreaking for himself, his customers and neighbors.\n\nWithin 21 hours of the fundraiser's creation, the campaign had already raised $3,400 toward its $6,000 goal. The fire, which spread rapidly through a grassy area behind the shop amid dry and windy conditions, also injured four firefighters and one civilian, though none critically. Authorities continue to investigate the cause of the blaze.",
+      "headline": "Auto shop operator seeks community support after Thornton fire destroys roughly 100 vehicles",
+      "summary": "Jason Rol, operator of Rol Race Motorsports on West 84th Avenue in Thornton, has launched a GoFundMe fundraiser after Wednesday's grass fire burned approximately 100 vehicles belonging to him and his customers. Rol said many of the cars destroyed were left in his care by customers of his auto restoration shop.\n\n\"Seeing the aftermath has been heartbreaking,\" Rol wrote on the fundraiser page. \"Not just for me, but for my customers, my neighbors and everyone who was affected.\" The fundraiser had raised more than $3,400 — over half of its $6,000 goal — within 21 hours of being posted.\n\nThe fire ignited in a grassy area east of Pinnacle High School Wednesday morning during red-flag conditions and spread rapidly, sending a plume of black smoke visible for miles across the Denver metro. Four firefighters and one civilian sustained non-critical injuries before crews contained the blaze at roughly 10 acres about three hours after it started.",
       "source": "Denver Gazette",
       "url": "https://www.denvergazette.com/2026/02/26/operator-of-auto-shop-burned-in-smoky-thornton-fire-sets-up-fundraiser/"
     },
     {
       "category": "other",
       "headline": "Denver area events for Friday, Feb. 27",
-      "summary": "Denver and surrounding communities have a range of cultural and entertainment events scheduled for Friday, Feb. 27. Highlights include comedian Michelle Buteau at the Paramount Theatre, an Opera Colorado Grand Gala at the Denver Performing Arts Complex, and a performance by the Lone Tree Symphony Orchestra at Lone Tree Arts Center.\n\nAdditional events include the drama DJ Drama with Amtrac at Mission Ballroom, Cleo Parker Robinson Dance at the Parsons Theatre in Northglenn, and several live music shows at venues across the metro including the Gothic Theatre, Fox Theatre in Boulder and the Oriental Theater. The Denver Center's production of \"The Music Man\" continues its run at the Buell Theatre.",
+      "summary": "Denver and surrounding communities offer a range of cultural and entertainment options Friday evening, including Opera Colorado's Grand Gala at the Denver Performing Arts Complex, featuring cocktails, dinner, a live auction, and performances beginning at 5 p.m. Tickets are $400.\n\nComedian Michelle Buteau performs at the Paramount Theatre at 7:30 p.m., with tickets starting at $57. The Mission Ballroom hosts electronic artist Drama with Amtrac at 8 p.m., and the Gothic Theatre in Englewood features Denm at 8 p.m.\n\nAdditional options include the Cleo Parker Robinson Dance production \"We Have a Dream\" in Northglenn, the Lone Tree Symphony Orchestra's \"Winds of Destiny\" at Lone Tree Arts Center, and the Denver Center for the Performing Arts' ongoing run of \"The Music Man\" at the Buell Theatre.",
       "source": "Denver Gazette",
       "url": "https://www.denvergazette.com/2026/02/27/denver-area-events-for-feb-27/"
     },
     {
       "category": "sports",
-      "headline": "Nuggets linked to Khris Middleton on buyout market ahead of Sunday's playoff-eligibility deadline",
-      "summary": "The Denver Nuggets have shown interest in former NBA champion Khris Middleton as a potential buyout-market addition, according to NBA insider Marc Stein and Denver Post reporter Bennett Durando. Middleton, currently with the Dallas Mavericks, is weighing whether to seek a buyout before Sunday's March 1 deadline, after which a player waived by a new team would not be playoff-eligible.\n\nDurando reported that the Nuggets have been pursuing forward depth on the buyout market and that Middleton's size on the wing and ball-handling ability match the profile Denver has targeted. Middleton, a three-time All-Star, holds career averages of 16.3 points, 4.7 rebounds and 3.9 assists per game, and won an NBA Championship with the Milwaukee Bucks in 2021. Kyle Anderson, another name linked to the Nuggets' search, signed with the Minnesota Timberwolves on Friday.",
-      "source": "Heavy.com / Denver Post",
+      "headline": "Nuggets linked to Khris Middleton as buyout market deadline approaches Sunday",
+      "summary": "The Denver Nuggets have shown interest in NBA champion Khris Middleton as a potential buyout-market addition, according to a report from NBA insider Marc Stein. Middleton, currently with the Dallas Mavericks, told Stein he is \"still weighing his options\" ahead of Sunday's deadline to be playoff-eligible with a new team.\n\nDenver Post reporter Bennett Durando separately reported that the Nuggets have been pursuing forward depth on the buyout market, with Middleton among the candidates. The team has identified wing size and ball-handling as priorities in their search.\n\nMiddleton, a three-time All-Star who won an NBA Championship with the Milwaukee Bucks in 2021, holds career averages of 16.3 points, 4.7 rebounds, and 3.9 assists per game while shooting 39% from three-point range. Kyle Anderson, another name connected to Denver's search, signed with Minnesota before the deadline.",
+      "source": "Heavy.com",
       "url": "https://heavy.com/sports/nba/denver-nuggets/khris-middleton-nuggets-buyout-nba-rumors/"
     },
     {
       "category": "sports",
-      "headline": "Jamal Murray listed as questionable for Nuggets' game at Oklahoma City Thunder",
-      "summary": "The Denver Nuggets listed All-Star guard Jamal Murray as questionable Friday for their road game against the Oklahoma City Thunder after Murray left Wednesday's 103-84 victory over the Boston Celtics early and did not return. Peyton Watson and Aaron Gordon were ruled out for the contest.\n\nMurray is averaging 25.1 points, 7.4 assists and 4.3 rebounds per game this season and is a key figure in Denver's playoff push. The Nuggets enter the game as the Western Conference's fourth seed with a 37-22 record. The Thunder, the top seed in the West at 45-15, will have Shai Gilgeous-Alexander available after he was cleared to return from a nine-game absence due to an abdominal strain.",
-      "source": "Heavy.com",
-      "url": "https://heavy.com/sports/nba/denver-nuggets/denver-nuggets-jamal-murray-update/"
-    },
-    {
-      "category": "sports",
-      "headline": "Colorado Avalanche linked to Vancouver Canucks defenseman Tyler Myers ahead of trade deadline",
-      "summary": "The Colorado Avalanche have been linked to Vancouver Canucks defenseman Tyler Myers ahead of the NHL trade deadline, according to Rick Dhaliwal of CHEKTV in Vancouver. The Avs, who traded defenseman Sam Girard and a draft pick to Pittsburgh earlier this week in exchange for Brett Kulak, have approximately $9 million in cap space available.\n\nMyers, who stands 6-foot-8 and weighs 229 pounds, serves as an alternate captain in Vancouver and contributes primarily as a physical, defensive presence, recording 65 hits and 91 blocked shots this season. He is also considered a strong penalty killer, an area where Colorado already ranks among the league's best. Other names linked to the Avalanche include Ryan O'Reilly and former Av Nazem Kadri.",
+      "headline": "Avalanche linked to Canucks defenseman Tyler Myers ahead of NHL trade deadline",
+      "summary": "The Colorado Avalanche have been linked to Vancouver Canucks defenseman Tyler Myers ahead of the NHL trade deadline, according to Rick Dhaliwal of CHEKTV in Vancouver. The report comes days after the Avalanche traded defenseman Sam Girard and a draft pick to Pittsburgh for Brett Kulak, leaving the team with approximately $9 million in cap space.\n\nMyers, who serves as an alternate captain in Vancouver, offers physical attributes — standing 6-foot-8 and weighing 229 pounds — along with 65 hits and 91 blocked shots on the season. He is also considered a reliable penalty killer, an area where the Avalanche already rank among the league's top units.\n\nThe Avs have also been connected to veteran forwards Ryan O'Reilly and Nazem Kadri. Adding Myers would bolster blue-line depth heading into the playoffs, giving Colorado the option to rest key defenders without sacrificing defensive structure.",
       "source": "Mile High Sticking",
       "url": "https://milehighsticking.com/colorado-avalanche-linked-to-canucks-defenseman-ahead-of-trade-deadline-01kje7xkj0sz"
     },
     {
       "category": "other",
-      "headline": "Mountain highways shut down by snow and ice Thursday morning, I-70 affected",
-      "summary": "Snow and ice forced the closure of several Colorado mountain highways Thursday morning, including a stretch of westbound Interstate 70 between Empire Junction and Georgetown, according to the Colorado Department of Transportation. The I-70 closure was lifted shortly before 9:30 a.m., but heavy traffic persisted in both directions between Silverthorne and Golden throughout the morning.\n\nThe closures came amid a broader winter weather pattern affecting the state's mountain corridors. CDOT cameras showed wet and snowy road conditions across mountain passes, creating hazardous travel for commuters and visitors heading to and from ski areas.",
+      "headline": "Mountain highway closures disrupt I-70 travel as snow hits Colorado high country",
+      "summary": "Snow and ice forced the closure of several Colorado mountain highways Thursday morning, including a stretch of westbound Interstate 70 between Empire Junction and Georgetown, which reopened shortly before 9:30 a.m., according to the Colorado Department of Transportation.\n\nAdditional road closures were in effect across the high country Thursday, with cameras along I-70 showing wet, snowy conditions and backed-up traffic. Heavy traffic was reported in both directions between Silverthorne and Golden.\n\nThe mountain snowfall stands in contrast to dry and unusually warm conditions on the Front Range, where red-flag warnings for fire danger have been in effect for much of the week. Denver metro residents heading to the mountains were urged to check road conditions before traveling.",
       "source": "Denver Post",
       "url": "https://www.denverpost.com/2026/02/26/colorado-weather-road-closures-snow/"
     },
     {
       "category": "business",
       "headline": "Sierra Space names Dan Jablonsky as CEO after yearlong search",
-      "summary": "Louisville-based space company Sierra Space has appointed Dan Jablonsky as its new chief executive officer following a search that lasted approximately one year, the Denver Business Journal reported. Jablonsky previously served as CEO of Maxar Technologies, the Westminster-based satellite and geospatial intelligence company, and most recently held a leadership role at Ursa Major.\n\nSierra Space, a subsidiary of Sierra Nevada Corporation, is developing the Dream Chaser spaceplane and is among Colorado's most prominent aerospace companies. The appointment of a locally rooted executive with deep experience in the satellite and space sectors signals continued investment in the company's growth trajectory.",
+      "summary": "Sierra Space, the Louisville-based commercial space company, has hired Dan Jablonsky as its new chief executive officer following a search that lasted more than a year, according to the Denver Business Journal. Jablonsky previously served as CEO of Maxar Technologies and has experience leading Ursa Major, both of which are Colorado-rooted aerospace and space technology firms.\n\nSierra Space is developing the Dream Chaser spaceplane and the LIFE habitat module aimed at enabling commercial space stations. The company has been working toward its first orbital missions and has faced development timelines that have extended over several years.\n\nThe appointment of a seasoned aerospace executive is expected to bring added leadership stability as Sierra Space advances toward key milestones in its commercial space program.",
       "source": "Denver Business Journal",
       "url": "https://www.bizjournals.com/denver/news/2026/02/26/space-company-appoints-local-ceo.html"
     },
     {
       "category": "other",
-      "headline": "Red flag warning issued again for Denver metro and Front Range on Friday amid continued fire weather",
-      "summary": "The National Weather Service in Boulder issued a Red Flag Warning for the Denver metro area and much of the Front Range on Friday, running from 8 a.m. to 6 p.m., as dry and windy conditions persisted for a second consecutive day. Forecasters cited low relative humidity and strong winds as key drivers of elevated fire danger across the urban corridor and northeastern plains.\n\nThe warning follows a week of unseasonably warm and dry weather across the region, with temperatures running roughly 20 degrees above normal. The conditions contributed to two significant grass fires in the Denver metro area within the past two days, including Wednesday's blaze in Thornton that injured five people and damaged businesses. Denver Water officials have also flagged declining reservoir levels as the warm, dry winter continues.",
-      "source": "Denver Gazette",
-      "url": "https://www.denvergazette.com/2026/02/26/operator-of-auto-shop-burned-in-smoky-thornton-fire-sets-up-fundraiser/"
-    },
-    {
-      "category": "other",
-      "headline": "Suzanne Morphew's daughters seek return of her remains as murder trial approaches",
-      "summary": "The adult daughters of Suzanne Morphew, who disappeared six years ago in Chaffee County, are seeking the return of their mother's remains from investigators, the Colorado Springs Gazette reported. Barry Morphew, Suzanne's husband, has been charged with first-degree murder in connection with her death. Mallory and Macy Morphew have filed a request with investigators who currently have custody of the remains.\n\nSuzanne Morphew went missing in May 2020 and her remains were later discovered. The case has drawn widespread attention in Colorado due to its prolonged investigative timeline and the charges against Barry Morphew, who was previously arrested, had charges dropped, and was later recharged.",
+      "headline": "Suzanne Morphew's daughters seek return of her remains as murder case continues",
+      "summary": "Six years after Suzanne Morphew disappeared in Chaffee County, her adult daughters Mallory and Macy Morphew are fighting to have their mother's remains returned from investigators who currently hold them, according to the Colorado Springs Gazette. Barry Morphew, Suzanne's husband, has been charged with first-degree murder in connection with her death.\n\nThe daughters' effort to reclaim the remains reflects the prolonged legal proceedings that have followed the case, which drew statewide attention when Suzanne vanished in May 2020 near her Chaffee County home. Barry Morphew was arrested in 2021, and the case has moved slowly through the courts.\n\nThe Morphew case remains one of the most high-profile homicide investigations in recent Colorado history, with the question of the remains adding a new dimension to an already complex legal situation.",
       "source": "Colorado Springs Gazette",
       "url": "https://gazette.com/"
     },
     {
       "category": "sports",
-      "headline": "Rockies win first spring training game as Brenton Doyle leads offense against Diamondbacks",
-      "summary": "The Colorado Rockies picked up their first win of spring training, defeating the Arizona Diamondbacks behind a strong performance from outfielder Brenton Doyle. The victory gives the Rockies their first positive result as they ramp up preparations for the 2026 MLB season.\n\nDoyle, who has emerged as one of the organization's key young position players in recent seasons, led the offensive effort in the Cactus League contest. The Rockies enter the spring facing questions about roster construction and direction as the franchise continues efforts to build toward competitiveness.",
+      "headline": "Broncos confirm Davis Webb as offensive play-caller; George Paton in final year of contract",
+      "summary": "Denver Broncos head coach Sean Payton confirmed at the NFL Combine that offensive coordinator Davis Webb will take over play-calling duties for the 2026 season, ending speculation about the team's offensive leadership structure. The move represents a significant shift in how the Broncos will operate their offense going forward.\n\nGeneral manager George Paton also spoke at the combine and is entering the final season of his current contract with the team, raising questions about his long-term future with the organization. Paton and Payton both addressed reporters as the Broncos evaluate potential additions ahead of the draft.\n\nDenver finished last season on a strong note, winning 11 consecutive games, and will look to build on that momentum heading into the new year with Webb directing the offense.",
       "source": "Sports Illustrated",
       "url": "https://www.si.com/nfl/broncos"
     },
     {
       "category": "sports",
-      "headline": "Broncos' Davis Webb confirmed as new offensive play-caller at NFL Combine",
-      "summary": "Denver Broncos head coach Sean Payton confirmed at the NFL Combine that offensive coordinator Davis Webb will take over play-calling duties for the 2026 season, ending speculation about the role. The announcement represents a significant shift in the team's offensive structure as Denver heads into an offseason with high expectations following an 11-game winning streak to close last season.\n\nGeneral manager George Paton also spoke at the Combine and is entering the final year of his current contract with the organization. Payton said he was unconcerned about reported worries surrounding the NFL's tush push rule, dismissing the issue as not a significant factor in Denver's offensive planning.",
+      "headline": "Rockies earn first spring training win as Brenton Doyle leads victory over Diamondbacks",
+      "summary": "The Colorado Rockies picked up their first win of spring training, with outfielder Brenton Doyle leading the team past the Arizona Diamondbacks. The result marks a modest early milestone as Colorado begins preparations for the 2026 regular season.\n\nDoyle, one of the Rockies' most promising young position players, has been a focal point of the team's rebuilding efforts. His performance in spring training will be closely watched as Denver's club looks to show improvement after several difficult seasons.\n\nSpring training results carry limited predictive weight, but early wins can help establish positive momentum and team chemistry heading into the regular season.",
       "source": "Sports Illustrated",
       "url": "https://www.si.com/nfl/broncos"
     }
   ],
+  "weather": {
+    "forecast": "Today in Denver it's gonna be overcast, which is weird because Denver is supposed to be the Sunshine City or whatever they call it. I don't know who decided that but they were probably looking at a different day. High of 67 degrees, which is nice, I'm not gonna argue with 67. Low of 38 tonight, so it's gonna get cold, and the clouds are just gonna hang around up there like they live here now. Wind's gonna hit about 18 miles per hour, which at a mile above sea level feels like the mountains are just blowing directly at your face for fun.",
+    "high": 67,
+    "low": 38,
+    "conditions": "Overcast"
+  },
   "comic": {
     "url": "https://www.thefarside.com/2026/02/27",
     "teaser": "\"Moments before he was ripped to shreds, Edgar vaguely recalled having seen th...\" + 2 more"
-  }
+  },
+  "weekendEvents": [
+    {
+      "title": "Arvada Winterfest",
+      "description": "A free, family-friendly festival celebrating the diverse cultures of the Arvada community, featuring live cultural performances on two stages, ice sculpting, craft vendors, food trucks, and kids' games.",
+      "date": "Saturday, February 28",
+      "time": "11 a.m. – 4 p.m.",
+      "location": "Olde Town Square, 5726 Olde Wadsworth Blvd., Arvada",
+      "url": "https://www.arvadaco.gov/496/Arvada-Winterfest"
+    },
+    {
+      "title": "DGMG Jewelry, Gem & Mineral Show",
+      "description": "The Denver Gem & Mineral Guild's annual show features minerals from around the world, ancient fossils, fluorescent rocks, and handcrafted jewelry, with live lapidary demonstrations and $1 grab bags.",
+      "date": "Friday, February 27 – Sunday, March 1",
+      "time": "Fri & Sat 10 a.m. – 6 p.m., Sun 10 a.m. – 5 p.m.",
+      "location": "Jefferson County Fairgrounds, 15200 West 6th Avenue, Golden",
+      "url": "https://denvergem.org/show/"
+    },
+    {
+      "title": "Cupid's Undie Run Denver",
+      "description": "Participants run a 'mile-ish' in their underwear to raise money for neurofibromatosis research through the Children's Tumor Foundation, with music, dancing, and a post-run dance party. Must be 21+.",
+      "date": "Saturday, February 28",
+      "time": "12 p.m. – 4 p.m. (run starts at 2 p.m.)",
+      "location": "Stoney's Bar and Grill, 1111 Lincoln Street, Denver",
+      "url": "https://join.ctf.org/event/2026-cupids-undie-run-denver/e705268"
+    },
+    {
+      "title": "Four Mile Historic Park Free Admission Day",
+      "description": "Four Mile Historic Park offers free admission as part of the Scientific and Cultural Facilities District's occasional free-day program.",
+      "date": "Friday, February 27",
+      "time": "See venue for times",
+      "location": "Four Mile Historic Park, Denver",
+      "url": "https://www.scfd.org"
+    },
+    {
+      "title": "Ruby Hill Rail Yard",
+      "description": "Denver's urban terrain park for skiing and snowboarding, operated in partnership with Winter Park Resort, features newly designed rails, boxes, and configurations for skill levels from beginner to advanced.",
+      "date": "Friday, February 27 – Sunday, March 1",
+      "time": "Daily, 5 a.m. – 11 p.m.",
+      "location": "Ruby Hill Park, South Platte River Drive and West Jewell Avenue, Denver",
+      "url": "https://www.westword.com/arts-culture/free-things-to-do-in-denver-20764019/"
+    }
+  ]
 }

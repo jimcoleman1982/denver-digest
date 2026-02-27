@@ -170,6 +170,93 @@
             margin-top: 4px;
         }
 
+        /* --- Weather section --- */
+        .weather-section {
+            background: #eee8d5;
+            border-left: 4px solid #c9a959;
+            padding: 16px 18px;
+            margin-bottom: 20px;
+            border-radius: 2px;
+        }
+
+        .weather-label {
+            font-size: 0.78em;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: #8b7a2e;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .weather-stats {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .weather-forecast {
+            font-size: 1em;
+            line-height: 1.7;
+            color: #333;
+        }
+
+        /* --- Weekend Events section --- */
+        .events-section {
+            border-top: 3px solid #c9a959;
+            padding: 18px 0;
+            margin: 16px 0 8px 0;
+        }
+
+        .events-label {
+            font-size: 0.78em;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: #8b7a2e;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+
+        .event-item {
+            padding: 12px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+
+        .event-item:last-child {
+            border-bottom: none;
+        }
+
+        .event-title {
+            font-size: 1.05em;
+            font-weight: 700;
+            color: #1a3a6a;
+            line-height: 1.4;
+        }
+
+        .event-title a {
+            color: #1a3a6a;
+            text-decoration: none;
+            border-bottom: 1px dotted #1a3a6a;
+        }
+
+        .event-title a:hover {
+            color: #8b1a1a;
+            border-bottom-color: #8b1a1a;
+        }
+
+        .event-meta {
+            font-size: 0.88em;
+            color: #666;
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        .event-description {
+            font-size: 0.95em;
+            color: #333;
+            margin-top: 6px;
+            line-height: 1.6;
+        }
+
         /* --- Empty state --- */
         .empty-state {
             text-align: center;
@@ -543,6 +630,83 @@
                 return item;
             }
 
+            function renderWeather(weather) {
+                if (!weather || !weather.forecast) return null;
+                var div = document.createElement('div');
+                div.className = 'weather-section';
+
+                var label = document.createElement('div');
+                label.className = 'weather-label';
+                label.textContent = "TODAY'S WEATHER";
+                div.appendChild(label);
+
+                var stats = document.createElement('div');
+                stats.className = 'weather-stats';
+                var statsText = weather.conditions;
+                if (weather.high !== undefined && weather.low !== undefined) {
+                    statsText += ' // High ' + weather.high + '\u00B0F / Low ' + weather.low + '\u00B0F';
+                }
+                stats.textContent = statsText;
+                div.appendChild(stats);
+
+                var forecast = document.createElement('div');
+                forecast.className = 'weather-forecast';
+                forecast.textContent = weather.forecast;
+                div.appendChild(forecast);
+
+                return div;
+            }
+
+            function renderWeekendEvents(events) {
+                if (!events || events.length === 0) return null;
+                var div = document.createElement('div');
+                div.className = 'events-section';
+
+                var label = document.createElement('div');
+                label.className = 'events-label';
+                label.textContent = 'WEEKEND PICKS';
+                div.appendChild(label);
+
+                for (var i = 0; i < events.length; i++) {
+                    var evt = events[i];
+                    var item = document.createElement('div');
+                    item.className = 'event-item';
+
+                    var title = document.createElement('div');
+                    title.className = 'event-title';
+                    if (evt.url) {
+                        title.innerHTML = '<a href="' + escapeHTML(evt.url) +
+                            '" target="_blank" rel="noopener noreferrer">' +
+                            escapeHTML(evt.title) + '</a>';
+                    } else {
+                        title.textContent = evt.title;
+                    }
+                    item.appendChild(title);
+
+                    var metaParts = [];
+                    if (evt.date) metaParts.push(evt.date);
+                    if (evt.time) metaParts.push(evt.time);
+                    if (evt.location) metaParts.push(evt.location);
+                    if (metaParts.length > 0) {
+                        var meta = document.createElement('div');
+                        meta.className = 'event-meta';
+                        meta.textContent = metaParts.join(' // ');
+                        item.appendChild(meta);
+                    }
+
+                    if (evt.description) {
+                        var desc = document.createElement('div');
+                        desc.className = 'event-description';
+                        desc.textContent = evt.description;
+                        item.appendChild(desc);
+                    }
+
+                    div.appendChild(item);
+                }
+
+                return div;
+            }
+
             function renderDay(data, isToday) {
                 var section = document.createElement('div');
                 section.className = 'day-section' + (isToday ? ' today' : '');
@@ -562,6 +726,12 @@
 
                 var content = document.createElement('div');
                 content.className = 'day-content';
+
+                // Weather section (top of day content)
+                var weatherEl = renderWeather(data.weather);
+                if (weatherEl) {
+                    content.appendChild(weatherEl);
+                }
 
                 if (data.stories && data.stories.length > 0) {
                     var groups = groupByCategory(data.stories);
@@ -585,6 +755,12 @@
 
                         content.appendChild(catSection);
                     }
+                }
+
+                // Weekend Events section (Friday only, after news, before comic)
+                var eventsEl = renderWeekendEvents(data.weekendEvents);
+                if (eventsEl) {
+                    content.appendChild(eventsEl);
                 }
 
                 // Daily Comic section (from JSON comic field)
