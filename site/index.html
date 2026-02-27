@@ -722,7 +722,7 @@
 
                 var label = document.createElement('div');
                 label.className = 'events-label';
-                label.textContent = 'WEEKEND PICKS';
+                label.textContent = 'YOUR WEEKEND ACTIVITY GUIDE';
                 div.appendChild(label);
 
                 for (var i = 0; i < events.length; i++) {
@@ -805,6 +805,12 @@
                     content.appendChild(weatherEl);
                 }
 
+                // Weekend Events section (Friday only, above news, below weather)
+                var eventsEl = renderWeekendEvents(data.weekendEvents);
+                if (eventsEl) {
+                    content.appendChild(eventsEl);
+                }
+
                 if (data.stories && data.stories.length > 0) {
                     var groups = groupByCategory(data.stories);
                     var globalIdx = 0;
@@ -827,12 +833,6 @@
 
                         content.appendChild(catSection);
                     }
-                }
-
-                // Weekend Events section (Friday only, after news, before comic)
-                var eventsEl = renderWeekendEvents(data.weekendEvents);
-                if (eventsEl) {
-                    content.appendChild(eventsEl);
                 }
 
                 // Daily Comic section (from JSON comic field)
