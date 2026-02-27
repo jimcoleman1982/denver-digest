@@ -42,7 +42,7 @@ CATEGORY_LABELS = {
 }
 
 # --- Budget Safety Limits ---
-MAX_BRAVE_QUERIES_PER_RUN = 20  # hard cap on search API calls per run
+MAX_BRAVE_QUERIES_PER_RUN = 40  # hard cap on search API calls per run
 MAX_ANTHROPIC_CALLS_PER_RUN = 2  # 1 primary + 1 retry max
 brave_query_count = 0
 anthropic_call_count = 0
@@ -51,9 +51,11 @@ anthropic_call_count = 0
 SEARCH_QUERIES = [
     # General / Metro
     "Denver metro news today",
+    "Colorado news today",
     "Denver wildfire fire today",
     "Denver traffic accident major incident",
     "Denver development housing construction",
+    "Denver weather Colorado forecast",
     # Crime
     "Denver crime news today",
     "Denver shooting arrest",
@@ -61,17 +63,36 @@ SEARCH_QUERIES = [
     # Business
     "Denver business economy news today",
     "Denver Business Journal news",
+    "Denver restaurant food opening closing",
     # Politics
     "Denver politics government Colorado legislature",
     "Colorado governor Polis legislation",
+    "Denver mayor city council",
+    # Education / Community
+    "Colorado education schools Denver",
+    "Denver transportation RTD transit",
     # Sports
     "Denver Broncos NFL news",
     "Denver Nuggets NBA news",
     "Colorado Avalanche NHL news",
-    # Site-specific
+    "Colorado Rockies MLB news",
+    # Site-specific (newspapers)
     "site:denverpost.com Denver news",
     "site:denvergazette.com Denver news",
     "site:coloradosun.com Colorado news",
+    # Site-specific (TV stations)
+    "site:9news.com Denver news",
+    "site:denver7.com Denver Colorado news",
+    "site:kdvr.com Denver Colorado news",
+    "site:cbsnews.com/colorado Denver news",
+    "site:cpr.org Colorado news",
+]
+
+# Brave News search queries (separate news endpoint for broader coverage)
+NEWS_SEARCH_QUERIES = [
+    "Denver Colorado news",
+    "Denver metro news",
+    "Colorado Front Range news",
 ]
 
 # Preferred sources for article fetching (most reliable HTML)
@@ -81,6 +102,9 @@ PREFERRED_SOURCES = [
     "coloradosun.com",
     "cpr.org",
     "bizjournals.com",
+    "9news.com",
+    "denver7.com",
+    "kdvr.com",
 ]
 
 # Sources that often block or require JS
@@ -164,9 +188,9 @@ def parse_args():
 
 
 def check_denver_time():
-    """Exit early if Denver local time is before 6 AM (DST handling)."""
+    """Exit early if Denver local time is before 7 AM (DST handling)."""
     now = datetime.datetime.now(DENVER_TZ)
-    if now.hour < 6:
+    if now.hour < 7:
         print(f"Denver time is {now.strftime('%H:%M %Z')} -- too early, skipping.")
         sys.exit(0)
 
@@ -290,6 +314,11 @@ def extract_source_name(url):
         "cbsnews.com": "CBS News Colorado",
         "denverite.com": "Denverite",
         "bizjournals.com": "Denver Business Journal",
+        "coloradopolitics.com": "Colorado Politics",
+        "si.com": "Sports Illustrated",
+        "gazette.com": "Colorado Springs Gazette",
+        "politico.com": "Politico",
+        "westword.com": "Westword",
         "espn.com": "ESPN",
         "theathletic.com": "The Athletic",
         "nytimes.com": "New York Times",
@@ -307,14 +336,61 @@ def extract_source_name(url):
         return "Unknown"
 
 
+def brave_news_search(query, api_key, count=10, freshness="pd"):
+    """Run a Brave News Search API query (news-specific endpoint). Returns list of result dicts."""
+    global brave_query_count
+    brave_query_count += 1
+    if brave_query_count > MAX_BRAVE_QUERIES_PER_RUN:
+        print(f"  LIMIT: Brave query cap ({MAX_BRAVE_QUERIES_PER_RUN}) reached. Skipping.")
+        return []
+
+    url = "https://api.search.brave.com/res/v1/news/search"
+    params = {
+        "q": query,
+        "count": count,
+        "freshness": freshness,
+    }
+    headers = {
+        "Accept": "application/json",
+        "Accept-Encoding": "gzip",
+        "X-Subscription-Token": api_key,
+    }
+    try:
+        resp = requests.get(url, params=params, headers=headers, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+        results = []
+        for item in data.get("results", []):
+            results.append({
+                "title": item.get("title", ""),
+                "url": item.get("url", ""),
+                "snippet": item.get("description", ""),
+                "source": extract_source_name(item.get("url", "")),
+            })
+        return results
+    except Exception as e:
+        print(f"  News search failed for '{query}': {e}")
+        return []
+
+
 def gather_search_results(api_key, freshness="pd"):
-    """Run all search queries and collect results."""
+    """Run all search queries (web + news) and collect results."""
     all_results = []
+
+    # Web search queries
     for query in SEARCH_QUERIES:
-        print(f"  Searching: {query}")
+        print(f"  Searching (web): {query}")
         results = brave_search(query, api_key, freshness=freshness)
         all_results.extend(results)
         time.sleep(0.3)  # be polite to the API
+
+    # News search queries (separate endpoint, like Google News tab)
+    for query in NEWS_SEARCH_QUERIES:
+        print(f"  Searching (news): {query}")
+        results = brave_news_search(query, api_key, freshness=freshness)
+        all_results.extend(results)
+        time.sleep(0.3)
+
     print(f"  Total raw results: {len(all_results)}")
     return all_results
 
@@ -384,7 +460,7 @@ def deduplicate_and_rank(results):
             if not merged[j]:
                 continue
             shared = group_keywords[i] & group_keywords[j]
-            if len(shared) >= 3:
+            if len(shared) >= 4:
                 groups[i].extend(groups[j])
                 group_keywords[i] = group_keywords[i] | group_keywords[j]
                 merged[j] = False
@@ -422,7 +498,7 @@ def deduplicate_and_rank(results):
     return top_stories
 
 
-def load_recent_headlines(target_date_str, days_back=7):
+def load_recent_headlines(target_date_str, days_back=3):
     """Load headlines from previous days' JSON files for cross-day dedup."""
     target = datetime.date.fromisoformat(target_date_str)
     previous_headlines = []
@@ -440,8 +516,28 @@ def load_recent_headlines(target_date_str, days_back=7):
     return previous_headlines
 
 
+# Words in a candidate headline that suggest a genuinely new development
+# on a previously covered story (arrest after a crime, verdict after trial, etc.)
+UPDATE_INDICATOR_WORDS = {
+    "update", "arrested", "arrest", "charged", "convicted", "verdict",
+    "sentenced", "indicted", "identified", "confirmed", "dead", "dies",
+    "killed", "death toll", "aftermath", "response", "fallout", "ruling",
+    "decision", "settlement", "reopened", "recalled", "expanded", "closed",
+    "reopens", "closes", "cleared", "suspended", "fired", "resigned",
+    "released", "evacuated", "contained", "extinguished", "reopened",
+    "investigation", "cause", "lawsuit", "sues", "sued",
+}
+
+
+def has_update_indicators(title_lower):
+    """Check if a headline contains words suggesting a new development on a known story."""
+    title_words = set(re.findall(r'[a-z]+', title_lower))
+    return bool(title_words & UPDATE_INDICATOR_WORDS)
+
+
 def filter_cross_day_duplicates(candidates, target_date_str):
-    """Remove candidates whose headlines are too similar to recent days' stories."""
+    """Remove candidates whose headlines are too similar to recent days' stories.
+    Allows potential updates (new developments) through for Claude to evaluate."""
     previous_headlines = load_recent_headlines(target_date_str)
     if not previous_headlines:
         print("  No previous days' data found -- skipping cross-day dedup")
@@ -455,15 +551,22 @@ def filter_cross_day_duplicates(candidates, target_date_str):
         is_duplicate = False
         for prev_headline in previous_headlines:
             similarity = SequenceMatcher(None, title_lower, prev_headline).ratio()
-            if similarity > 0.45:
+            if similarity > 0.55:
+                # Very high similarity -- only allow through if update indicators present
+                if has_update_indicators(title_lower):
+                    print(f"  Potential update allowed: '{candidate['title'][:60]}...'")
+                    break
                 is_duplicate = True
                 print(f"  Cross-day dup removed: '{candidate['title'][:60]}...'")
                 break
-            # Also check keyword overlap
+            # Also check keyword overlap (raised threshold from 3 to 4)
             candidate_words = extract_significant_words(title_lower)
             prev_words = extract_significant_words(prev_headline)
             shared = candidate_words & prev_words
-            if len(shared) >= 3:
+            if len(shared) >= 4:
+                if has_update_indicators(title_lower):
+                    print(f"  Potential update allowed (keywords): '{candidate['title'][:60]}...'")
+                    break
                 is_duplicate = True
                 print(f"  Cross-day dup removed (keywords): '{candidate['title'][:60]}...'")
                 break
@@ -597,13 +700,17 @@ IMPORTANT -- STORIES ALREADY PUBLISHED ON PREVIOUS DAYS (do NOT repeat these):
 
 Do NOT select any candidate that covers the same event as the headlines above. Only include a story if there is a genuinely new development not covered by the previous headline."""
 
+    num_to_produce = min(MAX_ARTICLES, len(stories))
+
     return f"""Date: {target_date_str}. Below are {len(stories)} candidate Denver metro news stories.
 
-YOUR TASK: Select the top {MAX_ARTICLES} stories and write summaries. Use editorial judgment:
-- Prioritize stories with the highest impact on Denver metro residents
-- Ensure category balance: aim for at least 1-2 stories per category (other, politics, business, crime, sports)
-- Prefer stories from credible local sources (Denver Post, Colorado Sun, Denver Gazette, CPR News, Denver Business Journal)
-- Drop stories that are trivial, clickbait, or national news with weak Denver relevance
+YOUR TASK: Write summaries for as many stories as possible, up to {MAX_ARTICLES}. Include ALL candidates that have genuine Denver/Colorado relevance. Editorial guidelines:
+- Include every story that is relevant to Denver metro residents, even if the impact is moderate or the story is smaller in scope
+- It is better to include a less impactful story than to leave the digest thin -- aim for {MAX_ARTICLES} stories
+- If you have fewer than {MAX_ARTICLES} candidates, include ALL of them (do not drop any)
+- Ensure category balance when possible: aim for at least 1-2 stories per category (other, politics, business, crime, sports)
+- Prefer stories from credible local sources (Denver Post, Colorado Sun, Denver Gazette, CPR News, Denver Business Journal, 9News, Denver7)
+- Only drop a story if it is truly clickbait, entirely national with zero Denver relevance, or an exact duplicate of another candidate
 - If two candidates cover the same event, pick the one with better sourcing
 - CRITICAL: Do NOT include stories that were already covered on previous days (see list below)
 - EXCEPTION: If a previously covered story has a genuinely new development (arrest, verdict, policy change, new damage estimate, etc.), you may include it BUT you MUST prefix the headline with "Update: " (e.g., "Update: Suspect in Denver shooting arraigned on first-degree murder charge")
@@ -613,7 +720,7 @@ YOUR TASK: Select the top {MAX_ARTICLES} stories and write summaries. Use editor
 
 ---
 
-Produce a JSON array of exactly {MAX_ARTICLES} stories. For each story:
+Produce a JSON array of {num_to_produce} stories (or as many as are genuinely relevant, up to {MAX_ARTICLES}). For each story:
 - "category": one of "crime", "business", "politics", "sports", or "other"
 - "headline": clear, factual headline
 - "summary": 3-4 paragraphs, each 2-4 sentences. Use \\n\\n between paragraphs. Cover what happened, who is involved, where, why it matters.
@@ -924,8 +1031,63 @@ def main():
     # Step 2c: Remove stories that appeared in previous days
     print("\n[Step 2c] Filtering cross-day duplicates...")
     top_stories = filter_cross_day_duplicates(top_stories, target_date_str)
+
+    # Step 2d: Fallback -- if too few candidates survived, run supplemental searches
+    MIN_CANDIDATES = 8
+    if len(top_stories) < MIN_CANDIDATES:
+        print(f"\n[Step 2d] Only {len(top_stories)} candidates survived filtering (minimum {MIN_CANDIDATES}). Running fallback searches...")
+        fallback_queries = [
+            "Denver news",
+            "Colorado breaking news",
+            "Denver events happening",
+            "Aurora Colorado news",
+            "Colorado Springs news today",
+            "Boulder Colorado news",
+            "Jefferson County Colorado news",
+            "Adams County Colorado news",
+        ]
+        fallback_results = []
+        for query in fallback_queries:
+            if brave_query_count >= MAX_BRAVE_QUERIES_PER_RUN:
+                break
+            print(f"  Fallback search: {query}")
+            results = brave_search(query, brave_key, freshness=freshness)
+            fallback_results.extend(results)
+            time.sleep(0.3)
+
+        # Also try news endpoint with broader queries
+        fallback_news_queries = [
+            "Colorado news",
+            "Denver area news",
+        ]
+        for query in fallback_news_queries:
+            if brave_query_count >= MAX_BRAVE_QUERIES_PER_RUN:
+                break
+            print(f"  Fallback news search: {query}")
+            results = brave_news_search(query, brave_key, freshness=freshness)
+            fallback_results.extend(results)
+            time.sleep(0.3)
+
+        if fallback_results:
+            print(f"  Fallback returned {len(fallback_results)} raw results")
+            fallback_deduped = deduplicate_and_rank(fallback_results)
+            fallback_deduped = filter_by_publish_date(fallback_deduped, target_date_str)
+            fallback_deduped = filter_cross_day_duplicates(fallback_deduped, target_date_str)
+
+            # Add new candidates that aren't already in top_stories
+            existing_urls = set(s["url"].split("?")[0].rstrip("/") for s in top_stories)
+            added = 0
+            for story in fallback_deduped:
+                norm_url = story["url"].split("?")[0].rstrip("/")
+                if norm_url not in existing_urls:
+                    top_stories.append(story)
+                    existing_urls.add(norm_url)
+                    added += 1
+            print(f"  Added {added} new candidates from fallback searches")
+            print(f"  Total candidates now: {len(top_stories)}")
+
     if not top_stories:
-        print("ERROR: No stories after cross-day dedup")
+        print("ERROR: No stories after all filtering")
         sys.exit(1)
 
     # Step 3: Fetch article content
