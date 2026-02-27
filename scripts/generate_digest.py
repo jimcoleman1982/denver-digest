@@ -386,7 +386,7 @@ def deduplicate_and_rank(results):
     return top_stories
 
 
-def load_recent_headlines(target_date_str, days_back=3):
+def load_recent_headlines(target_date_str, days_back=7):
     """Load headlines from previous days' JSON files for cross-day dedup."""
     target = datetime.date.fromisoformat(target_date_str)
     previous_headlines = []
@@ -419,7 +419,7 @@ def filter_cross_day_duplicates(candidates, target_date_str):
         is_duplicate = False
         for prev_headline in previous_headlines:
             similarity = SequenceMatcher(None, title_lower, prev_headline).ratio()
-            if similarity > 0.55:
+            if similarity > 0.45:
                 is_duplicate = True
                 print(f"  Cross-day dup removed: '{candidate['title'][:60]}...'")
                 break
@@ -427,7 +427,7 @@ def filter_cross_day_duplicates(candidates, target_date_str):
             candidate_words = extract_significant_words(title_lower)
             prev_words = extract_significant_words(prev_headline)
             shared = candidate_words & prev_words
-            if len(shared) >= 4:
+            if len(shared) >= 3:
                 is_duplicate = True
                 print(f"  Cross-day dup removed (keywords): '{candidate['title'][:60]}...'")
                 break
@@ -550,6 +550,17 @@ Article text: {story['article_text']}"""
 
     stories_text = "\n\n".join(story_blocks)
 
+    # Load previous days' headlines so Claude can avoid repeats
+    prev_headlines = load_recent_headlines(target_date_str)
+    dedup_block = ""
+    if prev_headlines:
+        hl_list = "\n".join(f"- {h}" for h in prev_headlines[:36])
+        dedup_block = f"""
+IMPORTANT -- STORIES ALREADY PUBLISHED ON PREVIOUS DAYS (do NOT repeat these):
+{hl_list}
+
+Do NOT select any candidate that covers the same event as the headlines above. Only include a story if there is a genuinely new development not covered by the previous headline."""
+
     return f"""Date: {target_date_str}. Below are {len(stories)} candidate Denver metro news stories.
 
 YOUR TASK: Select the top {MAX_ARTICLES} stories and write summaries. Use editorial judgment:
@@ -558,6 +569,8 @@ YOUR TASK: Select the top {MAX_ARTICLES} stories and write summaries. Use editor
 - Prefer stories from credible local sources (Denver Post, Colorado Sun, Denver Gazette, CPR News, Denver Business Journal)
 - Drop stories that are trivial, clickbait, or national news with weak Denver relevance
 - If two candidates cover the same event, pick the one with better sourcing
+- CRITICAL: Do NOT include stories that were already covered on previous days (see list below)
+{dedup_block}
 
 {stories_text}
 
@@ -686,10 +699,11 @@ def get_freshness_for_date(target_date):
 
     if delta <= 0:
         return "pd"   # past day (today)
-    elif delta <= 7:
-        return "pw"   # past week
     else:
-        return "pm"   # past month
+        # Use date-range freshness for backfill: target_date +/- 1 day
+        start = (target_date - datetime.timedelta(days=1)).isoformat()
+        end = (target_date + datetime.timedelta(days=1)).isoformat()
+        return f"{start}to{end}"
 
 
 def build_email_html(stories_json, date_str, date_formatted, comic=None):
