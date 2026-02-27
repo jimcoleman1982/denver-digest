@@ -713,7 +713,12 @@ def build_email_html(stories_json, date_str, date_formatted):
         <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 14px; font-style: italic; color: #666; margin-top: 4px;">{date_formatted}</div>
     </td></tr>
 {sections_html}
-    <tr><td style="padding: 28px 0 16px 0; text-align: center; border-top: 1px solid #ccc;">
+    <tr><td style="padding: 24px 0 10px 0; text-align: center; border-top: 1px solid #ddd;">
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #888; text-transform: uppercase;">Daily Comic</div>
+        <a href="https://www.thefarside.com/{date_str.replace('-', '/')}" style="font-family: Georgia, 'Times New Roman', serif; font-size: 16px; color: #1a3a6a; text-decoration: none;">Today's Far Side</a>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 11px; color: #999; font-style: italic; margin-top: 2px;">by Gary Larson</div>
+    </td></tr>
+    <tr><td style="padding: 20px 0 16px 0; text-align: center; border-top: 1px solid #ccc;">
         <a href="{SITE_URL}" style="font-family: Georgia, 'Times New Roman', serif; font-size: 15px; color: #1a3a6a; text-decoration: none;">Read full summaries at 303news.org</a>
     </td></tr>
     <tr><td style="text-align: center; padding: 0 0 20px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 12px; color: #999; font-style: italic;">
