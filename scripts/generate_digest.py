@@ -441,6 +441,41 @@ def filter_cross_day_duplicates(candidates, target_date_str):
     return kept
 
 
+def fetch_comic_teaser(date_str):
+    """Fetch today's Far Side page and extract a teaser from the first comic caption."""
+    comic_url = f"https://www.thefarside.com/{date_str.replace('-', '/')}"
+    try:
+        resp = requests.get(comic_url, headers=HEADERS, timeout=15)
+        if resp.status_code != 200:
+            print(f"  Far Side page returned {resp.status_code}")
+            return {"url": comic_url, "teaser": "A fresh daily dose of classic Far Side humor."}
+
+        soup = BeautifulSoup(resp.text, "html.parser")
+        captions = soup.find_all("figcaption")
+        teasers = []
+        for cap in captions:
+            text = cap.get_text(strip=True)
+            if text and len(text) > 5:
+                teasers.append(text)
+
+        if teasers:
+            # Use the first caption, truncated for fair use
+            first = teasers[0]
+            if len(first) > 80:
+                first = first[:77] + "..."
+            teaser = f'"{first}"'
+            count = len(teasers)
+            if count > 1:
+                teaser += f" + {count - 1} more"
+        else:
+            teaser = "A fresh daily dose of classic Far Side humor."
+
+        return {"url": comic_url, "teaser": teaser}
+    except Exception as e:
+        print(f"  Error fetching Far Side: {e}")
+        return {"url": comic_url, "teaser": "A fresh daily dose of classic Far Side humor."}
+
+
 def fetch_article_text(url):
     """Fetch and extract article body text from a URL."""
     if any(s in url for s in UNRELIABLE_SOURCES):
@@ -624,13 +659,15 @@ def call_anthropic(stories, target_date_str):
     sys.exit(1)
 
 
-def write_output(stories_json, date_str, date_formatted):
+def write_output(stories_json, date_str, date_formatted, comic=None):
     """Write the final JSON data file."""
     output = {
         "date": date_str,
         "dateFormatted": date_formatted,
         "stories": stories_json,
     }
+    if comic:
+        output["comic"] = comic
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     filepath = os.path.join(OUTPUT_DIR, f"{date_str}.json")
@@ -655,7 +692,7 @@ def get_freshness_for_date(target_date):
         return "pm"   # past month
 
 
-def build_email_html(stories_json, date_str, date_formatted):
+def build_email_html(stories_json, date_str, date_formatted, comic=None):
     """Build an HTML email with headlines, teasers, and deep links."""
     # Group stories by category in display order
     groups = {}
@@ -715,7 +752,8 @@ def build_email_html(stories_json, date_str, date_formatted):
 {sections_html}
     <tr><td style="padding: 24px 0 10px 0; text-align: center; border-top: 1px solid #ddd;">
         <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #888; text-transform: uppercase;">Daily Comic</div>
-        <a href="https://www.thefarside.com/{date_str.replace('-', '/')}" style="font-family: Georgia, 'Times New Roman', serif; font-size: 16px; color: #1a3a6a; text-decoration: none;">Today's Far Side</a>
+        <a href="{comic['url'] if comic else 'https://www.thefarside.com'}" style="font-family: Georgia, 'Times New Roman', serif; font-size: 16px; color: #1a3a6a; text-decoration: none;">Today's Far Side</a>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 13px; color: #555; margin-top: 4px; font-style: italic;">{comic['teaser'] if comic else 'A fresh daily dose from Gary Larson.'}</div>
         <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 11px; color: #999; font-style: italic; margin-top: 2px;">by Gary Larson</div>
     </td></tr>
     <tr><td style="padding: 20px 0 16px 0; text-align: center; border-top: 1px solid #ccc;">
@@ -732,14 +770,14 @@ def build_email_html(stories_json, date_str, date_formatted):
     return html
 
 
-def send_email(stories_json, date_str, date_formatted):
+def send_email(stories_json, date_str, date_formatted, comic=None):
     """Send the daily digest email via Buttondown API."""
     buttondown_key = os.environ.get("BUTTONDOWN_API_KEY")
     if not buttondown_key:
         print("  BUTTONDOWN_API_KEY not set. Skipping email.")
         return
 
-    email_html = build_email_html(stories_json, date_str, date_formatted)
+    email_html = build_email_html(stories_json, date_str, date_formatted, comic=comic)
     subject = f"303 News -- {date_formatted}"
 
     print(f"\n--- Sending Email ---")
@@ -843,14 +881,19 @@ def main():
     print(f"\n[Step 4] Sending {len(stories_with_text)} candidates to Anthropic for curation...")
     summaries = call_anthropic(stories_with_text, target_date_str)
 
+    # Step 4b: Fetch daily comic teaser
+    print("\n[Step 4b] Fetching daily comic...")
+    comic = fetch_comic_teaser(target_date_str)
+    print(f"  Comic: {comic.get('teaser', 'N/A')}")
+
     # Step 5: Write output
     print("\n[Step 5] Writing JSON output...")
-    filepath = write_output(summaries, target_date_str, target_formatted)
+    filepath = write_output(summaries, target_date_str, target_formatted, comic=comic)
 
     # Step 6: Send email (skip for backfill unless forced)
     if not args.date:
         print("\n[Step 6] Sending newsletter email...")
-        send_email(summaries, target_date_str, target_formatted)
+        send_email(summaries, target_date_str, target_formatted, comic=comic)
     else:
         print("\n[Step 6] Skipping email (backfill mode).")
 

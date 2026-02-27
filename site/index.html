@@ -128,7 +128,8 @@
         .comic-section {
             text-align: center;
             padding: 18px 16px;
-            margin-bottom: 8px;
+            margin: 12px 0 8px 0;
+            border-top: 1px solid #ddd;
         }
 
         .comic-label {
@@ -152,6 +153,14 @@
         .comic-link:hover {
             color: #8b1a1a;
             border-bottom-color: #8b1a1a;
+        }
+
+        .comic-teaser {
+            font-size: 0.9em;
+            color: #555;
+            font-style: italic;
+            margin-top: 6px;
+            line-height: 1.5;
         }
 
         .comic-credit {
@@ -406,12 +415,6 @@
             <p class="subscribe-msg" id="subscribe-msg"></p>
         </div>
 
-        <div class="comic-section" id="comic-section">
-            <p class="comic-label">Daily Comic</p>
-            <a class="comic-link" id="comic-link" href="https://www.thefarside.com" target="_blank" rel="noopener">Today's Far Side</a>
-            <p class="comic-credit">by Gary Larson</p>
-        </div>
-
         <main id="digest-content">
             <div class="empty-state">Loading...</div>
         </main>
@@ -454,18 +457,6 @@
                 subMsg.className = 'subscribe-msg success';
                 subEmail.value = '';
             });
-
-            // --- Daily Comic link ---
-            (function() {
-                var now = new Date();
-                var y = now.getFullYear();
-                var m = String(now.getMonth() + 1).padStart(2, '0');
-                var d = String(now.getDate()).padStart(2, '0');
-                var comicLink = document.getElementById('comic-link');
-                if (comicLink) {
-                    comicLink.href = 'https://www.thefarside.com/' + y + '/' + m + '/' + d;
-                }
-            })();
 
             // --- Digest rendering ---
             var storyIndex = 0; // global counter for story IDs
@@ -594,6 +585,39 @@
 
                         content.appendChild(catSection);
                     }
+                }
+
+                // Daily Comic section (from JSON comic field)
+                if (data.comic && data.comic.url) {
+                    var comicDiv = document.createElement('div');
+                    comicDiv.className = 'comic-section';
+
+                    var label = document.createElement('div');
+                    label.className = 'comic-label';
+                    label.textContent = 'DAILY COMIC';
+                    comicDiv.appendChild(label);
+
+                    var link = document.createElement('a');
+                    link.className = 'comic-link';
+                    link.href = data.comic.url;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.textContent = "Today's Far Side";
+                    comicDiv.appendChild(link);
+
+                    if (data.comic.teaser) {
+                        var teaser = document.createElement('div');
+                        teaser.className = 'comic-teaser';
+                        teaser.textContent = data.comic.teaser;
+                        comicDiv.appendChild(teaser);
+                    }
+
+                    var credit = document.createElement('div');
+                    credit.className = 'comic-credit';
+                    credit.textContent = 'by Gary Larson';
+                    comicDiv.appendChild(credit);
+
+                    content.appendChild(comicDiv);
                 }
 
                 section.appendChild(header);
