@@ -102,10 +102,43 @@ OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 OPEN_METEO_PARAMS = {
     "latitude": 39.74,
     "longitude": -104.98,
-    "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,precipitation_probability_max,windspeed_10m_max,weathercode",
+    "current": "temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m,pressure_msl",
+    "daily": "temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_sum,snowfall_sum,precipitation_probability_max,windspeed_10m_max,wind_gusts_10m_max,weathercode,sunrise,sunset,uv_index_max",
     "temperature_unit": "fahrenheit",
+    "wind_speed_unit": "mph",
     "timezone": "America/Denver",
 }
+
+# Wind direction degrees to cardinal
+WIND_DIRECTIONS = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
+                   "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+
+# Denver average highs by month (°F) for "above/below average" callout
+DENVER_AVG_HIGHS = {
+    1: 45, 2: 48, 3: 55, 4: 62, 5: 71, 6: 83,
+    7: 90, 8: 88, 9: 80, 10: 66, 11: 53, 12: 45,
+}
+
+def wind_direction_label(degrees):
+    """Convert wind degrees to cardinal direction (N, NE, etc.)."""
+    if degrees is None:
+        return ""
+    idx = round(degrees / 22.5) % 16
+    return WIND_DIRECTIONS[idx]
+
+def uv_label(uv_val):
+    """Return UV index category and advice."""
+    if uv_val is None or uv_val < 0:
+        return ("Low", "uv-low", "")
+    if uv_val < 3:
+        return ("Low", "uv-low", "No protection needed")
+    if uv_val < 6:
+        return ("Moderate", "uv-moderate", "Wear sunscreen after 10 AM")
+    if uv_val < 8:
+        return ("High", "uv-high", "Reduce sun exposure 10 AM - 4 PM")
+    if uv_val < 11:
+        return ("Very High", "uv-very-high", "Avoid midday sun, seek shade")
+    return ("Extreme", "uv-extreme", "Stay indoors during midday hours")
 
 # WMO Weather Code to human-readable conditions
 WMO_WEATHER_CODES = {
@@ -989,7 +1022,7 @@ Return ONLY the JSON object, no other text."""
 
 
 def fetch_weather_forecast(target_date_str):
-    """Fetch Denver weather forecast from Open-Meteo."""
+    """Fetch Denver weather forecast from Open-Meteo with current conditions and extended detail."""
     print("  Fetching Open-Meteo forecast...")
     try:
         resp = requests.get(OPEN_METEO_URL, params=OPEN_METEO_PARAMS, timeout=10)
@@ -1012,23 +1045,116 @@ def fetch_weather_forecast(target_date_str):
     precip_mm = daily.get("precipitation_sum", [0])[idx] or 0
     snowfall_cm = daily.get("snowfall_sum", [0])[idx] or 0
     precip_prob = daily.get("precipitation_probability_max", [0])[idx] or 0
-    wind_kmh = daily.get("windspeed_10m_max", [0])[idx] or 0
+    wind_mph = daily.get("windspeed_10m_max", [0])[idx] or 0
+    wind_gusts = daily.get("wind_gusts_10m_max", [0])[idx] or 0
     code = daily.get("weathercode", [0])[idx]
     conditions = WMO_WEATHER_CODES.get(code, "Unknown")
+    feels_high = daily.get("apparent_temperature_max", [None])[idx]
+    feels_low = daily.get("apparent_temperature_min", [None])[idx]
+    sunrise_raw = daily.get("sunrise", [None])[idx]
+    sunset_raw = daily.get("sunset", [None])[idx]
+    uv_max = daily.get("uv_index_max", [None])[idx]
+
+    # Parse sunrise/sunset times
+    sunrise_str = ""
+    sunset_str = ""
+    daylight_str = ""
+    if sunrise_raw and sunset_raw:
+        try:
+            sr = datetime.datetime.fromisoformat(sunrise_raw)
+            ss = datetime.datetime.fromisoformat(sunset_raw)
+            sunrise_str = sr.strftime("%-I:%M %p")
+            sunset_str = ss.strftime("%-I:%M %p")
+            dl = ss - sr
+            hours = int(dl.total_seconds() // 3600)
+            minutes = int((dl.total_seconds() % 3600) // 60)
+            daylight_str = f"{hours}h {minutes}m"
+        except Exception:
+            pass
+
+    # UV label
+    uv_cat, uv_class, uv_advice = uv_label(uv_max)
+
+    # Current conditions (real-time snapshot)
+    current = data.get("current", {})
+    current_temp = current.get("temperature_2m")
+    current_feels = current.get("apparent_temperature")
+    current_humidity = current.get("relative_humidity_2m")
+    current_wind = current.get("wind_speed_10m")
+    current_wind_dir = current.get("wind_direction_10m")
+    current_gusts = current.get("wind_gusts_10m")
+    current_pressure_hpa = current.get("pressure_msl")
+    current_cloud = current.get("cloud_cover")
+    current_code = current.get("weather_code")
+    current_conditions = WMO_WEATHER_CODES.get(current_code, conditions) if current_code is not None else conditions
+    current_time_raw = current.get("time", "")
+
+    # Convert pressure from hPa to inHg
+    current_pressure_inhg = round(current_pressure_hpa * 0.02953, 2) if current_pressure_hpa else None
+
+    # Current time label (e.g. "7:00 AM")
+    current_time_label = ""
+    if current_time_raw:
+        try:
+            ct = datetime.datetime.fromisoformat(current_time_raw)
+            current_time_label = ct.strftime("%-I:%M %p")
+        except Exception:
+            pass
+
+    # Wind direction for current
+    current_wind_dir_label = wind_direction_label(current_wind_dir)
+
+    # "Above/below average" callout
+    notable = ""
+    target_month = int(target_date_str.split("-")[1])
+    avg_high = DENVER_AVG_HIGHS.get(target_month, 0)
+    if avg_high and high:
+        diff = round(high - avg_high)
+        if diff >= 10:
+            notable = f"About {diff} degrees above the average high for this time of year!"
+        elif diff >= 5:
+            notable = f"Nearly {diff} degrees above the average high for this time of year."
+        elif diff <= -10:
+            notable = f"About {abs(diff)} degrees below the average high for this time of year."
+        elif diff <= -5:
+            notable = f"Nearly {abs(diff)} degrees below the average high for this time of year."
 
     weather = {
         "high": round(high),
         "low": round(low),
         "conditions": conditions,
-        "wind_mph": round(wind_kmh / 1.609, 1) if wind_kmh else 0,
+        "wind_mph": round(wind_mph, 1) if wind_mph else 0,
+        "wind_gusts_mph": round(wind_gusts, 1) if wind_gusts else 0,
         "precipitation_inches": round(precip_mm / 25.4, 2) if precip_mm else 0,
         "snowfall_inches": round(snowfall_cm / 2.54, 1) if snowfall_cm else 0,
         "precipitation_probability": round(precip_prob),
+        "feels_high": round(feels_high) if feels_high is not None else None,
+        "feels_low": round(feels_low) if feels_low is not None else None,
+        "sunrise": sunrise_str,
+        "sunset": sunset_str,
+        "daylight": daylight_str,
+        "uv_index": round(uv_max, 1) if uv_max is not None else None,
+        "uv_label": uv_cat,
+        "uv_class": uv_class,
+        "uv_advice": uv_advice,
+        "notable": notable,
+        "current": {
+            "temp": round(current_temp) if current_temp is not None else None,
+            "feels_like": round(current_feels) if current_feels is not None else None,
+            "humidity": round(current_humidity) if current_humidity is not None else None,
+            "conditions": current_conditions,
+            "wind_mph": round(current_wind, 1) if current_wind is not None else None,
+            "wind_dir": current_wind_dir_label,
+            "wind_gusts_mph": round(current_gusts, 1) if current_gusts is not None else None,
+            "pressure_inhg": current_pressure_inhg,
+            "cloud_cover": round(current_cloud) if current_cloud is not None else None,
+            "time_label": current_time_label,
+        },
     }
 
     print(f"  Weather: {conditions}, High {weather['high']}F, Low {weather['low']}F, "
           f"Precip prob {weather['precipitation_probability']}%, "
-          f"Snow {weather['snowfall_inches']}in")
+          f"Snow {weather['snowfall_inches']}in, UV {uv_max}")
 
     return weather
 
@@ -1478,14 +1604,54 @@ def build_email_html(stories_json, date_str, date_formatted, joke=None, weather=
         prob_line = ""
         if precip_prob > 0:
             prob_line = f'<div style="font-family: Georgia, \'Times New Roman\', serif; font-size: 13px; color: #666; margin-top: 4px;">{precip_prob}% chance of precipitation</div>'
+
+        # Current conditions block
+        cur = weather.get("current", {})
+        current_html = ""
+        if cur.get("temp") is not None:
+            feels_str = f' (feels like {cur["feels_like"]}&deg;F)' if cur.get("feels_like") is not None else ""
+            humid_str = f' &bull; Humidity {cur["humidity"]}%' if cur.get("humidity") is not None else ""
+            press_str = f' &bull; Pressure {cur["pressure_inhg"]} inHg' if cur.get("pressure_inhg") else ""
+            time_label = f' (as of {cur["time_label"]})' if cur.get("time_label") else ""
+            current_html = f'''
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: #999; text-transform: uppercase; margin-bottom: 4px;">Current Conditions{time_label}</div>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 18px; color: #222;"><strong>{cur["temp"]}&deg;F</strong>{feels_str}</div>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 13px; color: #555; margin-bottom: 12px;">{cur.get("conditions", "")}{humid_str}{press_str}</div>
+        <div style="border-top: 1px dotted #ccc; margin-bottom: 10px;"></div>
+'''
+
+        # Extended detail lines
+        feels_line = ""
+        if weather.get("feels_high") is not None and weather.get("feels_low") is not None:
+            feels_line = f'<div style="font-family: Georgia, \'Times New Roman\', serif; font-size: 13px; color: #666; margin-top: 2px;">Feels like {weather["feels_high"]}&deg; / {weather["feels_low"]}&deg;</div>'
+        gusts_line = ""
+        if weather.get("wind_gusts_mph") and weather["wind_gusts_mph"] > 0:
+            gusts_line = f', gusts {weather["wind_gusts_mph"]} mph'
+        sun_line = ""
+        if weather.get("sunrise") and weather.get("sunset"):
+            dl = f' ({weather["daylight"]})' if weather.get("daylight") else ""
+            sun_line = f'<div style="font-family: Georgia, \'Times New Roman\', serif; font-size: 14px; color: #333; margin-top: 4px;">Sunrise {weather["sunrise"]} / Sunset {weather["sunset"]}{dl}</div>'
+        uv_line = ""
+        if weather.get("uv_index") is not None:
+            uv_line = f'<div style="font-family: Georgia, \'Times New Roman\', serif; font-size: 14px; color: #333; margin-top: 4px;">UV Index: {weather["uv_index"]} ({weather["uv_label"]})</div>'
+        notable_line = ""
+        if weather.get("notable"):
+            notable_line = f'''
+        <div style="margin-top: 10px; padding: 8px 12px; background-color: #fdf6e3; border-left: 3px solid #c9a959; font-family: Georgia, 'Times New Roman', serif; font-size: 13px; font-style: italic; color: #665;">{weather["notable"]}</div>'''
+
         weather_html = f'''
     <tr><td style="padding: 20px 16px; background-color: #eee8d5; border-left: 3px solid #c9a959;">
         <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #888; text-transform: uppercase; margin-bottom: 8px;">TODAY'S FORECAST</div>
+        {current_html}
         <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 16px; color: #333; font-weight: 600;">{weather["conditions"]}</div>
         <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 15px; color: #333; margin-top: 4px;"><strong>High {weather["high"]}&deg;F</strong> / Low {weather["low"]}&deg;F</div>
-        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #333; margin-top: 4px;">Wind: {weather.get("wind_mph", 0)} mph</div>
+        {feels_line}
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #333; margin-top: 4px;">Wind: {weather.get("wind_mph", 0)} mph{gusts_line}</div>
         {precip_line}
         {prob_line}
+        {sun_line}
+        {uv_line}
+        {notable_line}
     </td></tr>
 '''
 

@@ -455,48 +455,76 @@
             border-bottom-color: #8b1a1a;
         }
 
-        /* --- Weather section --- */
+        /* --- Weather section (click-to-expand) --- */
         .weather-section {
-            background: #eee8d5;
-            border-left: 4px solid #c9a959;
-            padding: 16px 18px;
-            margin-bottom: 20px;
-            border-radius: 2px;
+            background: #f9f6ee;
+            border-left: 3px solid #c9a959;
+            padding: 12px 16px;
+            margin-bottom: 18px;
         }
-
+        .weather-summary-row {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            gap: 10px;
+        }
+        .weather-summary-row:hover .weather-expand-hint { color: #1a3a6a; }
         .weather-label {
-            font-size: 0.78em;
+            font-size: 0.72em;
             font-weight: 700;
             letter-spacing: 0.12em;
-            color: #8b7a2e;
             text-transform: uppercase;
-            margin-bottom: 6px;
+            color: #888;
+            white-space: nowrap;
         }
-
-        .weather-conditions {
-            font-size: 1.05em;
-            font-weight: 600;
+        .weather-one-liner {
+            font-size: 0.95em;
             color: #333;
-            margin-bottom: 4px;
+            flex: 1;
         }
+        .weather-one-liner strong { color: #1a1a1a; }
+        .weather-expand-hint {
+            font-size: 0.78em;
+            color: #aaa;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+            transition: color 0.15s;
+        }
+        .weather-chevron {
+            display: inline-block;
+            transition: transform 0.2s ease;
+            font-size: 0.7em;
+        }
+        .weather-section.open .weather-chevron { transform: rotate(90deg); }
 
-        .weather-temps {
-            font-size: 1em;
-            color: #333;
-            margin-bottom: 4px;
-        }
-
-        .weather-detail {
-            font-size: 0.92em;
-            color: #333;
-            margin-bottom: 4px;
-        }
-
-        .weather-prob {
-            font-size: 0.88em;
-            color: #666;
-            margin-top: 2px;
-        }
+        /* Expanded detail panel */
+        .weather-detail-panel { display: none; margin-top: 14px; padding-top: 12px; border-top: 1px dotted #d5d0c4; }
+        .weather-section.open .weather-detail-panel { display: block; }
+        .weather-current-label { font-size: 0.68em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #999; margin-bottom: 4px; }
+        .weather-current-temp { font-size: 1.15em; color: #222; margin-bottom: 2px; }
+        .weather-current-detail { font-size: 0.88em; color: #555; margin-bottom: 12px; }
+        .weather-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+        .weather-block { padding: 10px 0; }
+        .weather-block:nth-child(odd) { padding-right: 16px; border-right: 1px dotted #d5d0c4; }
+        .weather-block:nth-child(even) { padding-left: 16px; }
+        .weather-block:nth-child(n+3) { border-top: 1px dotted #d5d0c4; }
+        .weather-block-label { font-size: 0.68em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #999; margin-bottom: 3px; }
+        .weather-block-value { font-size: 1.05em; color: #222; }
+        .weather-block-value strong { font-weight: 700; }
+        .weather-block-sub { font-size: 0.82em; color: #777; margin-top: 2px; }
+        .weather-tonight { padding-top: 12px; border-top: 1px dotted #d5d0c4; }
+        .weather-tonight-label { font-size: 0.68em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #999; margin-bottom: 4px; }
+        .weather-tonight-text { font-size: 0.92em; color: #444; }
+        .weather-callout { margin-top: 12px; padding: 8px 12px; background: #fdf6e3; border-left: 3px solid #c9a959; font-size: 0.88em; font-style: italic; color: #665; }
+        .uv-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 0.78em; font-weight: 700; color: #fff; margin-left: 4px; vertical-align: middle; }
+        .uv-low { background: #4caf50; }
+        .uv-moderate { background: #ff9800; }
+        .uv-high { background: #f44336; }
+        .uv-very-high { background: #9c27b0; }
+        .uv-extreme { background: #d50000; }
+        .weather-attribution { font-size: 0.68em; color: #bbb; margin-top: 10px; text-align: right; }
+        .weather-attribution a { color: #aaa; text-decoration: none; }
 
         /* --- Weekend Events section --- */
         .events-section {
@@ -699,6 +727,25 @@
             .weather-bar {
                 flex-wrap: wrap;
             }
+            .weather-summary-row {
+                flex-wrap: wrap;
+            }
+            .weather-one-liner {
+                flex-basis: 100%;
+                order: 3;
+                margin-top: 4px;
+            }
+            .weather-grid {
+                grid-template-columns: 1fr;
+            }
+            .weather-block:nth-child(odd) {
+                padding-right: 0;
+                border-right: none;
+            }
+            .weather-block:nth-child(even) {
+                padding-left: 0;
+                border-top: 1px dotted #d5d0c4;
+            }
         }
 
         /* --- Small mobile tweaks (under 400px) --- */
@@ -816,12 +863,19 @@
             function updateWeatherBar(weather) {
                 if (!weather || !weather.conditions) return;
                 var bar = document.getElementById('weather-bar');
+                var cur = weather.current || {};
+                var curTemp = cur.temp != null ? (cur.temp + '\u00B0') : '';
+                var windStr = 'Wind ' + weather.wind_mph + ' mph';
+                if (weather.wind_gusts_mph && weather.wind_gusts_mph > weather.wind_mph) {
+                    windStr += ', gusts ' + weather.wind_gusts_mph;
+                }
                 bar.innerHTML =
                     '<span>' + getWeatherEmoji(weather.conditions) + ' ' + escapeHTML(weather.conditions) + '</span>' +
                     '<span class="wb-sep">|</span>' +
+                    (curTemp ? '<span>Now ' + curTemp + '</span><span class="wb-sep">|</span>' : '') +
                     '<span><strong>High ' + weather.high + '\u00B0</strong> / Low ' + weather.low + '\u00B0</span>' +
                     '<span class="wb-sep">|</span>' +
-                    '<span>Wind ' + weather.wind_mph + ' mph</span>';
+                    '<span>' + windStr + '</span>';
                 bar.style.display = '';
             }
 
@@ -1087,58 +1141,136 @@
                 return item;
             }
 
-            // --- Weather ---
+            // --- Weather (click-to-expand) ---
             function renderWeather(weather) {
                 if (!weather || !weather.conditions) return null;
                 var div = document.createElement('div');
                 div.className = 'weather-section';
 
+                // Summary row (always visible, clickable)
+                var row = document.createElement('div');
+                row.className = 'weather-summary-row';
+                row.onclick = function() { div.classList.toggle('open'); };
+
                 var label = document.createElement('div');
                 label.className = 'weather-label';
-                label.textContent = "\uD83C\uDF24\uFE0F TODAY'S FORECAST";
-                div.appendChild(label);
+                label.textContent = '\uD83C\uDF24\uFE0F Today\'s Forecast';
+                row.appendChild(label);
 
-                var conditions = document.createElement('div');
-                conditions.className = 'weather-conditions';
-                conditions.textContent = weather.conditions;
-                div.appendChild(conditions);
+                var oneLiner = document.createElement('div');
+                oneLiner.className = 'weather-one-liner';
+                oneLiner.innerHTML = escapeHTML(weather.conditions) + ' \u2014 <strong>High ' + weather.high + '\u00B0F</strong> / Low ' + weather.low + '\u00B0F';
+                row.appendChild(oneLiner);
 
-                if (weather.high !== undefined && weather.low !== undefined) {
-                    var temps = document.createElement('div');
-                    temps.className = 'weather-temps';
-                    temps.innerHTML = '<strong>High ' + weather.high + '\u00B0F</strong> / Low ' + weather.low + '\u00B0F';
-                    div.appendChild(temps);
+                var hint = document.createElement('div');
+                hint.className = 'weather-expand-hint';
+                hint.innerHTML = '<span class="weather-chevron">\u25B6</span> Details';
+                row.appendChild(hint);
+
+                div.appendChild(row);
+
+                // Detail panel (hidden until expanded)
+                var panel = document.createElement('div');
+                panel.className = 'weather-detail-panel';
+
+                // Current conditions
+                var cur = weather.current || {};
+                if (cur.temp != null) {
+                    var curLabel = document.createElement('div');
+                    curLabel.className = 'weather-current-label';
+                    curLabel.textContent = '\uD83D\uDCCD Current Conditions' + (cur.time_label ? ' (as of ' + cur.time_label + ')' : '');
+                    panel.appendChild(curLabel);
+
+                    var curTemp = document.createElement('div');
+                    curTemp.className = 'weather-current-temp';
+                    curTemp.innerHTML = '<strong>' + cur.temp + '\u00B0F</strong>' + (cur.feels_like != null ? ' <span style="font-size:0.85em;color:#777">(feels like ' + cur.feels_like + '\u00B0F)</span>' : '');
+                    panel.appendChild(curTemp);
+
+                    var curDetail = document.createElement('div');
+                    curDetail.className = 'weather-current-detail';
+                    var parts = [escapeHTML(cur.conditions || '')];
+                    if (cur.humidity != null) parts.push('Humidity ' + cur.humidity + '%');
+                    if (cur.pressure_inhg) parts.push('Pressure ' + cur.pressure_inhg + ' inHg');
+                    curDetail.innerHTML = parts.join(' &bull; ');
+                    panel.appendChild(curDetail);
                 }
 
-                if (weather.wind_mph !== undefined) {
-                    var wind = document.createElement('div');
-                    wind.className = 'weather-detail';
-                    wind.textContent = 'Wind: ' + weather.wind_mph + ' mph';
-                    div.appendChild(wind);
+                // 2x2 grid
+                var grid = document.createElement('div');
+                grid.className = 'weather-grid';
+
+                // Temperature block
+                var b1 = document.createElement('div');
+                b1.className = 'weather-block';
+                b1.innerHTML = '<div class="weather-block-label">\uD83C\uDF21\uFE0F Temperature</div>' +
+                    '<div class="weather-block-value"><strong>High ' + weather.high + '\u00B0F</strong> / Low ' + weather.low + '\u00B0F</div>' +
+                    (weather.feels_high != null && weather.feels_low != null ? '<div class="weather-block-sub">Feels like ' + weather.feels_high + '\u00B0 / ' + weather.feels_low + '\u00B0</div>' : '');
+                grid.appendChild(b1);
+
+                // Wind block
+                var windDir = (cur.wind_dir || '');
+                var b2 = document.createElement('div');
+                b2.className = 'weather-block';
+                b2.innerHTML = '<div class="weather-block-label">\uD83D\uDCA8 Wind</div>' +
+                    '<div class="weather-block-value">' + (windDir ? windDir + ' ' : '') + weather.wind_mph + ' mph</div>' +
+                    (weather.wind_gusts_mph ? '<div class="weather-block-sub">Gusts up to ' + weather.wind_gusts_mph + ' mph</div>' : '');
+                grid.appendChild(b2);
+
+                // Sun block
+                if (weather.sunrise && weather.sunset) {
+                    var b3 = document.createElement('div');
+                    b3.className = 'weather-block';
+                    b3.innerHTML = '<div class="weather-block-label">\u2600\uFE0F Sun</div>' +
+                        '<div class="weather-block-value">' + escapeHTML(weather.sunrise) + ' \u2013 ' + escapeHTML(weather.sunset) + '</div>' +
+                        (weather.daylight ? '<div class="weather-block-sub">' + escapeHTML(weather.daylight) + ' daylight</div>' : '');
+                    grid.appendChild(b3);
                 }
 
+                // UV block
+                if (weather.uv_index != null) {
+                    var b4 = document.createElement('div');
+                    b4.className = 'weather-block';
+                    b4.innerHTML = '<div class="weather-block-label">\uD83D\uDE0E UV Index</div>' +
+                        '<div class="weather-block-value">' + weather.uv_index + ' <span class="uv-badge ' + escapeHTML(weather.uv_class || 'uv-low') + '">' + escapeHTML(weather.uv_label || '') + '</span></div>' +
+                        (weather.uv_advice ? '<div class="weather-block-sub">' + escapeHTML(weather.uv_advice) + '</div>' : '');
+                    grid.appendChild(b4);
+                }
+
+                panel.appendChild(grid);
+
+                // Tonight row
+                var tonightDiv = document.createElement('div');
+                tonightDiv.className = 'weather-tonight';
+                var precipStr = '';
+                var prob = weather.precipitation_probability || 0;
                 var snowIn = weather.snowfall_inches || 0;
                 var rainIn = weather.precipitation_inches || 0;
                 if (snowIn > 0) {
-                    var snow = document.createElement('div');
-                    snow.className = 'weather-detail';
-                    snow.textContent = 'Snow: ~' + snowIn.toFixed(1) + '" expected';
-                    div.appendChild(snow);
+                    precipStr = ' \u2022 ~' + snowIn.toFixed(1) + '" snow expected';
                 } else if (rainIn > 0) {
-                    var rain = document.createElement('div');
-                    rain.className = 'weather-detail';
-                    rain.textContent = 'Rain: ~' + rainIn.toFixed(2) + '" expected';
-                    div.appendChild(rain);
+                    precipStr = ' \u2022 ~' + rainIn.toFixed(2) + '" rain expected';
+                } else if (prob > 0) {
+                    precipStr = ' \u2022 ' + prob + '% chance of precipitation';
+                }
+                tonightDiv.innerHTML = '<div class="weather-tonight-label">\uD83C\uDF19 Tonight</div>' +
+                    '<div class="weather-tonight-text">Low <strong>' + weather.low + '\u00B0F</strong>' + precipStr + '</div>';
+                panel.appendChild(tonightDiv);
+
+                // Notable callout
+                if (weather.notable) {
+                    var callout = document.createElement('div');
+                    callout.className = 'weather-callout';
+                    callout.innerHTML = '\uD83C\uDF21\uFE0F ' + escapeHTML(weather.notable);
+                    panel.appendChild(callout);
                 }
 
-                var prob = weather.precipitation_probability || 0;
-                if (prob > 0) {
-                    var probDiv = document.createElement('div');
-                    probDiv.className = 'weather-prob';
-                    probDiv.textContent = prob + '% chance of precipitation';
-                    div.appendChild(probDiv);
-                }
+                // Attribution
+                var attr = document.createElement('div');
+                attr.className = 'weather-attribution';
+                attr.innerHTML = 'Data from <a href="https://open-meteo.com" target="_blank">Open-Meteo</a>';
+                panel.appendChild(attr);
 
+                div.appendChild(panel);
                 return div;
             }
 
