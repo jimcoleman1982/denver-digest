@@ -59,6 +59,15 @@
       "url": "https://www.denvergazette.com/2026/02/27/denver-area-events-for-feb-27/"
     }
   ],
+  "topStory": {
+    "headline": "US and Israel launch coordinated strikes against Iranian nuclear and military sites",
+    "summary": "The United States and Israel launched a coordinated military operation against Iran early Saturday morning, striking nuclear enrichment facilities, missile production sites, and command infrastructure across multiple Iranian provinces. The strikes, which began around 2:00 AM local time, represent the largest direct military action against Iran by either nation and mark a dramatic escalation in the decades-long standoff over Iran's nuclear program.\n\nPresident Trump authorized the operation following what the White House described as credible intelligence that Iran was within weeks of producing weapons-grade enriched uranium. Israeli Prime Minister Benjamin Netanyahu said in a televised address that the strikes targeted \"the full spectrum of Iran's nuclear weapons infrastructure\" and were conducted with \"surgical precision\" to minimize civilian casualties. Pentagon officials said the operation involved more than 200 aircraft sorties and cruise missile launches from naval vessels in the Persian Gulf and Arabian Sea.\n\nIran's Supreme Leader Ayatollah Ali Khamenei vowed retaliation, calling the strikes \"an act of war that will not go unanswered.\" The Iranian military confirmed significant damage to facilities in Isfahan, Natanz, and Parchin, though it disputed US and Israeli claims about the extent of destruction to the nuclear program. The United Nations Security Council convened an emergency session within hours of the initial reports.\n\nGlobal markets reacted sharply to the news, with oil prices surging more than 12 percent in early trading and stock futures plunging across major indices. Several airlines suspended flights across the Middle East, stranding thousands of travelers. European leaders called for immediate de-escalation, with French President Emmanuel Macron and German Chancellor Friedrich Merz issuing a joint statement urging all parties to return to diplomatic channels.",
+    "sources": [
+      {"name": "Associated Press", "url": "https://apnews.com/article/iran-strikes-us-israel"},
+      {"name": "Reuters", "url": "https://reuters.com/world/middle-east/iran-strikes"},
+      {"name": "BBC News", "url": "https://bbc.com/news/world-middle-east-iran-strikes"}
+    ]
+  },
   "weather": {
     "forecast": "It's gonna be 67 degrees today in Denver. That's a Friday temperature. The sky is gonna be overcast, which means the sun is up there, it's just not coming down. No rain, no snow, just clouds doing their thing, which I respect. Wind gets up to about 18 miles per hour, so your hat might leave, and honestly it might be happier somewhere else.",
     "high": 67,

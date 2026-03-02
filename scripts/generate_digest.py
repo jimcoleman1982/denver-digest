@@ -12,8 +12,10 @@ import datetime
 import json
 import os
 import re
+import subprocess
 import sys
 import time
+import xml.etree.ElementTree as ET
 from difflib import SequenceMatcher
 from zoneinfo import ZoneInfo
 
@@ -34,16 +36,16 @@ SITE_URL = "https://303news.org"
 # Category display order and labels (must match site JavaScript)
 CATEGORY_ORDER = ["other", "politics", "business", "crime", "sports"]
 CATEGORY_LABELS = {
-    "other": "GENERAL / METRO NEWS",
+    "other": "DENVER METRO NEWS",
     "politics": "POLITICS & GOVERNMENT",
     "business": "BUSINESS & ECONOMY",
     "crime": "CRIME & PUBLIC SAFETY",
-    "sports": "SPORTS",
+    "sports": "DENVER SPORTS",
 }
 
 # --- Budget Safety Limits ---
-MAX_BRAVE_QUERIES_PER_RUN = 50  # hard cap on search API calls per run
-MAX_ANTHROPIC_CALLS_PER_RUN = 5  # news + weather + events (Fri) + retries
+MAX_BRAVE_QUERIES_PER_RUN = 55  # hard cap on search API calls per run
+MAX_ANTHROPIC_CALLS_PER_RUN = 6  # news + weather + events (Fri) + top story + retries
 brave_query_count = 0
 anthropic_call_count = 0
 
@@ -100,7 +102,7 @@ OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast"
 OPEN_METEO_PARAMS = {
     "latitude": 39.74,
     "longitude": -104.98,
-    "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,weathercode",
+    "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,snowfall_sum,precipitation_probability_max,windspeed_10m_max,weathercode",
     "temperature_unit": "fahrenheit",
     "timezone": "America/Denver",
 }
@@ -117,15 +119,6 @@ WMO_WEATHER_CODES = {
     95: "Thunderstorm", 96: "Thunderstorm with slight hail", 99: "Thunderstorm with heavy hail",
 }
 
-WEATHER_SYSTEM_PROMPT = """You are a weather forecaster for Denver, Colorado who writes exactly like comedian Nate Bargatze. Your style:
-- Deadpan, almost confused by your own observations
-- Relatable everyday observations taken to absurd conclusions
-- Short sentences. Lots of pauses (use periods, not ellipses).
-- Wholesome. Never mean, never political, never sarcastic.
-- You sound like a guy who genuinely doesn't understand weather but is trying his best.
-- Reference Denver-specific things when natural (altitude, dry air, sun, mountains, etc.)
-- Do NOT mention Nate Bargatze or any comedian by name. Do NOT reference comedy or stand-up. Just write the forecast naturally in this voice.
-Write 3-5 sentences. Be funny but make sure the actual forecast information (temperatures, conditions) is accurate and included."""
 
 # --- Weekend Events Configuration (Friday only) ---
 WEEKEND_EVENT_QUERIES = [
@@ -630,44 +623,373 @@ def filter_cross_day_duplicates(candidates, target_date_str):
     return kept
 
 
-def fetch_comic_teaser(date_str):
-    """Fetch today's Far Side page and extract a teaser from the first comic caption."""
-    comic_url = f"https://www.thefarside.com/{date_str.replace('-', '/')}"
+def get_daily_joke(date_str):
+    """Pick today's joke from the joke bank based on date rotation."""
+    joke_bank_path = os.path.join(os.path.dirname(__file__), "joke_bank.json")
     try:
-        resp = requests.get(comic_url, headers=HEADERS, timeout=15)
-        if resp.status_code != 200:
-            print(f"  Far Side page returned {resp.status_code}")
-            return {"url": comic_url, "teaser": "A fresh daily dose of classic Far Side humor."}
-
-        soup = BeautifulSoup(resp.text, "html.parser")
-        captions = soup.find_all("figcaption")
-        teasers = []
-        for cap in captions:
-            text = cap.get_text(strip=True)
-            if text and len(text) > 5:
-                teasers.append(text)
-
-        if teasers:
-            # Use the first caption, truncated for fair use
-            first = teasers[0]
-            if len(first) > 80:
-                first = first[:77] + "..."
-            teaser = f'"{first}"'
-            count = len(teasers)
-            if count > 1:
-                teaser += f" + {count - 1} more"
-        else:
-            teaser = "A fresh daily dose of classic Far Side humor."
-
-        return {"url": comic_url, "teaser": teaser}
+        with open(joke_bank_path, "r", encoding="utf-8") as f:
+            jokes = json.load(f)
     except Exception as e:
-        print(f"  Error fetching Far Side: {e}")
-        return {"url": comic_url, "teaser": "A fresh daily dose of classic Far Side humor."}
+        print(f"  Error loading joke bank: {e}")
+        return None
+
+    if not jokes:
+        print("  Joke bank is empty")
+        return None
+
+    target_date = datetime.date.fromisoformat(date_str)
+    day_index = target_date.timetuple().tm_yday + target_date.year * 366
+    joke = jokes[day_index % len(jokes)]
+    return {"comedian": joke["comedian"], "joke": joke["joke"]}
+
+
+# --- Top World Story ---
+
+GOOGLE_NEWS_RSS_URL = "https://news.google.com/rss"
+
+# Sources to prefer for world news article fetching
+WORLD_NEWS_PREFERRED = [
+    "apnews.com", "reuters.com", "bbc.com", "bbc.co.uk",
+    "nytimes.com", "washingtonpost.com", "theguardian.com",
+    "cbsnews.com", "nbcnews.com", "abcnews.go.com",
+    "aljazeera.com", "npr.org", "politico.com", "bloomberg.com",
+]
+
+# Sources to deprioritize (entertainment, clickbait)
+WORLD_NEWS_NOISE = [
+    "tmz.com", "eonline.com", "people.com", "usmagazine.com",
+    "buzzfeed.com", "dailymail.co.uk", "pagesix.com",
+    "gizmodo.com", "lifehacker.com", "kotaku.com",
+]
+
+TOP_STORY_SYSTEM_PROMPT = """You are the international desk editor for 303 News, a Denver metro daily digest. You write detailed, factual summaries of major world and national news stories. Clean newspaper style. No editorializing, no emojis."""
+
+
+def fetch_google_news_rss():
+    """Fetch and parse Google News RSS feed. Returns list of {title, link, source, pub_date}."""
+    print("  Fetching Google News RSS...")
+    try:
+        result = subprocess.run(
+            ["curl", "-sL", GOOGLE_NEWS_RSS_URL,
+             "-H", "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+             "--max-time", "15"],
+            capture_output=True, text=True, timeout=20,
+        )
+        if result.returncode != 0 or not result.stdout.strip():
+            print("  Google News RSS fetch failed (curl error)")
+            return []
+
+        root = ET.fromstring(result.stdout)
+        items = root.findall(".//item")
+        print(f"  Google News RSS: {len(items)} items")
+
+        entries = []
+        for item in items[:20]:  # top 20 is plenty
+            title_el = item.find("title")
+            link_el = item.find("link")
+            pub_el = item.find("pubDate")
+            if title_el is None or link_el is None:
+                continue
+
+            raw_title = title_el.text or ""
+            # Google News format: "Headline text - Source Name"
+            if " - " in raw_title:
+                parts = raw_title.rsplit(" - ", 1)
+                headline = parts[0].strip()
+                source = parts[1].strip()
+            else:
+                headline = raw_title.strip()
+                source = "Unknown"
+
+            entries.append({
+                "title": headline,
+                "link": link_el.text or "",
+                "source": source,
+                "pub_date": pub_el.text if pub_el is not None else "",
+            })
+
+        return entries
+
+    except Exception as e:
+        print(f"  Google News RSS failed: {e}")
+        return []
+
+
+def resolve_google_news_url(google_url):
+    """Resolve a Google News redirect URL to the actual article URL."""
+    if "news.google.com" not in google_url:
+        return google_url
+    try:
+        result = subprocess.run(
+            ["curl", "-sI", "-L", google_url,
+             "-H", "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+             "--max-time", "10", "--max-redirs", "5"],
+            capture_output=True, text=True, timeout=15,
+        )
+        # Look for the final Location header
+        final_url = google_url
+        for line in result.stdout.split("\n"):
+            line = line.strip()
+            if line.lower().startswith("location:"):
+                candidate = line.split(":", 1)[1].strip()
+                if "news.google.com" not in candidate:
+                    final_url = candidate
+        return final_url
+    except Exception:
+        return google_url
+
+
+def cluster_headlines(entries):
+    """Group RSS entries by topic similarity. Returns list of clusters (each a list of entries)."""
+    clusters = []
+    used = set()
+
+    for i, entry in enumerate(entries):
+        if i in used:
+            continue
+        cluster = [entry]
+        used.add(i)
+        for j, other in enumerate(entries):
+            if j in used:
+                continue
+            # Check headline similarity
+            sim = SequenceMatcher(
+                None, entry["title"].lower(), other["title"].lower()
+            ).ratio()
+            if sim > 0.35:
+                cluster.append(other)
+                used.add(j)
+                continue
+            # Check keyword overlap
+            words_a = extract_significant_words(entry["title"])
+            words_b = extract_significant_words(other["title"])
+            shared = words_a & words_b
+            if len(shared) >= 3:
+                cluster.append(other)
+                used.add(j)
+        clusters.append(cluster)
+
+    return clusters
+
+
+def score_cluster(cluster):
+    """Score a cluster by source diversity and news quality."""
+    sources = set(e["source"] for e in cluster)
+    # Bonus for preferred news sources
+    preferred_count = sum(
+        1 for s in sources
+        if any(p in s.lower() for p in ["ap ", "reuters", "bbc", "nyt", "washington post",
+                                         "cbs", "nbc", "abc", "guardian", "npr", "bloomberg"])
+    )
+    # Penalty for noise sources
+    noise_count = sum(
+        1 for e in cluster
+        if any(n in e.get("link", "").lower() for n in WORLD_NEWS_NOISE)
+    )
+    return len(sources) * 2 + preferred_count - noise_count * 3
+
+
+def fetch_top_world_story(brave_key, target_date_str):
+    """Identify and summarize the top world news story using Google News RSS + Brave verification."""
+    global anthropic_call_count, brave_query_count
+
+    # Step 1: Get Google News RSS entries
+    entries = fetch_google_news_rss()
+    if not entries:
+        print("  No Google News entries, falling back to Brave-only")
+        entries = []
+
+    # Step 2: Cluster by topic
+    clusters = cluster_headlines(entries)
+    if clusters:
+        # Score and sort
+        scored = [(score_cluster(c), c) for c in clusters]
+        scored.sort(key=lambda x: x[0], reverse=True)
+        top_cluster = scored[0][1]
+        print(f"  Top cluster ({len(top_cluster)} articles, score {scored[0][0]}):")
+        for e in top_cluster[:5]:
+            print(f"    - [{e['source']}] {e['title'][:80]}")
+    else:
+        top_cluster = []
+
+    # Step 3: Verify/supplement with Brave News search
+    if top_cluster:
+        # Extract key terms from the top cluster for verification
+        all_words = set()
+        for e in top_cluster[:3]:
+            all_words |= extract_significant_words(e["title"])
+        # Pick the 3-4 most common significant words
+        word_freq = {}
+        for e in top_cluster:
+            for w in extract_significant_words(e["title"]):
+                word_freq[w] = word_freq.get(w, 0) + 1
+        top_terms = sorted(word_freq, key=word_freq.get, reverse=True)[:4]
+        verify_query = " ".join(top_terms)
+    else:
+        verify_query = "top news today breaking"
+
+    print(f"  Brave verification query: '{verify_query}'")
+    brave_results = []
+    if brave_query_count < MAX_BRAVE_QUERIES_PER_RUN:
+        brave_results = brave_news_search(verify_query, brave_key, count=10, freshness="pd")
+        time.sleep(0.3)
+
+    # Also try a broader query if we have budget
+    if brave_query_count < MAX_BRAVE_QUERIES_PER_RUN:
+        broad = brave_news_search("top world news today", brave_key, count=10, freshness="pd")
+        brave_results.extend(broad)
+        time.sleep(0.3)
+
+    # Merge Brave results into our entry pool
+    for br in brave_results:
+        # Skip if it's noise
+        if any(n in br["url"] for n in WORLD_NEWS_NOISE):
+            continue
+        entries.append({
+            "title": br["title"],
+            "link": br["url"],
+            "source": br["source"],
+            "pub_date": "",
+        })
+
+    # Re-cluster with the combined pool
+    if brave_results:
+        all_clusters = cluster_headlines(entries)
+        scored = [(score_cluster(c), c) for c in all_clusters]
+        scored.sort(key=lambda x: x[0], reverse=True)
+        top_cluster = scored[0][1]
+        print(f"  Final top cluster ({len(top_cluster)} articles, score {scored[0][0]}):")
+        for e in top_cluster[:5]:
+            print(f"    - [{e['source']}] {e['title'][:80]}")
+
+    if not top_cluster:
+        print("  Could not identify a top world story")
+        return None
+
+    # Step 4: Fetch full article text from the best sources in the cluster
+    # Prefer major wire services and newspapers
+    sorted_entries = sorted(
+        top_cluster,
+        key=lambda e: (
+            1 if any(p in e.get("link", "").lower() for p in WORLD_NEWS_PREFERRED) else 0
+        ),
+        reverse=True,
+    )
+
+    article_texts = []
+    sources_used = []
+    for entry in sorted_entries[:5]:  # try up to 5
+        url = entry["link"]
+        # Resolve Google News redirect URLs
+        if "news.google.com" in url:
+            url = resolve_google_news_url(url)
+            if "news.google.com" in url:
+                continue  # couldn't resolve
+        text = fetch_article_text(url)
+        if text and len(text) > 200:
+            article_texts.append({
+                "source": entry["source"],
+                "url": url,
+                "text": text,
+            })
+            sources_used.append({"name": entry["source"], "url": url})
+            print(f"    Fetched {len(text)} chars from {entry['source']}")
+            if len(article_texts) >= 3:
+                break
+        time.sleep(0.3)
+
+    if not article_texts:
+        print("  Could not fetch article text for top story")
+        return None
+
+    # Step 5: Send to Claude for detailed summary
+    anthropic_call_count += 1
+    if anthropic_call_count > MAX_ANTHROPIC_CALLS_PER_RUN:
+        print(f"  LIMIT: Anthropic call cap reached. Skipping top story.")
+        return None
+
+    source_blocks = []
+    for i, at in enumerate(article_texts, 1):
+        source_blocks.append(f"[SOURCE {i}: {at['source']}]\n{at['text']}")
+    sources_text = "\n\n".join(source_blocks)
+
+    # Build the representative headline from the cluster
+    representative_headline = top_cluster[0]["title"]
+
+    user_prompt = f"""Below are {len(article_texts)} articles about the top news story of the day.
+
+Topic: {representative_headline}
+
+{sources_text}
+
+---
+
+Write a detailed summary of this story. Your summary must be at least 3 paragraphs long (4-5 paragraphs preferred), with each paragraph 2-4 sentences. Cover:
+- What happened (the core facts)
+- Who is involved and what they said or did
+- The broader context and background
+- Why it matters and what comes next
+
+Also write a clear, factual headline for the story.
+
+Focus on hard news with genuine global or national significance. Write in clean newspaper style. No editorializing, no emojis.
+
+Return ONLY a JSON object with these fields:
+- "headline": clear factual headline
+- "summary": the full multi-paragraph summary with \\n\\n between paragraphs
+
+Return ONLY the JSON object, no other text."""
+
+    client = anthropic.Anthropic()
+    try:
+        response = client.messages.create(
+            model=ANTHROPIC_MODEL,
+            max_tokens=2000,
+            system=TOP_STORY_SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": user_prompt}],
+        )
+        raw_text = response.content[0].text
+        usage = response.usage
+        cost = (usage.input_tokens * 3 + usage.output_tokens * 15) / 1_000_000
+        print(f"  Top story summary: {usage.input_tokens + usage.output_tokens} tokens, ${cost:.4f}")
+
+        # Parse JSON
+        result = None
+        try:
+            result = json.loads(raw_text)
+        except json.JSONDecodeError:
+            pass
+        if not result:
+            match = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", raw_text, re.DOTALL)
+            if match:
+                try:
+                    result = json.loads(match.group(1))
+                except json.JSONDecodeError:
+                    pass
+        if not result:
+            match = re.search(r"\{.*\}", raw_text, re.DOTALL)
+            if match:
+                try:
+                    result = json.loads(match.group(0))
+                except json.JSONDecodeError:
+                    pass
+
+        if not result or "headline" not in result or "summary" not in result:
+            print(f"  Failed to parse top story JSON")
+            return None
+
+        # Attach source list
+        result["sources"] = sources_used
+        print(f"  Top story: {result['headline'][:70]}")
+        return result
+
+    except Exception as e:
+        print(f"  Top story summarization failed: {e}")
+        return None
 
 
 def fetch_weather_forecast(target_date_str):
-    """Fetch Denver weather from Open-Meteo and generate Bargatze-voice forecast."""
-    # Step 1: Fetch raw forecast data from Open-Meteo (free, no key)
+    """Fetch Denver weather forecast from Open-Meteo."""
     print("  Fetching Open-Meteo forecast...")
     try:
         resp = requests.get(OPEN_METEO_URL, params=OPEN_METEO_PARAMS, timeout=10)
@@ -677,7 +999,6 @@ def fetch_weather_forecast(target_date_str):
         print(f"  Weather API failed: {e}")
         return None
 
-    # Step 2: Extract today's forecast from the daily arrays
     daily = data.get("daily", {})
     dates = daily.get("time", [])
     try:
@@ -688,70 +1009,30 @@ def fetch_weather_forecast(target_date_str):
 
     high = daily["temperature_2m_max"][idx]
     low = daily["temperature_2m_min"][idx]
-    precip = daily.get("precipitation_sum", [0])[idx] or 0
-    wind = daily.get("windspeed_10m_max", [0])[idx] or 0
+    precip_mm = daily.get("precipitation_sum", [0])[idx] or 0
+    snowfall_cm = daily.get("snowfall_sum", [0])[idx] or 0
+    precip_prob = daily.get("precipitation_probability_max", [0])[idx] or 0
+    wind_kmh = daily.get("windspeed_10m_max", [0])[idx] or 0
     code = daily.get("weathercode", [0])[idx]
     conditions = WMO_WEATHER_CODES.get(code, "Unknown")
 
-    raw_weather = {
+    weather = {
         "high": round(high),
         "low": round(low),
-        "precipitation_inches": round(precip / 25.4, 2) if precip else 0,
-        "wind_mph": round(wind / 1.609, 1) if wind else 0,
         "conditions": conditions,
+        "wind_mph": round(wind_kmh / 1.609, 1) if wind_kmh else 0,
+        "precipitation_inches": round(precip_mm / 25.4, 2) if precip_mm else 0,
+        "snowfall_inches": round(snowfall_cm / 2.54, 1) if snowfall_cm else 0,
+        "precipitation_probability": round(precip_prob),
     }
 
-    print(f"  Weather: {conditions}, High {raw_weather['high']}F, Low {raw_weather['low']}F")
+    print(f"  Weather: {conditions}, High {weather['high']}F, Low {weather['low']}F, "
+          f"Precip prob {weather['precipitation_probability']}%, "
+          f"Snow {weather['snowfall_inches']}in")
 
-    # Step 3: Send to Claude for Bargatze-voice treatment
-    forecast_text = generate_weather_commentary(raw_weather, target_date_str)
-
-    if not forecast_text:
-        return None
-
-    return {
-        "forecast": forecast_text,
-        "high": raw_weather["high"],
-        "low": raw_weather["low"],
-        "conditions": conditions,
-    }
+    return weather
 
 
-def generate_weather_commentary(raw_weather, target_date_str):
-    """Call Claude to generate Bargatze-style weather commentary."""
-    global anthropic_call_count
-    anthropic_call_count += 1
-    if anthropic_call_count > MAX_ANTHROPIC_CALLS_PER_RUN:
-        print(f"  LIMIT: Anthropic call cap reached. Skipping weather commentary.")
-        return None
-
-    client = anthropic.Anthropic()
-    user_prompt = (
-        f"Today's Denver weather forecast for {target_date_str}:\n"
-        f"High: {raw_weather['high']} degrees F\n"
-        f"Low: {raw_weather['low']} degrees F\n"
-        f"Conditions: {raw_weather['conditions']}\n"
-        f"Precipitation: {raw_weather['precipitation_inches']} inches\n"
-        f"Max wind: {raw_weather['wind_mph']} mph\n\n"
-        f"Write a short, funny weather report in the style described. "
-        f"Include the actual high and low temps. 3-5 sentences max."
-    )
-
-    try:
-        response = client.messages.create(
-            model=ANTHROPIC_MODEL,
-            max_tokens=300,
-            system=WEATHER_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_prompt}],
-        )
-        text = response.content[0].text.strip()
-        usage = response.usage
-        cost = (usage.input_tokens * 3 + usage.output_tokens * 15) / 1_000_000
-        print(f"  Weather commentary: {usage.input_tokens + usage.output_tokens} tokens, ${cost:.4f}")
-        return text
-    except Exception as e:
-        print(f"  Weather commentary failed: {e}")
-        return None
 
 
 def fetch_weekend_events(brave_key, target_date_str, freshness):
@@ -1131,7 +1412,7 @@ def call_anthropic(stories, target_date_str):
     sys.exit(1)
 
 
-def write_output(stories_json, date_str, date_formatted, comic=None, weather=None, weekend_events=None):
+def write_output(stories_json, date_str, date_formatted, joke=None, weather=None, weekend_events=None, top_story=None):
     """Write the final JSON data file."""
     output = {
         "date": date_str,
@@ -1140,10 +1421,12 @@ def write_output(stories_json, date_str, date_formatted, comic=None, weather=Non
     }
     if weather:
         output["weather"] = weather
-    if comic:
-        output["comic"] = comic
+    if joke:
+        output["joke"] = joke
     if weekend_events:
         output["weekendEvents"] = weekend_events
+    if top_story:
+        output["topStory"] = top_story
 
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     filepath = os.path.join(OUTPUT_DIR, f"{date_str}.json")
@@ -1169,7 +1452,7 @@ def get_freshness_for_date(target_date):
         return f"{start}to{end}"
 
 
-def build_email_html(stories_json, date_str, date_formatted, comic=None, weather=None, weekend_events=None):
+def build_email_html(stories_json, date_str, date_formatted, joke=None, weather=None, weekend_events=None, top_story=None):
     """Build an HTML email with headlines, teasers, and deep links."""
     # Group stories by category in display order
     groups = {}
@@ -1183,13 +1466,59 @@ def build_email_html(stories_json, date_str, date_formatted, comic=None, weather
 
     # Build weather HTML (appears after header, before news)
     weather_html = ""
-    if weather and weather.get("forecast"):
+    if weather and weather.get("conditions"):
+        precip_line = ""
+        snow_in = weather.get("snowfall_inches", 0)
+        rain_in = weather.get("precipitation_inches", 0)
+        if snow_in > 0:
+            precip_line = f'<div style="font-family: Georgia, \'Times New Roman\', serif; font-size: 14px; color: #333; margin-top: 4px;">Snow: ~{snow_in:.1f}&quot; expected</div>'
+        elif rain_in > 0:
+            precip_line = f'<div style="font-family: Georgia, \'Times New Roman\', serif; font-size: 14px; color: #333; margin-top: 4px;">Rain: ~{rain_in:.2f}&quot; expected</div>'
+        precip_prob = weather.get("precipitation_probability", 0)
+        prob_line = ""
+        if precip_prob > 0:
+            prob_line = f'<div style="font-family: Georgia, \'Times New Roman\', serif; font-size: 13px; color: #666; margin-top: 4px;">{precip_prob}% chance of precipitation</div>'
         weather_html = f'''
     <tr><td style="padding: 20px 16px; background-color: #eee8d5; border-left: 3px solid #c9a959;">
-        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #888; text-transform: uppercase; margin-bottom: 8px;">TODAY'S WEATHER</div>
-        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 15px; color: #333; line-height: 1.6;">{weather["forecast"]}</div>
-        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 13px; color: #888; margin-top: 6px; font-style: italic;">High {weather["high"]}&deg;F / Low {weather["low"]}&deg;F &middot; {weather["conditions"]}</div>
-        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 11px; color: #aaa; margin-top: 8px; font-style: italic;">Today's weather delivered by Comedy-ologist, Nate Bargatze</div>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #888; text-transform: uppercase; margin-bottom: 8px;">TODAY'S FORECAST</div>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 16px; color: #333; font-weight: 600;">{weather["conditions"]}</div>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 15px; color: #333; margin-top: 4px;"><strong>High {weather["high"]}&deg;F</strong> / Low {weather["low"]}&deg;F</div>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 14px; color: #333; margin-top: 4px;">Wind: {weather.get("wind_mph", 0)} mph</div>
+        {precip_line}
+        {prob_line}
+    </td></tr>
+'''
+
+    # Build top world story HTML (appears after weather, before Denver news)
+    top_story_html = ""
+    if top_story and top_story.get("headline") and top_story.get("summary"):
+        ts_headline = top_story["headline"]
+        ts_summary = top_story["summary"]
+        # Format sources as byline
+        ts_sources = top_story.get("sources", [])
+        ts_byline = " | ".join(s["name"] for s in ts_sources) if ts_sources else ""
+        # Build paragraphs
+        ts_paragraphs = ""
+        for para in ts_summary.split("\n\n"):
+            para = para.strip()
+            if para:
+                ts_paragraphs += f'<p style="font-family: Georgia, \'Times New Roman\', serif; font-size: 15px; color: #333; line-height: 1.6; margin: 0 0 12px 0;">{para}</p>\n'
+        # Source links
+        ts_source_links = ""
+        for s in ts_sources:
+            ts_source_links += f' <a href="{s["url"]}" style="font-family: Georgia, \'Times New Roman\', serif; font-size: 12px; color: #1a3a6a; text-decoration: none;">{s["name"]}</a> &middot;'
+        if ts_source_links.endswith("&middot;"):
+            ts_source_links = ts_source_links[:-8]
+
+        top_story_html = f'''
+    <tr><td style="padding: 20px 0 8px 0; font-family: Georgia, 'Times New Roman', serif; font-size: 14px; font-weight: 700; letter-spacing: 2px; color: #444; text-transform: uppercase; border-bottom: 1px solid #ddd; border-top: 2px solid #c9a959;">TOP STORY IN THE WORLD</td></tr>
+    <tr><td style="padding: 14px 0 4px 0;">
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 22px; color: #1a1a1a; line-height: 1.3; font-weight: 700;">{ts_headline}</div>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: #888; text-transform: uppercase; margin-top: 6px;">{ts_byline}</div>
+    </td></tr>
+    <tr><td style="padding: 10px 0 16px 0;">
+        {ts_paragraphs}
+        <div style="margin-top: 8px; font-size: 12px; color: #888;">Sources:{ts_source_links}</div>
     </td></tr>
 '''
 
@@ -1266,13 +1595,13 @@ def build_email_html(stories_json, date_str, date_formatted, comic=None, weather
         <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 14px; font-style: italic; color: #666; margin-top: 4px;">{date_formatted}</div>
     </td></tr>
 {weather_html}
+{top_story_html}
 {events_html}
 {sections_html}
     <tr><td style="padding: 24px 0 10px 0; text-align: center; border-top: 1px solid #ddd;">
-        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #888; text-transform: uppercase;">Daily Comic</div>
-        <a href="{comic['url'] if comic else 'https://www.thefarside.com'}" style="font-family: Georgia, 'Times New Roman', serif; font-size: 16px; color: #1a3a6a; text-decoration: none;">Today's Far Side</a>
-        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 13px; color: #555; margin-top: 4px; font-style: italic;">{comic['teaser'] if comic else 'A fresh daily dose from Gary Larson.'}</div>
-        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 11px; color: #999; font-style: italic; margin-top: 2px;">by Gary Larson</div>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 11px; font-weight: 700; letter-spacing: 2px; color: #888; text-transform: uppercase;">Daily Laugh</div>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 15px; color: #333; margin-top: 6px; line-height: 1.5;">{joke['joke'] if joke else ''}</div>
+        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 12px; color: #999; font-style: italic; margin-top: 6px;">&mdash; {joke['comedian'] if joke else ''}</div>
     </td></tr>
     <tr><td style="padding: 20px 0 16px 0; text-align: center; border-top: 1px solid #ccc;">
         <a href="{SITE_URL}" style="font-family: Georgia, 'Times New Roman', serif; font-size: 15px; color: #1a3a6a; text-decoration: none;">Read full summaries at 303news.org</a>
@@ -1288,7 +1617,7 @@ def build_email_html(stories_json, date_str, date_formatted, comic=None, weather
     return html
 
 
-def send_email(stories_json, date_str, date_formatted, comic=None, weather=None, weekend_events=None):
+def send_email(stories_json, date_str, date_formatted, joke=None, weather=None, weekend_events=None, top_story=None):
     """Send the daily digest email via Buttondown API."""
     buttondown_key = os.environ.get("BUTTONDOWN_API_KEY")
     if not buttondown_key:
@@ -1296,7 +1625,8 @@ def send_email(stories_json, date_str, date_formatted, comic=None, weather=None,
         return
 
     email_html = build_email_html(stories_json, date_str, date_formatted,
-                                  comic=comic, weather=weather, weekend_events=weekend_events)
+                                  joke=joke, weather=weather, weekend_events=weekend_events,
+                                  top_story=top_story)
     subject = f"303 News -- {date_formatted}"
 
     print(f"\n--- Sending Email ---")
@@ -1459,17 +1789,19 @@ def main():
     print(f"\n[Step 4] Sending {len(stories_with_text)} candidates to Anthropic for curation...")
     summaries = call_anthropic(stories_with_text, target_date_str)
 
-    # Step 4b: Fetch daily comic teaser
-    print("\n[Step 4b] Fetching daily comic...")
-    comic = fetch_comic_teaser(target_date_str)
-    print(f"  Comic: {comic.get('teaser', 'N/A')}")
+    # Step 4b: Get daily joke
+    print("\n[Step 4b] Getting daily joke...")
+    joke = get_daily_joke(target_date_str)
+    if joke:
+        print(f"  Joke: {joke['comedian']} -- {joke['joke'][:60]}...")
+    else:
+        print("  Joke: skipped (load failed)")
 
     # Step 4c: Fetch weather forecast
     print("\n[Step 4c] Fetching weather forecast...")
     weather = fetch_weather_forecast(target_date_str)
     if weather:
         print(f"  Weather: {weather['conditions']}, High {weather['high']}F / Low {weather['low']}F")
-        print(f"  Commentary: {weather['forecast'][:80]}...")
     else:
         print("  Weather: skipped (fetch failed or unavailable)")
 
@@ -1487,16 +1819,26 @@ def main():
     else:
         print("\n[Step 4d] Skipping weekend events (not Friday).")
 
+    # Step 4e: Fetch top world story
+    print("\n[Step 4e] Fetching top world story...")
+    top_story = fetch_top_world_story(brave_key, target_date_str)
+    if top_story:
+        print(f"  Top story: {top_story['headline'][:70]}...")
+    else:
+        print("  Top story: skipped (fetch/curation failed)")
+
     # Step 5: Write output
     print("\n[Step 5] Writing JSON output...")
     filepath = write_output(summaries, target_date_str, target_formatted,
-                            comic=comic, weather=weather, weekend_events=weekend_events)
+                            joke=joke, weather=weather, weekend_events=weekend_events,
+                            top_story=top_story)
 
     # Step 6: Send email (skip for backfill unless forced)
     if not args.date:
         print("\n[Step 6] Sending newsletter email...")
         send_email(summaries, target_date_str, target_formatted,
-                   comic=comic, weather=weather, weekend_events=weekend_events)
+                   joke=joke, weather=weather, weekend_events=weekend_events,
+                   top_story=top_story)
     else:
         print("\n[Step 6] Skipping email (backfill mode).")
 

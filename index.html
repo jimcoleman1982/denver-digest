@@ -26,41 +26,77 @@
             padding: 20px 16px 40px;
         }
 
-        /* --- Header --- */
-        .site-header {
+        /* --- Masthead --- */
+        .masthead {
             text-align: center;
-            padding: 28px 0 24px;
-            border-bottom: 3px double #1a1a1a;
-            margin-bottom: 32px;
+            padding-bottom: 16px;
+            border-bottom: 4px double #1a1a1a;
+            margin-bottom: 0;
         }
 
-        .site-title {
+        .masthead-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.72em;
+            color: #888;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .masthead-title {
             font-size: 2em;
             font-weight: 700;
             letter-spacing: 0.08em;
-            color: #1a1a1a;
-            line-height: 1.2;
+            line-height: 1.1;
+            margin: 6px 0;
         }
 
-        .site-subtitle {
-            font-size: 0.88em;
-            font-style: italic;
+        .masthead-title .three-oh-three {
+            color: #8b1a1a;
+        }
+
+        .masthead-dateline {
+            font-size: 0.82em;
             color: #666;
-            margin-top: 6px;
+            font-style: italic;
+            margin-top: 4px;
+            letter-spacing: 0.03em;
+        }
+
+        .masthead-rule {
+            border: none;
+            border-top: 1px solid #1a1a1a;
+            margin-top: 10px;
+        }
+
+        /* --- Weather Bar --- */
+        .weather-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 0;
+            border-bottom: 1px solid #ccc;
+            font-size: 0.88em;
+            color: #555;
+        }
+
+        .weather-bar .wb-sep {
+            color: #ccc;
         }
 
         /* --- Subscribe form --- */
         .subscribe-section {
             text-align: center;
-            padding: 24px 16px;
-            margin-bottom: 32px;
-            border-bottom: 1px solid #ccc;
+            padding: 16px 16px 20px;
+            margin-bottom: 0;
         }
 
         .subscribe-tagline {
-            font-size: 0.95em;
-            color: #444;
-            margin-bottom: 14px;
+            font-size: 0.92em;
+            color: #888;
+            margin-bottom: 12px;
             font-style: italic;
         }
 
@@ -124,50 +160,299 @@
             color: #8b1a1a;
         }
 
-        /* --- Daily Comic --- */
-        .comic-section {
-            text-align: center;
-            padding: 18px 16px;
-            margin: 12px 0 8px 0;
-            border-top: 1px solid #ddd;
+        /* --- Section Dividers --- */
+        .section-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 28px 0 18px;
         }
 
-        .comic-label {
+        .section-divider .rule {
+            flex: 1;
+            border: none;
+            border-top: 2px solid #1a1a1a;
+        }
+
+        .section-divider .rule-light {
+            border-top: 1px solid #bbb;
+        }
+
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
             font-size: 0.78em;
             font-weight: 700;
             letter-spacing: 0.12em;
-            color: #888;
+            color: #444;
             text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .section-emoji {
+            font-size: 1.2em;
+            line-height: 1;
+        }
+
+        /* --- Lead Story --- */
+        .lead-story {
+            margin-bottom: 18px;
+            padding-bottom: 16px;
+            border-bottom: 1px dotted #ccc;
+        }
+
+        .lead-headline-row {
+            display: block;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .lead-headline-row:hover .lead-title {
+            color: #8b1a1a;
+        }
+
+        .lead-title {
+            font-size: 1.45em;
+            line-height: 1.25;
+            color: #1a3a6a;
+            font-weight: 700;
+            transition: color 0.15s ease;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .lead-deck {
+            font-size: 1.0em;
+            color: #555;
+            font-style: italic;
+            line-height: 1.5;
             margin-bottom: 8px;
         }
 
-        .comic-link {
-            display: inline-block;
+        .lead-source {
+            font-size: 0.72em;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #999;
+            text-transform: uppercase;
+        }
+
+        .lead-body {
+            display: none;
+            margin-top: 12px;
+            font-size: 1.02em;
+            line-height: 1.8;
+            color: #222;
+            text-align: justify;
+            hyphens: auto;
+            -webkit-hyphens: auto;
+        }
+
+        .lead-story.open .lead-body {
+            display: block;
+        }
+
+        .lead-body .drop-cap {
+            float: left;
+            font-size: 3.4em;
+            line-height: 0.8;
+            padding-right: 6px;
+            padding-top: 4px;
+            color: #8b1a1a;
+            font-weight: 700;
+        }
+
+        .lead-body p {
+            margin-bottom: 12px;
+        }
+
+        .end-mark {
+            color: #8b1a1a;
+            font-size: 0.7em;
+            margin-left: 4px;
+        }
+
+        /* --- Top World Story --- */
+        .top-story {
+            margin-bottom: 18px;
+            padding-bottom: 16px;
+            border-bottom: 1px dotted #ccc;
+        }
+
+        .top-story-headline-row {
+            display: block;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .top-story-headline-row:hover .top-story-title {
+            color: #8b1a1a;
+        }
+
+        .top-story-title {
+            font-size: 1.5em;
+            line-height: 1.25;
+            color: #1a3a6a;
+            font-weight: 700;
+            transition: color 0.15s ease;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .top-story-deck {
+            font-size: 1.0em;
+            color: #555;
+            font-style: italic;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .top-story-sources {
+            font-size: 0.72em;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            color: #999;
+            text-transform: uppercase;
+        }
+
+        .top-story-body {
+            display: none;
+            margin-top: 12px;
+            font-size: 1.02em;
+            line-height: 1.8;
+            color: #222;
+            text-align: justify;
+            hyphens: auto;
+            -webkit-hyphens: auto;
+        }
+
+        .top-story.open .top-story-body {
+            display: block;
+        }
+
+        .top-story-body .drop-cap {
+            float: left;
+            font-size: 3.4em;
+            line-height: 0.8;
+            padding-right: 6px;
+            padding-top: 4px;
+            color: #8b1a1a;
+            font-weight: 700;
+        }
+
+        .top-story-body p {
+            margin-bottom: 12px;
+        }
+
+        .top-story-source-links {
+            font-size: 0.82em;
+            color: #888;
+            margin-top: 8px;
+        }
+
+        .top-story-source-links a {
+            color: #1a3a6a;
+            text-decoration: none;
+        }
+
+        .top-story-source-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* --- Story items --- */
+        .story-item {
+            padding: 8px 0;
+            border-bottom: 1px dotted #ccc;
+        }
+
+        .story-item:last-child {
+            border-bottom: none;
+        }
+
+        .story-headline {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            padding: 4px 0;
+            cursor: pointer;
+            min-height: 44px;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .story-headline:hover .story-title {
+            color: #8b1a1a;
+        }
+
+        .story-bullet {
+            color: #999;
+            font-size: 0.6em;
+            flex-shrink: 0;
+            position: relative;
+            top: -1px;
+        }
+
+        .story-title {
             font-size: 1.05em;
+            color: #1a3a6a;
+            line-height: 1.35;
+            transition: color 0.15s ease;
+        }
+
+        .story-byline {
+            font-size: 0.72em;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #999;
+            text-transform: uppercase;
+            margin-top: 2px;
+            margin-left: 18px;
+        }
+
+        /* --- Story summary (expanded) --- */
+        .story-body {
+            display: none;
+            margin: 8px 0 4px 18px;
+            padding-left: 16px;
+            border-left: 2px solid #ddd;
+            font-size: 1.0em;
+            line-height: 1.75;
+            color: #222;
+            text-align: justify;
+            hyphens: auto;
+            -webkit-hyphens: auto;
+        }
+
+        .story-item.open > .story-body {
+            display: block;
+        }
+
+        .story-body p {
+            margin-bottom: 10px;
+        }
+
+        /* --- Source link (inside expanded body) --- */
+        .source-link {
+            font-size: 0.88em;
+            font-style: italic;
+            color: #666;
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dotted #ddd;
+        }
+
+        .source-link a {
             color: #1a3a6a;
             text-decoration: none;
             border-bottom: 1px dotted #1a3a6a;
-            line-height: 1.5;
         }
 
-        .comic-link:hover {
+        .source-link a:hover {
             color: #8b1a1a;
             border-bottom-color: #8b1a1a;
-        }
-
-        .comic-teaser {
-            font-size: 0.9em;
-            color: #555;
-            font-style: italic;
-            margin-top: 6px;
-            line-height: 1.5;
-        }
-
-        .comic-credit {
-            font-size: 0.75em;
-            color: #999;
-            font-style: italic;
-            margin-top: 4px;
         }
 
         /* --- Weather section --- */
@@ -188,43 +473,38 @@
             margin-bottom: 6px;
         }
 
-        .weather-stats {
-            font-size: 0.85em;
-            color: #666;
-            margin-bottom: 8px;
-        }
-
-        .weather-forecast {
-            font-size: 1em;
-            line-height: 1.7;
+        .weather-conditions {
+            font-size: 1.05em;
+            font-weight: 600;
             color: #333;
+            margin-bottom: 4px;
         }
 
-        .weather-credit {
-            font-size: 0.75em;
-            color: #aaa;
-            font-style: italic;
-            margin-top: 8px;
+        .weather-temps {
+            font-size: 1em;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .weather-detail {
+            font-size: 0.92em;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .weather-prob {
+            font-size: 0.88em;
+            color: #666;
+            margin-top: 2px;
         }
 
         /* --- Weekend Events section --- */
         .events-section {
-            border-top: 3px solid #c9a959;
-            padding: 18px 0;
-            margin: 16px 0 8px 0;
-        }
-
-        .events-label {
-            font-size: 0.78em;
-            font-weight: 700;
-            letter-spacing: 0.12em;
-            color: #8b7a2e;
-            text-transform: uppercase;
-            margin-bottom: 14px;
+            margin-bottom: 24px;
         }
 
         .event-item {
-            padding: 6px 0;
+            padding: 8px 0;
             border-bottom: 1px dotted #ccc;
         }
 
@@ -234,9 +514,9 @@
 
         .event-headline {
             display: flex;
-            align-items: flex-start;
+            align-items: baseline;
             gap: 8px;
-            padding: 10px 0;
+            padding: 4px 0;
             cursor: pointer;
             min-height: 44px;
             user-select: none;
@@ -247,34 +527,21 @@
             color: #8b1a1a;
         }
 
-        .event-arrow {
-            font-size: 0.65em;
-            color: #999;
-            transition: transform 0.2s ease;
-            flex-shrink: 0;
-            margin-top: 4px;
-            width: 12px;
-            text-align: center;
-        }
-
-        .event-item.open > .event-headline .event-arrow {
-            transform: rotate(90deg);
-        }
-
         .event-title {
-            font-size: 1.05em;
-            font-weight: 700;
+            font-size: 1.0em;
             color: #1a3a6a;
-            line-height: 1.4;
+            line-height: 1.35;
             transition: color 0.15s ease;
         }
 
         .event-body {
             display: none;
-            padding: 8px 0 12px 20px;
+            margin: 6px 0 4px 18px;
+            padding-left: 16px;
             border-left: 2px solid #c9a959;
-            margin-left: 6px;
-            margin-bottom: 6px;
+            font-size: 0.92em;
+            line-height: 1.6;
+            color: #444;
         }
 
         .event-item.open > .event-body {
@@ -282,16 +549,13 @@
         }
 
         .event-meta {
-            font-size: 0.88em;
-            color: #666;
+            font-size: 0.85em;
+            color: #888;
             font-style: italic;
             margin-bottom: 6px;
         }
 
         .event-description {
-            font-size: 0.95em;
-            color: #333;
-            line-height: 1.6;
             margin-bottom: 8px;
         }
 
@@ -308,6 +572,30 @@
         .event-link a:hover {
             color: #8b1a1a;
             border-bottom-color: #8b1a1a;
+        }
+
+        /* --- Daily Laugh --- */
+        .joke-section {
+            text-align: center;
+            padding: 22px 20px;
+            margin-top: 8px;
+        }
+
+        .joke-text {
+            font-size: 1.02em;
+            color: #333;
+            line-height: 1.55;
+            margin-top: 8px;
+            max-width: 620px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .joke-credit {
+            font-size: 0.85em;
+            color: #999;
+            font-style: italic;
+            margin-top: 8px;
         }
 
         /* --- Empty state --- */
@@ -379,113 +667,12 @@
             display: block;
         }
 
-        /* --- Category sections --- */
-        .category-section {
-            margin-bottom: 24px;
-        }
-
-        .category-header {
-            font-size: 0.85em;
-            font-weight: 700;
-            letter-spacing: 0.12em;
-            color: #444444;
-            text-transform: uppercase;
-            padding: 10px 0 6px;
-            border-bottom: 1px solid #ddd;
-            margin-bottom: 10px;
-        }
-
-        /* --- Story items --- */
-        .story-item {
-            margin-bottom: 6px;
-        }
-
-        .story-headline {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            padding: 10px 0;
-            cursor: pointer;
-            min-height: 44px;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        .story-headline:hover .story-title {
-            color: #8b1a1a;
-        }
-
-        .story-arrow {
-            font-size: 0.65em;
-            color: #999;
-            transition: transform 0.2s ease;
-            flex-shrink: 0;
-            margin-top: 4px;
-            width: 12px;
-            text-align: center;
-        }
-
-        .story-item.open > .story-headline .story-arrow {
-            transform: rotate(90deg);
-        }
-
-        .story-title {
-            font-size: 1.1em;
-            color: #1a3a6a;
-            line-height: 1.4;
-            transition: color 0.15s ease;
-        }
-
-        /* --- Story summary (expanded) --- */
-        .story-body {
-            display: none;
-            padding: 12px 0 16px 20px;
-            border-left: 2px solid #ddd;
-            margin-left: 6px;
-            margin-bottom: 10px;
-        }
-
-        .story-item.open > .story-body {
-            display: block;
-        }
-
-        .story-body p {
-            font-size: 1.05em;
-            line-height: 1.8;
-            color: #222;
-            margin-bottom: 1em;
-        }
-
-        .story-body p:last-child {
-            margin-bottom: 0.5em;
-        }
-
-        .story-source {
-            font-size: 0.88em;
-            font-style: italic;
-            color: #666;
-            margin-top: 12px;
-            padding-top: 8px;
-            border-top: 1px dotted #ddd;
-        }
-
-        .story-source a {
-            color: #1a3a6a;
-            text-decoration: none;
-            border-bottom: 1px dotted #1a3a6a;
-        }
-
-        .story-source a:hover {
-            color: #8b1a1a;
-            border-bottom-color: #8b1a1a;
-        }
-
         /* --- Footer --- */
         .site-footer {
             text-align: center;
             padding: 20px 0;
-            margin-top: 40px;
-            border-top: 1px solid #cccccc;
+            margin-top: 32px;
+            border-top: 2px double #1a1a1a;
             font-size: 0.82em;
             color: #888;
             font-style: italic;
@@ -496,12 +683,28 @@
             body {
                 font-size: 18px;
             }
+
+            .masthead-title {
+                font-size: 2.2em;
+            }
+
+            .masthead-top {
+                font-size: 0.65em;
+            }
+
+            .lead-title {
+                font-size: 1.3em;
+            }
+
+            .weather-bar {
+                flex-wrap: wrap;
+            }
         }
 
         /* --- Small mobile tweaks (under 400px) --- */
         @media (max-width: 399px) {
-            .site-title {
-                font-size: 1.6em;
+            .masthead-title {
+                font-size: 1.8em;
             }
 
             .day-date {
@@ -515,31 +718,29 @@
                 padding: 32px 24px 60px;
             }
 
-            .site-header {
-                padding: 36px 0 28px;
-                margin-bottom: 40px;
-            }
-
-            .site-title {
-                font-size: 2.4em;
+            .masthead-title {
+                font-size: 2.8em;
             }
 
             .day-section {
                 margin-bottom: 32px;
-            }
-
-            .story-body {
-                padding-left: 24px;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <header class="site-header">
-            <h1 class="site-title"><span style="color:#8b1a1a">303</span> NEWS</h1>
-            <p class="site-subtitle">Denver Metro Area -- Local News Digest</p>
+        <header class="masthead">
+            <div class="masthead-top">
+                <span id="masthead-vol"></span>
+                <span>Denver, Colorado</span>
+            </div>
+            <h1 class="masthead-title"><span class="three-oh-three">303</span> NEWS</h1>
+            <div class="masthead-dateline" id="masthead-date"></div>
+            <hr class="masthead-rule">
         </header>
+
+        <div class="weather-bar" id="weather-bar" style="display:none"></div>
 
         <div class="subscribe-section">
             <p class="subscribe-tagline">No ads and no BS, just clean daily news.</p>
@@ -570,18 +771,66 @@
 
             var CATEGORY_ORDER = ['other', 'politics', 'business', 'crime', 'sports'];
             var CATEGORY_LABELS = {
-                other: 'GENERAL / METRO NEWS',
-                politics: 'POLITICS & GOVERNMENT',
-                business: 'BUSINESS & ECONOMY',
-                crime: 'CRIME & PUBLIC SAFETY',
-                sports: 'SPORTS'
+                other: 'Denver Metro News',
+                politics: 'Politics & Government',
+                business: 'Business & Economy',
+                crime: 'Crime & Public Safety',
+                sports: 'Denver Sports'
             };
+            var CATEGORY_EMOJIS = {
+                other: '\uD83C\uDFD9\uFE0F',
+                politics: '\uD83C\uDFDB\uFE0F',
+                business: '\uD83D\uDCBC',
+                crime: '\uD83D\uDEA8',
+                sports: '\uD83C\uDFC8'
+            };
+
+            // Issue number: Jan 12, 2026 = Issue No. 1
+            var ISSUE_START = new Date(2026, 0, 12);
+
+            // --- Masthead ---
+            function updateMasthead() {
+                var now = new Date();
+                var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+                var months = ['January','February','March','April','May','June',
+                              'July','August','September','October','November','December'];
+                document.getElementById('masthead-date').textContent =
+                    days[now.getDay()] + ', ' + months[now.getMonth()] + ' ' + now.getDate() + ', ' + now.getFullYear();
+                var diffDays = Math.floor((now - ISSUE_START) / (86400000));
+                var issueNum = Math.max(1, diffDays + 1);
+                document.getElementById('masthead-vol').textContent = 'Vol. 1, No. ' + issueNum;
+            }
+
+            function getWeatherEmoji(conditions) {
+                var c = (conditions || '').toLowerCase();
+                if (c.indexOf('snow') >= 0) return '\u2744\uFE0F';
+                if (c.indexOf('rain') >= 0 || c.indexOf('drizzle') >= 0) return '\uD83C\uDF27\uFE0F';
+                if (c.indexOf('thunder') >= 0) return '\u26C8\uFE0F';
+                if (c.indexOf('overcast') >= 0) return '\u2601\uFE0F';
+                if (c.indexOf('cloud') >= 0) return '\u26C5';
+                if (c.indexOf('fog') >= 0 || c.indexOf('mist') >= 0) return '\uD83C\uDF2B\uFE0F';
+                if (c.indexOf('clear') >= 0 || c.indexOf('sunny') >= 0) return '\u2600\uFE0F';
+                return '\uD83C\uDF24\uFE0F';
+            }
+
+            function updateWeatherBar(weather) {
+                if (!weather || !weather.conditions) return;
+                var bar = document.getElementById('weather-bar');
+                bar.innerHTML =
+                    '<span>' + getWeatherEmoji(weather.conditions) + ' ' + escapeHTML(weather.conditions) + '</span>' +
+                    '<span class="wb-sep">|</span>' +
+                    '<span><strong>High ' + weather.high + '\u00B0</strong> / Low ' + weather.low + '\u00B0</span>' +
+                    '<span class="wb-sep">|</span>' +
+                    '<span>Wind ' + weather.wind_mph + ' mph</span>';
+                bar.style.display = '';
+            }
+
+            updateMasthead();
 
             // --- Subscribe form ---
             var subForm = document.getElementById('subscribe-form');
             var subEmail = document.getElementById('subscribe-email');
             var subMsg = document.getElementById('subscribe-msg');
-
             var subTarget = document.getElementById('subscribe-target');
 
             subForm.addEventListener('submit', function() {
@@ -598,29 +847,21 @@
                 subEmail.value = '';
             });
 
-            // --- Digest rendering ---
-            var storyIndex = 0; // global counter for story IDs
-
+            // --- Helpers ---
             function getLastNDates(n) {
                 var dates = [];
                 var now = new Date();
                 for (var i = 0; i < n; i++) {
                     var d = new Date(now);
                     d.setDate(d.getDate() - i);
-                    var year = d.getFullYear();
-                    var month = String(d.getMonth() + 1).padStart(2, '0');
-                    var day = String(d.getDate()).padStart(2, '0');
-                    dates.push(year + '-' + month + '-' + day);
+                    dates.push(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'));
                 }
                 return dates;
             }
 
             function getTodayStr() {
                 var d = new Date();
-                var year = d.getFullYear();
-                var month = String(d.getMonth() + 1).padStart(2, '0');
-                var day = String(d.getDate()).padStart(2, '0');
-                return year + '-' + month + '-' + day;
+                return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
             }
 
             function groupByCategory(stories) {
@@ -634,25 +875,183 @@
                 return groups;
             }
 
-            function summaryToHTML(summary) {
-                if (!summary) return '';
-                var paragraphs = summary.split('\n\n');
-                var html = '';
-                for (var i = 0; i < paragraphs.length; i++) {
-                    var text = paragraphs[i].trim();
-                    if (text) {
-                        html += '<p>' + escapeHTML(text) + '</p>';
-                    }
-                }
-                return html;
-            }
-
             function escapeHTML(str) {
                 var div = document.createElement('div');
                 div.appendChild(document.createTextNode(str));
                 return div.innerHTML;
             }
 
+            function getFirstSentence(text) {
+                if (!text) return '';
+                var idx = text.indexOf('. ');
+                if (idx === -1) idx = text.indexOf('.\n');
+                if (idx === -1) return text.split('\n\n')[0];
+                return text.substring(0, idx + 1);
+            }
+
+            function summaryToHTMLWithEndMark(summary) {
+                if (!summary) return '';
+                var paragraphs = summary.split('\n\n');
+                var html = '';
+                for (var i = 0; i < paragraphs.length; i++) {
+                    var text = paragraphs[i].trim();
+                    if (text) {
+                        if (i === paragraphs.length - 1) {
+                            html += '<p>' + escapeHTML(text) + '<span class="end-mark"> \u25AE</span></p>';
+                        } else {
+                            html += '<p>' + escapeHTML(text) + '</p>';
+                        }
+                    }
+                }
+                return html;
+            }
+
+            function summaryToHTMLWithDropCap(summary) {
+                if (!summary) return '';
+                var paragraphs = summary.split('\n\n');
+                var html = '';
+                for (var i = 0; i < paragraphs.length; i++) {
+                    var text = paragraphs[i].trim();
+                    if (text) {
+                        var inner;
+                        if (i === 0) {
+                            inner = '<span class="drop-cap">' + escapeHTML(text.charAt(0)) + '</span>' + escapeHTML(text.slice(1));
+                        } else {
+                            inner = escapeHTML(text);
+                        }
+                        if (i === paragraphs.length - 1) {
+                            inner += '<span class="end-mark"> \u25AE</span>';
+                        }
+                        html += '<p>' + inner + '</p>';
+                    }
+                }
+                return html;
+            }
+
+            // --- Section Divider ---
+            function renderSectionDivider(cat) {
+                var div = document.createElement('div');
+                div.className = 'section-divider';
+                div.innerHTML = '<hr class="rule">' +
+                    '<div class="section-label"><span class="section-emoji">' +
+                    (CATEGORY_EMOJIS[cat] || '') + '</span> ' +
+                    escapeHTML(CATEGORY_LABELS[cat] || cat) + '</div>' +
+                    '<hr class="rule">';
+                return div;
+            }
+
+            // --- Top World Story ---
+            function renderTopStory(topStory) {
+                if (!topStory || !topStory.headline || !topStory.summary) return null;
+
+                // Section divider
+                var divider = document.createElement('div');
+                divider.className = 'section-divider';
+                divider.innerHTML = '<hr class="rule">' +
+                    '<div class="section-label"><span class="section-emoji">\uD83C\uDF0D</span> Top Story in the World</div>' +
+                    '<hr class="rule">';
+
+                var item = document.createElement('article');
+                item.className = 'top-story';
+
+                var headlineRow = document.createElement('div');
+                headlineRow.className = 'top-story-headline-row';
+
+                var title = document.createElement('span');
+                title.className = 'top-story-title';
+                title.textContent = topStory.headline;
+                headlineRow.appendChild(title);
+
+                var deck = document.createElement('div');
+                deck.className = 'top-story-deck';
+                deck.textContent = getFirstSentence(topStory.summary);
+                headlineRow.appendChild(deck);
+
+                // Sources byline
+                var sourcesDiv = document.createElement('div');
+                sourcesDiv.className = 'top-story-sources';
+                if (topStory.sources && topStory.sources.length > 0) {
+                    sourcesDiv.textContent = topStory.sources.map(function(s) { return s.name; }).join(' | ');
+                }
+                headlineRow.appendChild(sourcesDiv);
+
+                headlineRow.addEventListener('click', function() {
+                    item.classList.toggle('open');
+                });
+
+                var body = document.createElement('div');
+                body.className = 'top-story-body';
+                body.innerHTML = summaryToHTMLWithDropCap(topStory.summary);
+
+                // Source links
+                if (topStory.sources && topStory.sources.length > 0) {
+                    var sourceLinks = document.createElement('div');
+                    sourceLinks.className = 'top-story-source-links';
+                    var linksHTML = 'Sources: ';
+                    for (var i = 0; i < topStory.sources.length; i++) {
+                        if (i > 0) linksHTML += ' &middot; ';
+                        linksHTML += '<a href="' + escapeHTML(topStory.sources[i].url) +
+                            '" target="_blank" rel="noopener noreferrer">' +
+                            escapeHTML(topStory.sources[i].name) + '</a>';
+                    }
+                    sourceLinks.innerHTML = linksHTML;
+                    body.appendChild(sourceLinks);
+                }
+
+                item.appendChild(headlineRow);
+                item.appendChild(body);
+
+                var frag = document.createDocumentFragment();
+                frag.appendChild(divider);
+                frag.appendChild(item);
+                return frag;
+            }
+
+            // --- Lead Story ---
+            function renderLeadStory(story, dateStr, idx) {
+                var item = document.createElement('article');
+                item.className = 'lead-story';
+                item.id = 'story-' + dateStr + '-' + idx;
+
+                var headlineRow = document.createElement('div');
+                headlineRow.className = 'lead-headline-row';
+
+                var title = document.createElement('span');
+                title.className = 'lead-title';
+                title.textContent = story.headline;
+                headlineRow.appendChild(title);
+
+                var deck = document.createElement('div');
+                deck.className = 'lead-deck';
+                deck.textContent = getFirstSentence(story.summary);
+                headlineRow.appendChild(deck);
+
+                var source = document.createElement('div');
+                source.className = 'lead-source';
+                source.textContent = story.source;
+                headlineRow.appendChild(source);
+
+                headlineRow.addEventListener('click', function() {
+                    item.classList.toggle('open');
+                });
+
+                var body = document.createElement('div');
+                body.className = 'lead-body';
+                body.innerHTML = summaryToHTMLWithDropCap(story.summary);
+
+                var sourceLink = document.createElement('div');
+                sourceLink.className = 'source-link';
+                sourceLink.innerHTML = 'Source: <a href="' + escapeHTML(story.url) +
+                    '" target="_blank" rel="noopener noreferrer">' +
+                    escapeHTML(story.source) + '</a>';
+                body.appendChild(sourceLink);
+
+                item.appendChild(headlineRow);
+                item.appendChild(body);
+                return item;
+            }
+
+            // --- Regular Story ---
             function renderStory(story, dateStr, idx) {
                 var item = document.createElement('div');
                 item.className = 'story-item';
@@ -660,80 +1059,112 @@
 
                 var headline = document.createElement('div');
                 headline.className = 'story-headline';
-                headline.innerHTML = '<span class="story-arrow">&#9656;</span>' +
+                headline.innerHTML = '<span class="story-bullet">&#9670;</span>' +
                     '<span class="story-title">' + escapeHTML(story.headline) + '</span>';
 
                 headline.addEventListener('click', function() {
                     item.classList.toggle('open');
                 });
 
+                var byline = document.createElement('div');
+                byline.className = 'story-byline';
+                byline.textContent = story.source;
+
                 var body = document.createElement('div');
                 body.className = 'story-body';
-                body.innerHTML = summaryToHTML(story.summary);
+                body.innerHTML = summaryToHTMLWithEndMark(story.summary);
 
-                var source = document.createElement('div');
-                source.className = 'story-source';
-                source.innerHTML = 'Source: <a href="' + escapeHTML(story.url) +
+                var sourceLink = document.createElement('div');
+                sourceLink.className = 'source-link';
+                sourceLink.innerHTML = 'Source: <a href="' + escapeHTML(story.url) +
                     '" target="_blank" rel="noopener noreferrer">' +
                     escapeHTML(story.source) + '</a>';
-                body.appendChild(source);
+                body.appendChild(sourceLink);
 
                 item.appendChild(headline);
+                item.appendChild(byline);
                 item.appendChild(body);
                 return item;
             }
 
+            // --- Weather ---
             function renderWeather(weather) {
-                if (!weather || !weather.forecast) return null;
+                if (!weather || !weather.conditions) return null;
                 var div = document.createElement('div');
                 div.className = 'weather-section';
 
                 var label = document.createElement('div');
                 label.className = 'weather-label';
-                label.textContent = "TODAY'S WEATHER";
+                label.textContent = "\uD83C\uDF24\uFE0F TODAY'S FORECAST";
                 div.appendChild(label);
 
-                var stats = document.createElement('div');
-                stats.className = 'weather-stats';
-                var statsText = weather.conditions;
+                var conditions = document.createElement('div');
+                conditions.className = 'weather-conditions';
+                conditions.textContent = weather.conditions;
+                div.appendChild(conditions);
+
                 if (weather.high !== undefined && weather.low !== undefined) {
-                    statsText += ' // High ' + weather.high + '\u00B0F / Low ' + weather.low + '\u00B0F';
+                    var temps = document.createElement('div');
+                    temps.className = 'weather-temps';
+                    temps.innerHTML = '<strong>High ' + weather.high + '\u00B0F</strong> / Low ' + weather.low + '\u00B0F';
+                    div.appendChild(temps);
                 }
-                stats.textContent = statsText;
-                div.appendChild(stats);
 
-                var forecast = document.createElement('div');
-                forecast.className = 'weather-forecast';
-                forecast.textContent = weather.forecast;
-                div.appendChild(forecast);
+                if (weather.wind_mph !== undefined) {
+                    var wind = document.createElement('div');
+                    wind.className = 'weather-detail';
+                    wind.textContent = 'Wind: ' + weather.wind_mph + ' mph';
+                    div.appendChild(wind);
+                }
 
-                var credit = document.createElement('div');
-                credit.className = 'weather-credit';
-                credit.textContent = "Today's weather delivered by Comedy-ologist, Nate Bargatze";
-                div.appendChild(credit);
+                var snowIn = weather.snowfall_inches || 0;
+                var rainIn = weather.precipitation_inches || 0;
+                if (snowIn > 0) {
+                    var snow = document.createElement('div');
+                    snow.className = 'weather-detail';
+                    snow.textContent = 'Snow: ~' + snowIn.toFixed(1) + '" expected';
+                    div.appendChild(snow);
+                } else if (rainIn > 0) {
+                    var rain = document.createElement('div');
+                    rain.className = 'weather-detail';
+                    rain.textContent = 'Rain: ~' + rainIn.toFixed(2) + '" expected';
+                    div.appendChild(rain);
+                }
+
+                var prob = weather.precipitation_probability || 0;
+                if (prob > 0) {
+                    var probDiv = document.createElement('div');
+                    probDiv.className = 'weather-prob';
+                    probDiv.textContent = prob + '% chance of precipitation';
+                    div.appendChild(probDiv);
+                }
 
                 return div;
             }
 
+            // --- Weekend Events ---
             function renderWeekendEvents(events) {
                 if (!events || events.length === 0) return null;
-                var div = document.createElement('div');
-                div.className = 'events-section';
+                var frag = document.createDocumentFragment();
 
-                var label = document.createElement('div');
-                label.className = 'events-label';
-                label.textContent = 'YOUR WEEKEND ACTIVITY GUIDE';
-                div.appendChild(label);
+                var divider = document.createElement('div');
+                divider.className = 'section-divider';
+                divider.innerHTML = '<hr class="rule">' +
+                    '<div class="section-label"><span class="section-emoji">\uD83C\uDFAD</span> Weekend Activity Guide</div>' +
+                    '<hr class="rule">';
+                frag.appendChild(divider);
+
+                var section = document.createElement('div');
+                section.className = 'events-section';
 
                 for (var i = 0; i < events.length; i++) {
                     var evt = events[i];
                     var item = document.createElement('div');
                     item.className = 'event-item';
 
-                    // Clickable headline row (arrow + title)
                     var headline = document.createElement('div');
                     headline.className = 'event-headline';
-                    headline.innerHTML = '<span class="event-arrow">&#9656;</span>' +
+                    headline.innerHTML = '<span class="story-bullet">&#9670;</span>' +
                         '<span class="event-title">' + escapeHTML(evt.title) + '</span>';
 
                     headline.addEventListener('click', (function(el) {
@@ -742,7 +1173,6 @@
 
                     item.appendChild(headline);
 
-                    // Expandable body (meta, description, link)
                     var body = document.createElement('div');
                     body.className = 'event-body';
 
@@ -773,12 +1203,14 @@
                     }
 
                     item.appendChild(body);
-                    div.appendChild(item);
+                    section.appendChild(item);
                 }
 
-                return div;
+                frag.appendChild(section);
+                return frag;
             }
 
+            // --- Render Day ---
             function renderDay(data, isToday) {
                 var section = document.createElement('div');
                 section.className = 'day-section' + (isToday ? ' today' : '');
@@ -786,7 +1218,7 @@
 
                 var header = document.createElement('div');
                 header.className = 'day-header';
-                var storyCount = data.stories ? data.stories.length : 0;
+                var storyCount = (data.stories ? data.stories.length : 0) + (data.topStory ? 1 : 0);
                 var countWord = storyCount === 1 ? 'story' : 'stories';
                 header.innerHTML = '<span class="day-arrow">&#9654;</span>' +
                     '<span class="day-date">' + escapeHTML(data.dateFormatted) + '</span>' +
@@ -799,79 +1231,76 @@
                 var content = document.createElement('div');
                 content.className = 'day-content';
 
-                // Weather section (top of day content)
+                // Weather section
                 var weatherEl = renderWeather(data.weather);
                 if (weatherEl) {
                     content.appendChild(weatherEl);
                 }
 
-                // Weekend Events section (Friday only, above news, below weather)
+                // Top World Story
+                var topStoryEl = renderTopStory(data.topStory);
+                if (topStoryEl) {
+                    content.appendChild(topStoryEl);
+                }
+
+                // Weekend Events
                 var eventsEl = renderWeekendEvents(data.weekendEvents);
                 if (eventsEl) {
                     content.appendChild(eventsEl);
                 }
 
+                // News stories with section dividers
                 if (data.stories && data.stories.length > 0) {
                     var groups = groupByCategory(data.stories);
                     var globalIdx = 0;
+                    var isFirstStory = true;
+
                     for (var c = 0; c < CATEGORY_ORDER.length; c++) {
                         var cat = CATEGORY_ORDER[c];
                         if (!groups[cat] || groups[cat].length === 0) continue;
 
-                        var catSection = document.createElement('div');
-                        catSection.className = 'category-section';
-
-                        var catHeader = document.createElement('div');
-                        catHeader.className = 'category-header';
-                        catHeader.textContent = CATEGORY_LABELS[cat];
-                        catSection.appendChild(catHeader);
+                        content.appendChild(renderSectionDivider(cat));
 
                         for (var s = 0; s < groups[cat].length; s++) {
-                            catSection.appendChild(renderStory(groups[cat][s], data.date, globalIdx));
+                            if (isFirstStory) {
+                                content.appendChild(renderLeadStory(groups[cat][s], data.date, globalIdx));
+                                isFirstStory = false;
+                            } else {
+                                content.appendChild(renderStory(groups[cat][s], data.date, globalIdx));
+                            }
                             globalIdx++;
                         }
-
-                        content.appendChild(catSection);
                     }
                 }
 
-                // Daily Comic section (from JSON comic field)
-                if (data.comic && data.comic.url) {
-                    var comicDiv = document.createElement('div');
-                    comicDiv.className = 'comic-section';
+                // Daily Laugh
+                if (data.joke && data.joke.joke) {
+                    var jokeDivider = document.createElement('div');
+                    jokeDivider.className = 'section-divider';
+                    jokeDivider.innerHTML = '<hr class="rule rule-light">' +
+                        '<div class="section-label"><span class="section-emoji">\uD83D\uDE02</span> Daily Laugh</div>' +
+                        '<hr class="rule rule-light">';
+                    content.appendChild(jokeDivider);
 
-                    var label = document.createElement('div');
-                    label.className = 'comic-label';
-                    label.textContent = 'DAILY COMIC';
-                    comicDiv.appendChild(label);
+                    var jokeDiv = document.createElement('div');
+                    jokeDiv.className = 'joke-section';
 
-                    var link = document.createElement('a');
-                    link.className = 'comic-link';
-                    link.href = data.comic.url;
-                    link.target = '_blank';
-                    link.rel = 'noopener noreferrer';
-                    link.textContent = "Today's Far Side";
-                    comicDiv.appendChild(link);
-
-                    if (data.comic.teaser) {
-                        var teaser = document.createElement('div');
-                        teaser.className = 'comic-teaser';
-                        teaser.textContent = data.comic.teaser;
-                        comicDiv.appendChild(teaser);
-                    }
+                    var jokeText = document.createElement('div');
+                    jokeText.className = 'joke-text';
+                    jokeText.textContent = data.joke.joke;
+                    jokeDiv.appendChild(jokeText);
 
                     var credit = document.createElement('div');
-                    credit.className = 'comic-credit';
-                    credit.textContent = 'by Gary Larson';
-                    comicDiv.appendChild(credit);
+                    credit.className = 'joke-credit';
+                    credit.textContent = '\u2014 ' + data.joke.comedian;
+                    jokeDiv.appendChild(credit);
 
-                    content.appendChild(comicDiv);
+                    content.appendChild(jokeDiv);
                 }
 
                 section.appendChild(header);
                 section.appendChild(content);
 
-                // Auto-expand today
                 if (isToday) {
                     section.classList.add('open');
                 }
@@ -879,11 +1308,11 @@
                 return section;
             }
 
+            // --- Deep linking ---
             function handleDeepLink() {
                 var hash = window.location.hash;
                 if (!hash || hash.length < 2) return;
 
-                // Format: #story-YYYY-MM-DD-N
                 var match = hash.match(/^#story-(\d{4}-\d{2}-\d{2})-(\d+)$/);
                 if (!match) return;
 
@@ -891,30 +1320,27 @@
                 var targetIdx = parseInt(match[2], 10);
                 var storyId = 'story-' + targetDate + '-' + targetIdx;
 
-                // Find the day section and expand it
                 var daySection = document.querySelector('.day-section[data-date="' + targetDate + '"]');
                 if (daySection) {
                     daySection.classList.add('open');
                 }
 
-                // Find the story and expand it
                 var storyEl = document.getElementById(storyId);
                 if (storyEl) {
                     storyEl.classList.add('open');
-                    // Scroll into view after a brief delay for DOM to update
                     setTimeout(function() {
                         storyEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
                     }, 100);
                 }
             }
 
+            // --- Init ---
             function init() {
                 var dates = getLastNDates(7);
                 var todayStr = getTodayStr();
                 var container = document.getElementById('digest-content');
                 var loadedCount = 0;
                 var pending = dates.length;
-
                 var results = {};
 
                 dates.forEach(function(dateStr) {
@@ -927,9 +1353,7 @@
                             results[dateStr] = data;
                             loadedCount++;
                         })
-                        .catch(function() {
-                            // silently skip missing dates
-                        })
+                        .catch(function() {})
                         .finally(function() {
                             pending--;
                             if (pending === 0) {
@@ -948,6 +1372,11 @@
                     return;
                 }
 
+                // Populate weather bar from today's data
+                if (results[todayStr] && results[todayStr].weather) {
+                    updateWeatherBar(results[todayStr].weather);
+                }
+
                 for (var i = 0; i < dates.length; i++) {
                     var dateStr = dates[i];
                     if (!results[dateStr]) continue;
@@ -956,7 +1385,6 @@
                 }
             }
 
-            // Handle hash changes (e.g., back/forward navigation)
             window.addEventListener('hashchange', handleDeepLink);
 
             if (document.readyState === 'loading') {
