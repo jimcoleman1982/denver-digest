@@ -70,22 +70,6 @@
             margin-top: 10px;
         }
 
-        /* --- Weather Bar --- */
-        .weather-bar {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 10px 0;
-            border-bottom: 1px solid #ccc;
-            font-size: 0.88em;
-            color: #555;
-        }
-
-        .weather-bar .wb-sep {
-            color: #ccc;
-        }
-
         /* --- Subscribe form --- */
         .subscribe-section {
             text-align: center;
@@ -724,9 +708,6 @@
                 font-size: 1.3em;
             }
 
-            .weather-bar {
-                flex-wrap: wrap;
-            }
             .weather-summary-row {
                 flex-wrap: wrap;
             }
@@ -786,8 +767,6 @@
             <div class="masthead-dateline" id="masthead-date"></div>
             <hr class="masthead-rule">
         </header>
-
-        <div class="weather-bar" id="weather-bar" style="display:none"></div>
 
         <div class="subscribe-section">
             <p class="subscribe-tagline">No ads and no BS, just clean daily news.</p>
@@ -860,24 +839,7 @@
                 return '\uD83C\uDF24\uFE0F';
             }
 
-            function updateWeatherBar(weather) {
-                if (!weather || !weather.conditions) return;
-                var bar = document.getElementById('weather-bar');
-                var cur = weather.current || {};
-                var curTemp = cur.temp != null ? (cur.temp + '\u00B0') : '';
-                var windStr = 'Wind ' + weather.wind_mph + ' mph';
-                if (weather.wind_gusts_mph && weather.wind_gusts_mph > weather.wind_mph) {
-                    windStr += ', gusts ' + weather.wind_gusts_mph;
-                }
-                bar.innerHTML =
-                    '<span>' + getWeatherEmoji(weather.conditions) + ' ' + escapeHTML(weather.conditions) + '</span>' +
-                    '<span class="wb-sep">|</span>' +
-                    (curTemp ? '<span>Now ' + curTemp + '</span><span class="wb-sep">|</span>' : '') +
-                    '<span><strong>High ' + weather.high + '\u00B0</strong> / Low ' + weather.low + '\u00B0</span>' +
-                    '<span class="wb-sep">|</span>' +
-                    '<span>' + windStr + '</span>';
-                bar.style.display = '';
-            }
+            // Weather bar removed -- full weather now inside each day's section
 
             updateMasthead();
 
@@ -1502,11 +1464,6 @@
                 if (loadedCount === 0) {
                     container.innerHTML = '<div class="empty-state">No stories available yet. Check back tomorrow morning.</div>';
                     return;
-                }
-
-                // Populate weather bar from today's data
-                if (results[todayStr] && results[todayStr].weather) {
-                    updateWeatherBar(results[todayStr].weather);
                 }
 
                 for (var i = 0; i < dates.length; i++) {
