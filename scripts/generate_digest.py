@@ -264,9 +264,9 @@ def parse_args():
 
 
 def check_denver_time():
-    """Exit early if Denver local time is before 7 AM (DST handling)."""
+    """Exit early if Denver local time is before 5 AM (DST handling)."""
     now = datetime.datetime.now(DENVER_TZ)
-    if now.hour < 7:
+    if now.hour < 5:
         print(f"Denver time is {now.strftime('%H:%M %Z')} -- too early, skipping.")
         sys.exit(0)
 
