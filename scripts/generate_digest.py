@@ -264,9 +264,27 @@ def parse_args():
 
 
 def check_denver_time():
-    """Exit early if Denver local time is before 5 AM (DST handling)."""
+    """Exit early if Denver local time is before 5:30 AM or if the wrong DST cron fired.
+
+    Two crons fire daily: 11:45 UTC (for MDT) and 12:45 UTC (for MST).
+    This guard ensures only the correct one produces output by checking
+    whether the current UTC hour matches the active timezone offset.
+    """
     now = datetime.datetime.now(DENVER_TZ)
-    if now.hour < 5:
+    utc_now = datetime.datetime.now(datetime.timezone.utc)
+    is_dst = bool(now.dst())
+    utc_hour = utc_now.hour
+
+    # 11:45 UTC cron should only run during MDT (dst=True)
+    # 12:45 UTC cron should only run during MST (dst=False)
+    if utc_hour <= 11 and not is_dst:
+        print(f"Denver time is {now.strftime('%H:%M %Z')} (MST) but UTC hour is {utc_hour} (MDT cron). Skipping.")
+        sys.exit(0)
+    if utc_hour >= 12 and is_dst:
+        print(f"Denver time is {now.strftime('%H:%M %Z')} (MDT) but UTC hour is {utc_hour} (MST cron). Skipping.")
+        sys.exit(0)
+
+    if now.hour < 5 or (now.hour == 5 and now.minute < 30):
         print(f"Denver time is {now.strftime('%H:%M %Z')} -- too early, skipping.")
         sys.exit(0)
 
@@ -1431,6 +1449,7 @@ YOUR TASK: Write summaries for as many stories as possible, up to {MAX_ARTICLES}
 - It is better to include a less impactful story than to leave the digest thin -- aim for {MAX_ARTICLES} stories
 - If you have fewer than {MAX_ARTICLES} candidates, include ALL of them (do not drop any)
 - Ensure category balance when possible: aim for at least 1-2 stories per category (other, politics, business, crime, sports)
+- HARD LIMIT: No more than 3 stories in any single category, especially sports. If you have more than 3 candidates in one category, pick only the 3 most newsworthy
 - Prefer stories from credible local sources (Denver Post, Colorado Sun, Denver Gazette, CPR News, Denver Business Journal, 9News, Denver7)
 - Only drop a story if it is truly clickbait, entirely national with zero Denver relevance, or an exact duplicate of another candidate
 - If two candidates cover the same event, pick the one with better sourcing
@@ -1757,7 +1776,7 @@ def build_email_html(stories_json, date_str, date_formatted, joke=None, weather=
 <tr><td align="center" style="padding: 12px 8px;">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 720px;">
     <tr><td style="text-align: center; padding: 24px 0 20px 0; border-bottom: 3px double #1a1a1a;">
-        <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 32px; font-weight: 700; letter-spacing: 3px;"><span style="color: #8b1a1a;">303</span> <span style="color: #1a1a1a;">NEWS</span></div>
+        <a href="{SITE_URL}" style="text-decoration: none;"><div style="font-family: Georgia, 'Times New Roman', serif; font-size: 32px; font-weight: 700; letter-spacing: 3px;"><span style="color: #8b1a1a;">303</span> <span style="color: #1a1a1a;">NEWS</span></div></a>
         <div style="font-family: Georgia, 'Times New Roman', serif; font-size: 14px; font-style: italic; color: #666; margin-top: 4px;">{date_formatted}</div>
     </td></tr>
 {weather_html}
@@ -1954,6 +1973,21 @@ def main():
     # Step 4: Curate and summarize via Anthropic
     print(f"\n[Step 4] Sending {len(stories_with_text)} candidates to Anthropic for curation...")
     summaries = call_anthropic(stories_with_text, target_date_str)
+
+    # Enforce hard cap: max 3 stories per category (safety net for prompt instruction)
+    MAX_PER_CATEGORY = 3
+    cat_counts = {}
+    capped = []
+    for s in summaries:
+        cat = s.get("category", "other")
+        cat_counts[cat] = cat_counts.get(cat, 0) + 1
+        if cat_counts[cat] <= MAX_PER_CATEGORY:
+            capped.append(s)
+        else:
+            print(f"  Dropped excess {cat} story: {s.get('headline', '?')[:60]}")
+    if len(capped) < len(summaries):
+        print(f"  Category cap trimmed {len(summaries)} -> {len(capped)} stories")
+        summaries = capped
 
     # Step 4b: Get daily joke
     print("\n[Step 4b] Getting daily joke...")
