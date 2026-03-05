@@ -1449,7 +1449,7 @@ YOUR TASK: Write summaries for as many stories as possible, up to {MAX_ARTICLES}
 - It is better to include a less impactful story than to leave the digest thin -- aim for {MAX_ARTICLES} stories
 - If you have fewer than {MAX_ARTICLES} candidates, include ALL of them (do not drop any)
 - Ensure category balance when possible: aim for at least 1-2 stories per category (other, politics, business, crime, sports)
-- HARD LIMIT: No more than 3 stories in any single category, especially sports. If you have more than 3 candidates in one category, pick only the 3 most newsworthy
+- HARD LIMIT: No more than 3 sports stories. If you have more than 3 sports candidates, pick only the 3 most newsworthy
 - Prefer stories from credible local sources (Denver Post, Colorado Sun, Denver Gazette, CPR News, Denver Business Journal, 9News, Denver7)
 - Only drop a story if it is truly clickbait, entirely national with zero Denver relevance, or an exact duplicate of another candidate
 - If two candidates cover the same event, pick the one with better sourcing
@@ -1974,17 +1974,19 @@ def main():
     print(f"\n[Step 4] Sending {len(stories_with_text)} candidates to Anthropic for curation...")
     summaries = call_anthropic(stories_with_text, target_date_str)
 
-    # Enforce hard cap: max 3 stories per category (safety net for prompt instruction)
-    MAX_PER_CATEGORY = 3
-    cat_counts = {}
+    # Enforce hard cap: max 3 sports stories (safety net for prompt instruction)
+    MAX_SPORTS = 3
+    sports_count = 0
     capped = []
     for s in summaries:
-        cat = s.get("category", "other")
-        cat_counts[cat] = cat_counts.get(cat, 0) + 1
-        if cat_counts[cat] <= MAX_PER_CATEGORY:
-            capped.append(s)
+        if s.get("category") == "sports":
+            sports_count += 1
+            if sports_count <= MAX_SPORTS:
+                capped.append(s)
+            else:
+                print(f"  Dropped excess sports story: {s.get('headline', '?')[:60]}")
         else:
-            print(f"  Dropped excess {cat} story: {s.get('headline', '?')[:60]}")
+            capped.append(s)
     if len(capped) < len(summaries):
         print(f"  Category cap trimmed {len(summaries)} -> {len(capped)} stories")
         summaries = capped
