@@ -2,13 +2,12 @@ name: 303 News Daily Digest
 
 on:
   schedule:
-    # Two cron schedules for DST-aware 5:45 AM Denver local time:
-    # 11:45 UTC = 5:45 AM MDT (March-November)
-    # 12:45 UTC = 5:45 AM MST (November-March)
-    # The Python script checks Denver local time and skips if too early,
-    # so only the correct schedule produces output on any given day.
-    - cron: '45 11 * * *'
-    - cron: '45 12 * * *'
+    # BACKUP ONLY -- Primary trigger is cron-job.org via workflow_dispatch.
+    # These fire at ~6:15 AM Denver time as a safety net if the primary misses.
+    # The script skips if today's digest already exists, so no duplicate work.
+    # DST-aware: 12:15 UTC = 6:15 AM MDT, 13:15 UTC = 6:15 AM MST.
+    - cron: '15 12 * * *'
+    - cron: '15 13 * * *'
   workflow_dispatch: # Manual trigger from GitHub UI
     inputs:
       date:
