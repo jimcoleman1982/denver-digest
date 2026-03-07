@@ -10,6 +10,11 @@ on:
     - cron: '45 11 * * *'
     - cron: '45 12 * * *'
   workflow_dispatch: # Manual trigger from GitHub UI
+    inputs:
+      date:
+        description: 'Target date (YYYY-MM-DD). Leave blank for today.'
+        required: false
+        default: ''
 
 permissions:
   contents: write  # Needed to commit and push JSON data files
@@ -36,7 +41,15 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           BRAVE_SEARCH_API_KEY: ${{ secrets.BRAVE_SEARCH_API_KEY }}
           BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
-        run: python scripts/generate_digest.py
+        run: |
+          ARGS=""
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            ARGS="--force"
+            if [ -n "${{ github.event.inputs.date }}" ]; then
+              ARGS="$ARGS --date ${{ github.event.inputs.date }}"
+            fi
+          fi
+          python scripts/generate_digest.py $ARGS
 
       - name: Prune old data files (keep 14 days)
         run: |
