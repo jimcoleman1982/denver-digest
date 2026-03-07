@@ -45,9 +45,9 @@ jobs:
           ARGS=""
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             ARGS="--force"
-            if [ -n "${{ github.event.inputs.date }}" ]; then
-              ARGS="$ARGS --date ${{ github.event.inputs.date }}"
-            fi
+          fi
+          if [ -n "${{ github.event.inputs.date }}" ]; then
+            ARGS="$ARGS --date ${{ github.event.inputs.date }}"
           fi
           python scripts/generate_digest.py $ARGS
 

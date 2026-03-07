@@ -1907,7 +1907,8 @@ def main():
         print(f"Backfill mode: generating for {target_formatted}")
     else:
         # Normal daily mode
-        check_denver_time()
+        if not args.force:
+            check_denver_time()
         now = datetime.datetime.now(DENVER_TZ)
         target_date = now.date()
         target_date_str = now.strftime("%Y-%m-%d")
