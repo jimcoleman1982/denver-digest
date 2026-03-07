@@ -4,100 +4,100 @@
   "stories": [
     {
       "category": "sports",
-      "headline": "Avalanche reacquire Stanley Cup champion Nazem Kadri from Calgary Flames ahead of trade deadline",
-      "summary": "The Colorado Avalanche finalized a deal to bring back center Nazem Kadri from the Calgary Flames just before Friday's NHL trade deadline, reuniting the 35-year-old with the team he helped win the Stanley Cup in 2022. Calgary will retain 20% of Kadri's contract, reducing his cap hit to $5.6 million for the Avalanche. Colorado also receives a 2027 fourth-round pick in the deal.\n\nIn return, the Avalanche sent forward Victor Olofsson, prospect Max Curran, a conditional 2028 first-round pick (reported to be top-10 protected) and a conditional 2027 second-round pick to Calgary. Kadri posted 12 goals and 41 points in 61 games this season with the Flames.\n\nThe trade gives Colorado extraordinary depth down the middle alongside Nathan MacKinnon, Brock Nelson and recently acquired Nicolas Roy. The Avalanche also added defensemen Nick Blankenburg and Brett Kulak earlier in the week, signaling an aggressive push toward a second Stanley Cup title.",
+      "headline": "Avalanche reacquire Stanley Cup champion Nazem Kadri in trade with Calgary Flames",
+      "summary": "The Colorado Avalanche finalized a deal to bring back center Nazem Kadri from the Calgary Flames just before Friday's NHL trade deadline, reuniting the 35-year-old with the team he helped win the Stanley Cup in 2022. The Flames will retain 20% of Kadri's contract, giving him a $5.6 million cap hit with Colorado for the remainder of his deal, along with a 2027 fourth-round pick going to the Avalanche.\n\nIn return, Colorado sent forward Victor Olofsson, prospect Max Curran, a conditional 2028 first-round pick (reported as top-10 protected), and a conditional 2027 second-round pick to Calgary. Kadri posted 12 goals and 41 points in 61 games this season with the Flames, though his 6.9% shooting percentage is well below his career mark of 10.8%.\n\nKadri left Colorado via free agency after the 2022 championship due to cap constraints. His return gives the Avalanche extraordinary depth at center alongside Nathan MacKinnon, Brock Nelson, Nicolas Roy and Jack Drury. The addition is the capstone of a deadline push that also netted defensemen Nick Blankenburg and Brett Kulak.",
       "source": "Denver Gazette",
       "url": "https://www.denvergazette.com/2026/03/06/nazem-kadri-returns-home-as-avalanche-reacquire-stanley-cup-winning-center/"
     },
     {
       "category": "other",
-      "headline": "Friday snowstorm dumps 7.5 inches at DIA, snarls metro commute and cancels dozens of flights",
-      "summary": "A winter storm rolled through the Denver metro area Friday, dropping 7.5 inches of snow at Denver International Airport by early evening and triggering a Winter Weather Advisory through 8 p.m. for much of the Front Range. The National Weather Service forecast 3 to 5 inches for the city of Denver, with western and southern suburbs potentially seeing 4 to 6 inches.\n\nDIA reported more than 1,000 flight delays and 41 cancellations by mid-afternoon, and a United Airlines flight was temporarily grounded after striking a deicing truck on the tarmac. Numerous schools and government offices closed for the day, and Colorado State Patrol closed northbound I-25 at the Wyoming border during the morning commute due to blowing snow, though it reopened by early afternoon.\n\nHighway 285 between Fairplay and Grant was shut down due to multiple crashes and stuck semi-trucks. South Metro Fire Rescue urged drivers to reduce speeds after a multi-lane crash closed portions of southbound I-25. Temperatures in Denver hovered near freezing throughout the day, roughly 19 degrees below the historical average high for March 6.",
-      "source": "Denver7",
-      "url": "https://www.denver7.com/weather/colorado-weather-blog-snow-impacting-denver-metro-morning-commute"
-    },
-    {
-      "category": "business",
-      "headline": "Investigators: Open valve at Henderson terminal caused contamination of 1.6 million gallons of Denver-area gasoline in January",
-      "summary": "State investigators determined Friday that a January fuel contamination event affecting dozens of Denver-area gas stations was caused by workers at HF Sinclair's Henderson terminal who failed to close a valve, allowing diesel fuel to mix with regular unleaded gasoline. More than 1.6 million gallons of gasoline were contaminated, of which 365,694 gallons were sold to 49 Front Range stations before the problem was discovered.\n\nMore than 1,000 consumers reported vehicle problems — including stalling, sputtering and illuminated check engine lights — after refueling at affected stations, which included locations operated by King Soopers, Costco and Murphy Express. The Colorado Division of Oil and Public Safety fined Sinclair $365,694, or $1 per gallon of contaminated gasoline sold, after working with the state Attorney General's office to craft a penalty beyond the standard $500-per-violation statutory limit.\n\nThe improper mixing began around 2 p.m. January 7 but was not discovered until early January 8, after gas station operators alerted the company to irregularities. Sinclair did not notify state regulators of the incident on its own and did not provide a list of affected stations until January 13. As a corrective measure, the company implemented a two-person verification system and checklist for valve operations.",
+      "headline": "Contaminated gasoline incident traced to open valve at Sinclair terminal in Henderson; state levies $365,694 fine",
+      "summary": "State investigators determined that the contamination of more than 1.6 million gallons of gasoline sold across the Denver metro in January was caused by a valve mistakenly left open at HF Sinclair's fuel distribution terminal in Henderson. Workers failed to close the valve on Jan. 7, allowing diesel fuel to mix with regular unleaded gasoline; the error was not discovered until the morning of Jan. 8 after gas station operators reported irregularities.\n\nApproximately 365,694 gallons of contaminated fuel were sold to 49 gas stations across the Front Range, including locations operated by King Soopers, Costco and Murphy Express. More than 1,000 consumers reported vehicle problems including stalling, sputtering and illuminated check engine lights after refueling.\n\nColorado's Division of Oil and Public Safety fined Sinclair $365,694 — calculated at $1 per gallon of contaminated gasoline — after working with the state Attorney General's office to exceed the standard $500-per-violation statutory cap. The company has implemented a two-person verification system and checklist for valve operations. Investigators also noted Sinclair did not notify state regulators until Jan. 9 and did not provide a full list of affected stations until Jan. 13.",
       "source": "Denver Post",
       "url": "https://www.denverpost.com/2026/03/06/bad-gas-cause-sinclair-denver/"
     },
     {
+      "category": "other",
+      "headline": "Snowstorm brings 3–5 inches to Denver, triggers highway closures and school delays across Front Range",
+      "summary": "A winter storm brought the first significant snowfall to Denver in 40 days on Friday, with the National Weather Service issuing a Winter Weather Advisory through 8 p.m. and forecasting 3 to 5 inches of accumulation in the city. Western and southern portions of the metro were expected to see 4 to 6 inches, while mountain areas along Interstate 70 faced up to 14 inches of fresh snow.\n\nThe storm disrupted travel across the region, forcing temporary closures of Interstate 25 northbound at the Wyoming border, U.S. 287 between Laporte and Wyoming, and eastbound U.S. 36 between Estes Park and Boulder due to crashes. Denver International Airport issued a ground stop, and numerous school districts and government offices announced closures or delays.\n\nTemperatures hovered near freezing for most of Friday, roughly 19 degrees below the seasonal average, with snowfall expected to taper off by 8 p.m. A warming trend is forecast to follow through the weekend and into next week, with highs returning to the low 70s by Monday.",
+      "source": "Denver Gazette",
+      "url": "https://www.denvergazette.com/2026/03/06/what-to-know-about-fridays-snowstorm-in-denver/"
+    },
+    {
       "category": "crime",
-      "headline": "Cherry Hills Village officer shoots car theft suspect during hospital medical exam",
-      "summary": "A Cherry Hills Village police officer shot and wounded a car theft suspect Thursday evening after the arrestee \"violently attacked\" the officer during a medical examination at HCA HealthONE Swedish hospital in Englewood. The suspect had been taken to the facility for medical evaluation after being arrested earlier in the day on suspicion of vehicle theft.\n\nPolice Chief Jason Lyons said the attack occurred around 5:30 p.m. and no other patients, visitors or staff were injured. The suspect remains hospitalized and has not been publicly identified. The officer was placed on paid administrative leave per departmental policy.\n\nThe 18th Judicial District will conduct an independent investigation of the shooting. Lyons said the incident underscores why officers remain with suspects throughout any medical treatment. \"Violence in a health care setting is unacceptable,\" he said in a statement.",
+      "headline": "Cherry Hills Village officer shoots car theft suspect inside Englewood hospital after attack",
+      "summary": "A Cherry Hills Village police officer shot and injured a car theft suspect Thursday evening inside HCA HealthONE Swedish Medical Center in Englewood after the suspect violently attacked the officer during a medical examination. The officer had been monitoring the suspect, who had been arrested earlier in the day on suspicion of vehicle theft, while the person received treatment at the hospital.\n\nThe shooting occurred just after 5:30 p.m. and no other patients, staff or visitors were injured. The suspect remains hospitalized and has not been publicly identified. The officer was placed on paid administrative leave per department policy.\n\nCherry Hills Village Police Chief Jason Lyons said the incident underscores why officers remain with suspects during medical care. The 18th Judicial District will investigate the shooting.",
       "source": "Denver Post",
       "url": "https://www.denverpost.com/2026/03/05/swedish-shooting-cherry-hills-englewood/"
     },
     {
+      "category": "crime",
+      "headline": "Denver police chase ends on I-70 in Aurora after suspect in stolen vehicle runs over officer's foot",
+      "summary": "A Denver police pursuit of a stolen vehicle ended Thursday evening on eastbound Interstate 70 in Aurora, snarling rush-hour traffic for nearly three hours. The chase began near 45th Avenue and Zuni Street after the driver of the stolen vehicle fled a traffic stop and ran over an officer's foot.\n\nOfficers pursued the suspect and performed a vehicle stop on eastbound I-70 west of Chambers Road. The highway was fully closed at Interstate 225 from 4:51 p.m. until about 7:30 p.m., with one lane reopening around 6:15 p.m.\n\nThe suspect was arrested and transported to a hospital for evaluation, as was the officer whose foot was injured. The Colorado Department of Transportation managed traffic diversions throughout the closure.",
+      "source": "Denver Post",
+      "url": "https://www.denverpost.com/2026/03/05/i70-closed-aurora-i225/"
+    },
+    {
       "category": "politics",
-      "headline": "U.S. House committee probes fraud and waste allegations in Colorado's Medicaid program",
-      "summary": "The U.S. House Committee on Energy and Commerce has sent a formal letter to Gov. Jared Polis and the Colorado Department of Health Care Policy and Finance demanding information about fraud, waste and abuse in the state's Medicaid program. The March 3 letter, signed by committee chair Rep. Brett Guthrie (R-KY) and two subcommittee chairs, cited concerns that Colorado may be vulnerable to the same kinds of fraudulent billing — including falsified records, identity theft and phantom claims — that have been documented in Minnesota's Medicaid program.\n\nThe committee specifically highlighted non-emergency medical transportation spending, which surged 436% between 2019 and 2025 after state officials provided incorrect billing guidance to providers. Investigators also flagged applied behavioral analysis services for children with autism and genetic laboratory services as high-risk areas. State officials have since corrected the transportation guidance, a fix projected to save $60.5 million in fiscal year 2026-27.\n\nColorado's Medicaid spending has surpassed $14.6 billion — double the amount from a decade ago despite only 7% enrollment growth — with $8.6 billion coming from the federal government. The committee set a March 17 deadline for Colorado's response. Gov. Polis, through a spokesperson, said the state takes Medicaid oversight seriously and is reviewing the letter.",
+      "headline": "U.S. House committee probes fraud and waste in Colorado's Medicaid program, sets March 17 response deadline",
+      "summary": "The U.S. House Committee on Energy and Commerce has sent a formal inquiry to Gov. Jared Polis and the Colorado Department of Health Care Policy and Finance, demanding information about the state's Medicaid oversight practices by March 17. Committee Chair Rep. Brett Guthrie cited concerns that Colorado's program may be vulnerable to the same fraud patterns found in Minnesota, including falsified records, identity theft and phantom billing claims.\n\nThe letter highlighted a 436% spike in non-emergency medical transportation spending between 2019 and 2025, attributing much of it to incorrect state guidance that misidentified patients as needing specialty ambulances — an error regulators say has since been corrected and could save $60.5 million in fiscal year 2026-27. Investigators also flagged potential fraud in applied behavioral analysis services for children with autism and genetic laboratory billing, with fraudulent transport claims alone estimated at more than $25 million.\n\nColorado Medicaid spending has surpassed $14.6 billion, nearly doubling in a decade despite enrollment growing just 7%. Gov. Polis, through a spokesperson, said the state takes Medicaid oversight seriously and is reviewing the committee's letter. The U.S. Attorney for Colorado filed criminal charges against two individuals related to the transportation billing issues last month.",
       "source": "Denver Gazette",
       "url": "https://www.denvergazette.com/2026/03/05/u-s-house-probes-reports-of-fraud-waste-in-colorados-medicaid-program/"
     },
     {
       "category": "politics",
-      "headline": "Denver Public Schools community weighs in on proposed policy to restrict ICE cooperation",
-      "summary": "Denver Public Schools held a public comment session Thursday on a proposed policy that would designate all district-managed and charter school properties as safe zones, prohibiting employees from cooperating with or assisting U.S. Immigration and Customs Enforcement. Under the draft policy, school resource officers would be barred from sharing student or family information with federal immigration enforcement agents, and staff could not comply with ICE detainer requests.\n\nAdvocates and students testified that fear of immigration enforcement is causing significant mental health strain and keeping some students away from school. Youth Program Manager Nayeli Banuelos of Movimiento Poder said the policy would allow schools to function as spaces of learning rather than fear. Several DPS students described seeing individuals they believed to be ICE agents monitoring school entrances.\n\nOpponents at the meeting argued the district would be creating a harmful environment by shielding people who have violated federal law, and urged DPS to encourage cooperation with law enforcement instead. The proposed policy comes days after the Denver City Council unanimously banned mask-wearing by ICE agents and other law enforcement operating within city limits. No vote date on the DPS policy has been announced.",
+      "headline": "Denver Public Schools board considers policy creating safe zones, restricting staff cooperation with ICE",
+      "summary": "Denver Public Schools' board of education held a community hearing Thursday on a proposed policy that would designate all DPS properties — including buildings, grounds, bus stops and school-sponsored events — as safe zones for students, families and employees. Under the policy, school staff would be prohibited from complying with ICE detainer requests, and school resource officers would be barred from sharing student or family information with federal immigration enforcement.\n\nSupporters, including students and immigrant advocacy groups, said fear of immigration enforcement is causing measurable harm to students' mental health and school attendance. Several students testified about anxiety triggered by what they described as ICE presence near school facilities.\n\nOpponents at the meeting argued the district should not shield individuals from federal law enforcement and that the policy creates a harmful environment. DPS is Colorado's largest school district, serving tens of thousands of students, many from immigrant families.",
       "source": "Denver7",
       "url": "https://www.denver7.com/news/local-news/community-sounds-off-on-dps-board-of-educations-proposed-ice-policy"
     },
     {
       "category": "other",
-      "headline": "Colorado measles outbreak grows to 8 cases; exposure sites span DIA, schools, grocery stores and bowling alleys",
-      "summary": "Colorado's measles outbreak has grown to eight confirmed cases in 2026, with seven linked to connections at two Broomfield schools — Broomfield High School and Broomfield Heights Middle School. The Colorado Department of Public Health and Environment has identified 20 possible exposure sites across Broomfield, Denver, Frederick, Lafayette, Louisville and Westminster, including Denver International Airport, multiple restaurants, health care facilities, a grocery store, a church and a bowling alley.\n\nMeasles symptoms can take up to three weeks to appear and include fever, cough, runny nose and red eyes before a characteristic rash develops. Because the rash appears roughly four days after a person becomes contagious, individuals can spread the virus unknowingly. Two doses of the MMR vaccine reduce infection risk by about 97%, and partial protection is possible if a shot is administered within three days of exposure.\n\nColorado recorded 36 measles cases in 2025, a dramatic increase over the prior decade in which annual totals ranged from zero to two. State health officials are urging anyone who may have visited the identified exposure locations to monitor for symptoms and call ahead before seeking medical care to avoid further spread.",
+      "headline": "Measles outbreak in Colorado grows to eight cases; exposure sites span DIA, schools, grocery stores and bowling alley",
+      "summary": "Colorado's measles outbreak has grown to eight confirmed cases in 2026, all linked to connections with Broomfield High School and Broomfield Heights Middle School, according to the Colorado Department of Public Health and Environment. The state has identified 20 possible exposure sites across Broomfield, Denver, Frederick, Lafayette, Louisville and Westminster.\n\nExposure locations include Denver International Airport, multiple restaurants, health care facilities, a grocery store, a church and a bowling alley. Health officials warn that measles symptoms — including fever, cough, runny nose and red eyes — can take up to three weeks to appear, and infected individuals can spread the virus before they develop the characteristic rash.\n\nColorado recorded 36 measles cases in 2025, a sharp increase over prior years, which had typically seen zero to two cases annually. Two doses of the MMR vaccine provide roughly 97% protection; partial protection is possible if the vaccine is administered within three days of exposure.",
       "source": "Denver Post",
       "url": "https://www.denverpost.com/2026/03/05/colorado-measles-outbreak-exposures/"
     },
     {
+      "category": "business",
+      "headline": "Federal judge dismisses homebuilder's constitutional challenge to Denver affordable housing fees",
+      "summary": "A federal judge dismissed a lawsuit Tuesday filed by Denver-area homebuilder redT Homes and affiliated company redT Capital Partners against the city of Denver over its affordable housing linkage fee ordinance. U.S. District Court Judge Philip A. Brimmer granted Denver's motion to dismiss, finding that the city's mandatory affordable housing ordinance provided a constitutional alternative method of compliance for developers.\n\nThe plaintiffs had argued that linkage fees of approximately $25,000 and $45,000 imposed on two small residential developments constituted an unconstitutional government taking, claiming the fees lacked proportionality to the developments' actual impact on the housing shortage. Judge Brimmer agreed that proportionality would ordinarily need to be explored but concluded the availability of alternative compliance options made the ordinance constitutional.\n\nDenver's linkage fee ordinance requires developers of smaller projects to pay a per-square-foot fee into the city's affordable housing fund or designate units as affordable housing, based on the city council's findings that new development drives job growth and increases demand for workforce housing. The ruling preserves a key component of Denver's affordable housing strategy.",
+      "source": "Colorado Springs Gazette",
+      "url": "https://gazette.com/2026/03/06/federal-judge-dismisses-developers-challenge-to-denver-affordable-housing-ordinances/"
+    },
+    {
       "category": "sports",
-      "headline": "Nuggets beat Lakers 120-113 behind Jokic triple-double, despite four key players sidelined",
-      "summary": "Nikola Jokic recorded 28 points, 12 rebounds and 13 assists — including a decisive 8-footer with 22.3 seconds remaining — to lead the Denver Nuggets past the Los Angeles Lakers 120-113 on Thursday at Ball Arena. Jamal Murray added 28 points and Julian Strawther contributed 18 in his second consecutive start while filling in for injured teammates.\n\nThe Nuggets played without Aaron Gordon, Peyton Watson, Spencer Jones and Cam Johnson but still held off a late Lakers rally fueled by Luka Doncic, who needed 24 shots to score 27 points. Christian Braun played a team-high 40 minutes and effectively contained Doncic during critical late possessions, while new roster addition Tyus Jones made his Denver debut, playing six minutes.\n\nThe win moved Denver to 39-24 and kept the Nuggets 1.5 games ahead of the Lakers for fifth place in the Western Conference. The victory was Denver's second straight and came against the NBA's most clutch-time-efficient team, a category in which the Nuggets have historically struggled since Jokic's return from a knee injury.",
+      "headline": "Nikola Jokic posts triple-double as Nuggets survive Lakers' late rally, 120–113",
+      "summary": "Nikola Jokic recorded 28 points, 12 rebounds and 13 assists — despite nine turnovers — to lead the Denver Nuggets past the Los Angeles Lakers 120-113 on Thursday at Ball Arena. Jokic hit a crucial 8-footer with 22.3 seconds remaining to seal the win after the Lakers, the NBA's most clutch-time team, threatened to tie the game in the final minutes.\n\nJamal Murray matched Jokic with 28 points, while Julian Strawther added 18 in his continued starting role necessitated by injuries. Christian Braun played a team-high 40 minutes and held Luka Doncic — who finished with 27 points on 24 shots — largely in check on key possessions. Denver played without four regular rotation players: Peyton Watson, Aaron Gordon, Spencer Jones and Cam Johnson.\n\nThe Nuggets improved to 39-24 and maintained a 1.5-game lead over Los Angeles for fifth place in the Western Conference. LeBron James, who briefly left with an injury, returned late and passed Kareem Abdul-Jabbar for the most field goals made in NBA history with a first-quarter baseline jumper.",
       "source": "Denver Post",
       "url": "https://www.denverpost.com/2026/03/05/nuggets-lakers-score-nikola-jokic-luka-doncic-stats/"
     },
     {
       "category": "business",
-      "headline": "Federal judge dismisses constitutional challenge to Denver's affordable housing fee ordinances",
-      "summary": "A federal judge dismissed a lawsuit Tuesday brought by homebuilder redT Homes and redT Capital Partners challenging the constitutionality of two Denver ordinances requiring developers to contribute to affordable housing. The plaintiffs argued that Denver's linkage fee — charged per square foot on new housing developments with fewer than 10 units — and the mandatory affordable housing ordinance violated the U.S. Constitution's takings clause by imposing fees not proportional to the development's actual impact on housing demand.\n\nU.S. District Court Judge Philip A. Brimmer granted Denver's motion to dismiss in a March 3 order, finding that the mandatory affordable housing ordinance provided developers a constitutional alternative path to compliance by designating a portion of units as affordable housing. The two redT developments at issue faced linkage fees of approximately $25,000 and $45,000 respectively.\n\nDenver's city council enacted the ordinances citing rapid population and job growth that has driven housing demand well beyond supply, particularly for low- and moderate-income workers. The ruling is a significant win for the city's affordable housing strategy, though the plaintiffs could appeal the decision.",
-      "source": "Colorado Springs Gazette",
-      "url": "https://gazette.com/2026/03/06/federal-judge-dismisses-developers-challenge-to-denver-affordable-housing-ordinances/"
-    },
-    {
-      "category": "crime",
-      "headline": "Denver police chase stolen vehicle onto I-70 in Aurora, officer injured",
-      "summary": "Denver police pursued a stolen vehicle onto eastbound Interstate 70 in Aurora on Thursday after the driver ran over an officer's foot during a traffic stop near 45th Avenue and Zuni Street and fled the scene. Officers forced the vehicle to stop west of Chambers Road, and the driver was arrested and taken to a hospital for evaluation. The officer whose foot was struck was also transported to a hospital.\n\nThe chase forced the closure of eastbound I-70 at Interstate 225 beginning around 4:51 p.m., backing up traffic significantly during the evening commute. One lane reopened by 6:15 p.m. and the highway was fully cleared by 7:30 p.m., according to the Colorado Department of Transportation.\n\nThe identities of the suspect and the injured officer were not released. No additional details on charges or the extent of the officer's injuries were immediately available.",
+      "headline": "Broncos enter free agency with $28 million in cap space, targeting linebacker, running back and tight end",
+      "summary": "The Denver Broncos enter the 2026 NFL free agency period — with legal tampering beginning Monday and contracts signable Wednesday — carrying approximately $28 million in cap room, placing them in the top third of all teams. Team leadership has framed the offseason with the phrase \"opportunistically aggressive,\" with quarterback Bo Nix under contract for two more seasons before a major extension decision looms.\n\nDenver's most pressing needs include a linebacker, where the organization has a \"significant appetite\" according to sources, as well as a true lead running back to complement second-year player RJ Harvey. The team also needs a tight end and potentially a wide receiver to give Bo Nix additional weapons in 2026.\n\nThe running back market could center on Kenneth Walker III of Seattle, previously identified as a Broncos target, or Travis Etienne. The team is also weighing whether to trade backup quarterback Jarrett Stidham to free up $6.5 million in additional cap space, which would reshape their quarterback room depth.",
       "source": "Denver Post",
-      "url": "https://www.denverpost.com/2026/03/05/i70-closed-aurora-i225/"
+      "url": "https://www.denverpost.com/2026/03/06/broncos-free-agency-preview-rb-wr-te-lb/"
     },
     {
       "category": "other",
-      "headline": "State patrol releases update on fatal February dust storm pileup involving 30-plus vehicles south of Pueblo",
-      "summary": "The Colorado State Patrol on Friday released a preliminary reconstruction of the February 17 dust storm crash on Interstate 25 south of Pueblo that involved more than 30 vehicles. Investigators believe the chain-reaction collision began when a 2016 Ford Escape rear-ended a GMC Sierra traveling 15 to 20 mph in a 75 mph zone under \"brown-out\" conditions, rotating the Escape into the left lane and setting off a cascading series of crashes.\n\nSubsequent collisions involved a Kenworth semi-truck and a Ram 3500 hauling a stock trailer, whose trailer detached and struck other vehicles. The blockage created by the initial crash triggered additional multi-vehicle impacts, and CSP said the timeline for several involved vehicles remains under investigation.\n\nThe crash resulted in multiple fatalities and injuries, the full details of which were included in the patrol's release. Investigators said the crash remains open and further updates will be issued as the investigation continues.",
+      "headline": "Colorado State Patrol releases preliminary findings on fatal February dust storm crash involving 30-plus vehicles near Pueblo",
+      "summary": "The Colorado State Patrol has released an updated preliminary report on the Feb. 17 multi-vehicle crash on Interstate 25 near Pueblo, which involved more than 30 vehicles and resulted in multiple fatalities and injuries. Investigators determined the chain-reaction crash began when a 2016 Ford Escape rear-ended a 2011 GMC Sierra hauling a trailer that was traveling 15-20 mph in a 75 mph zone during \"brown-out\" dust storm conditions.\n\nAfter the initial collision, a Kenworth W900 hauling a trailer was sideswiped by a Ram 3500 whose stock trailer became detached. That Ram continued onto the shoulder and struck the Sierra, creating a blockage on I-25 that triggered a cascade of additional collisions involving numerous other vehicles.\n\nCSP said the investigation is ongoing and the full timeline of events for several vehicles involved has not yet been established. The agency indicated it will release further updates as they become available.",
       "source": "KRDO",
       "url": "https://krdo.com/news/2026/03/06/colorado-state-patrol-releases-update-on-fatal-dust-storm-crash-involving-over-30-vehicles/"
-    },
-    {
-      "category": "business",
-      "headline": "Denver metro home sales surge in February as mortgage rates fall below 6% and inventory rises",
-      "summary": "The Denver metro real estate market accelerated sharply in February as mortgage rates dropped below 6% for the first time in months, drawing buyers back into a market that had been sluggish through much of 2025. Pending sales jumped more than 29% from January and were up over 15% year-over-year, according to the Denver Metro Association of Realtors' monthly report.\n\nMedian sale prices declined modestly — down 5% for attached homes and 2% for detached homes compared to a year ago — while new listings rose 12% from January, expanding buyer choices. Days on market fell sharply, dropping 30% for attached homes and 40% for detached homes, and the close-price-to-list-price ratio climbed to 98.7%, signaling rising demand. Closed sales were up nearly 30%.\n\nIn the luxury segment, closings for homes priced between $1 million and $1.49 million rose 35%, and sales in the $1.5 million to $1.9 million range surged nearly 66%. Despite February's gains, year-to-date 2026 sales volume remains roughly 10% below the same period in 2025, and the median close price is down about 3% year-over-year.",
-      "source": "Denver Post",
-      "url": "https://www.denverpost.com/2026/03/06/february-home-sales-surge-real-estate-voices/"
     }
   ],
   "weather": {
     "high": 44,
-    "low": 25,
+    "low": 27,
     "conditions": "Heavy snow",
     "wind_mph": 13.1,
     "wind_gusts_mph": 27.3,
-    "precipitation_inches": 0.54,
+    "precipitation_inches": 0.56,
     "snowfall_inches": 2.6,
     "precipitation_probability": 90,
     "feels_high": 37,
-    "feels_low": 18,
+    "feels_low": 21,
     "sunrise": "6:24 AM",
     "sunset": "5:57 PM",
     "daylight": "11h 33m",
@@ -107,16 +107,16 @@
     "uv_advice": "No protection needed",
     "notable": "About 12 degrees below the average high for this time of year.",
     "current": {
-      "temp": 28,
-      "feels_like": 22,
-      "humidity": 89,
-      "conditions": "Overcast",
-      "wind_mph": 2.9,
-      "wind_dir": "NW",
-      "wind_gusts_mph": 15.2,
-      "pressure_inhg": 30.24,
+      "temp": 29,
+      "feels_like": 23,
+      "humidity": 94,
+      "conditions": "Moderate snow",
+      "wind_mph": 3.6,
+      "wind_dir": "WNW",
+      "wind_gusts_mph": 11.2,
+      "pressure_inhg": 30.25,
       "cloud_cover": 100,
-      "time_label": "7:00 PM"
+      "time_label": "7:30 PM"
     }
   },
   "joke": {
@@ -125,16 +125,16 @@
   },
   "weekendEvents": [
     {
-      "title": "Denver Museum of Nature & Science Free Evening",
-      "description": "The Denver Museum of Nature & Science offers free admission as part of an SCFD Free Day. No ticket purchase required during the free admission window.",
+      "title": "Denver Museum of Nature & Science Free Admission",
+      "description": "The Denver Museum of Nature & Science offers free admission during this SCFD free evening. No ticket purchase required for entry during this window.",
       "date": "Friday, March 6",
-      "time": "4:00–9:00 PM",
+      "time": "4:00 PM – 9:00 PM",
       "location": "Denver Museum of Nature & Science, Denver",
       "url": "https://www.dmns.org"
     },
     {
       "title": "Denver Restaurant Week",
-      "description": "The 22nd annual Denver Restaurant Week features more than 300 participating restaurants offering special multi-course menus at fixed prices ranging from $25 to $55. Includes Michelin-recognized restaurants and eateries from James Beard Award-winning chefs.",
+      "description": "The 22nd annual Denver Restaurant Week features multi-course meals at more than 300 participating restaurants across the metro, with fixed-price menus ranging from $25 to $55.",
       "date": "Friday, March 6",
       "time": "Times vary by restaurant",
       "location": "Various restaurants, Denver metro",
@@ -142,39 +142,39 @@
     },
     {
       "title": "Colorado Golf Expo",
-      "description": "An expo for golfers of all levels featuring pro demos, new gear, mini golf, and interactive hands-on activities. Free parking included with admission; kids get in free.",
+      "description": "A family-friendly golf expo featuring pro demos, new gear, swing tips, and mini golf. Free parking included with admission; kids are free.",
       "date": "Friday, March 6–Sunday, March 8",
-      "time": "10:00 AM–6:00 PM",
+      "time": "10:00 AM – 6:00 PM",
       "location": "4850 National Western Drive, Denver",
       "url": "https://www.coloradogolfexpo.com"
     },
     {
       "title": "Mile High Beer Fest",
-      "description": "More than 40 local and national breweries, including Left Hand Brewing Co., Renegade Brewing, and Eddyline Brewery, gather at Denargo Market for unlimited beer samples during general admission hours.",
+      "description": "More than 40 local and national breweries, including Left Hand Brewing Co., Renegade Brewing, and Eddyline Brewery, pour unlimited samples at Denargo Market.",
       "date": "Saturday, March 7",
-      "time": "General admission 2:00–5:00 PM",
+      "time": "General admission 2:00 PM – 5:00 PM",
       "location": "Denargo Market, Denver",
       "url": "https://www.milehighbeerfest.com"
     },
     {
-      "title": "Blarney on Belmar",
-      "description": "A free, family-friendly St. Patrick's Day festival featuring live music from The Elders and Tadhg & Friends, Irish step dancers, a Lucky Clover Market, and festive food and drink from local breweries.",
+      "title": "SeriesFest Fashion in Focus",
+      "description": "Emmy-winning costume designer Molly Rogers, known for 'Sex and the City,' 'And Just Like That…,' and 'The Devil Wears Prada,' receives the Excellence in Costume Design Award alongside a runway show featuring more than 40 models and iconic historic costumes. Tickets start at $125 and include a cocktail party and the full fashion show.",
       "date": "Saturday, March 7",
-      "time": "11:00 AM–4:00 PM",
+      "time": "4:00 PM – 7:00 PM",
+      "location": "The Cable Center, University of Denver, Denver",
+      "url": "https://www.seriesfest.com/fif"
+    },
+    {
+      "title": "Blarney on Belmar",
+      "description": "A free, family-friendly St. Patrick's Day festival featuring live music from The Elders and Tadhg & Friends, Irish step dancing, a Lucky Clover Market, and festive food and drink from local breweries.",
+      "date": "Saturday, March 7",
+      "time": "11:00 AM – 4:00 PM",
       "location": "Belmar, 439 S. Upham St. (at Alameda Ave. and Wadsworth Blvd.), Lakewood",
       "url": "https://www.belmarcolorado.com"
     },
     {
-      "title": "SeriesFest Fashion in Focus: Molly Rogers",
-      "description": "SeriesFest presents Emmy-winning costume designer Molly Rogers, known for HBO's 'Sex and the City,' 'And Just Like That…,' and 'The Devil Wears Prada,' in conversation alongside a runway show featuring more than 40 models wearing iconic TV and film costumes. Rogers will receive SeriesFest's Excellence in Costume Design Award.",
-      "date": "Saturday, March 7",
-      "time": "4:00–7:00 PM",
-      "location": "The Cable Center, University of Denver, 2000 Buchtel Blvd., Denver",
-      "url": "https://www.seriesfest.com/fif"
-    },
-    {
       "title": "Denver Brass: Celtic Mania",
-      "description": "Denver Brass presents its annual Celtic-themed program featuring thunderous brass, bagpipes, and performances from Celtic Colorado Pipes & Drums, Rocky Mountain Highland Dancers, and Celtic Steps Irish Dance School. Three performances across two days.",
+      "description": "Denver Brass presents its annual Celtic Mania program featuring thunderous brass, blazing bagpipes, and electrifying dance alongside Celtic Colorado Pipes & Drums, Rocky Mountain Highland Dancers, and Celtic Steps Irish Dance School. Multiple performances across the weekend; children under 12 are free.",
       "date": "Saturday, March 7–Sunday, March 8",
       "time": "Saturday 2:30 PM & 7:00 PM; Sunday 2:30 PM",
       "location": "Newman Center for the Performing Arts, Denver",
@@ -182,60 +182,60 @@
     },
     {
       "title": "Leadville Ski Joring",
-      "description": "Skiers are pulled by horses and riders through a course of jumps, gates, and ring-collection challenges on Leadville's Main Street. A free spectator event open to all ages; no dogs allowed.",
+      "description": "A classic Colorado competition in which skiers are towed through a course by horses and riders, navigating jumps, gates, and ring batons on Main Street in Leadville. Free to attend; no dogs allowed.",
       "date": "Saturday, March 7–Sunday, March 8",
       "time": "Races start at noon",
       "location": "Main Street, Leadville",
-      "url": "https://www.leadville.com"
+      "url": "https://www.leadvilleskijoring.com"
     },
     {
       "title": "No Man's Land Film Festival",
-      "description": "The premier all-woman and gender-nonconforming adventure film festival celebrates athletes and adventurers across adventure, sport, and conservation.",
+      "description": "The premier all-women and gender-nonconforming adventure film festival celebrates athletes and adventurers across sport, exploration, and conservation.",
       "date": "Saturday, March 7",
       "time": "See venue for times",
-      "location": "Denver (see event website for venue details)",
-      "url": "https://www.nomlff.com"
+      "location": "Denver (see festival website for venue details)",
+      "url": "https://www.nmlfilmfest.com"
     },
     {
-      "title": "Molly Brown House Museum Free Day",
-      "description": "The historic home of Titanic survivor Margaret 'Molly' Brown offers free admission as part of an SCFD Free Day on International Women's Day.",
+      "title": "Yoga at the Downtown Denver Aquarium",
+      "description": "A vinyasa-style yoga class hosted by Yoga Social held inside the Downtown Denver Aquarium, with aquarium admission included in the ticket price.",
       "date": "Sunday, March 8",
-      "time": "10:00 AM–4:00 PM",
-      "location": "Molly Brown House Museum, Denver",
-      "url": "https://www.mollybrown.org"
+      "time": "8:30 AM – 9:45 AM",
+      "location": "Downtown Denver Aquarium, 3535 Walnut St., Denver",
+      "url": "https://www.aquariumrestaurants.com/downtownaquariumdenver"
     },
     {
       "title": "Demetri Martin: Quick Draw Tour",
-      "description": "Stand-up comedian and writer-actor Demetri Martin headlines the Paramount Theatre as part of his Quick Draw Tour, featuring his signature smart one-liners and on-stage drawings.",
+      "description": "Stand-up comedian and writer-actor Demetri Martin headlines the Paramount Theatre on his Quick Draw Tour. Tickets range from $52.80 to $66.70.",
       "date": "Sunday, March 8",
       "time": "6:00 PM",
       "location": "Paramount Theatre, 1621 Glenarm Place, Denver",
       "url": "https://www.ticketmaster.com"
     },
     {
-      "title": "Los Angeles Lakers at Denver Nuggets",
-      "description": "The Denver Nuggets host the Los Angeles Lakers in an NBA regular season game at Ball Arena.",
-      "date": "Friday, March 6",
-      "time": "See venue for tip-off time",
-      "location": "Ball Arena, Denver",
-      "url": "https://www.nba.com/nuggets"
+      "title": "Molly Brown House Museum Free Admission",
+      "description": "In honor of International Women's Day, the Molly Brown House Museum offers free admission. The museum preserves the Victorian home of Margaret 'Molly' Brown, one of Colorado's most celebrated figures.",
+      "date": "Sunday, March 8",
+      "time": "10:00 AM – 4:00 PM",
+      "location": "Molly Brown House Museum, Denver",
+      "url": "https://www.mollybrown.org"
     }
   ],
   "topStory": {
-    "headline": "Trump Demands Iran's 'Unconditional Surrender' as U.S.-Israeli Strikes Enter Second Week",
-    "summary": "President Donald Trump declared Friday that the United States would accept nothing less than Iran's \"unconditional surrender,\" ruling out any negotiated settlement to the ongoing military campaign against Tehran. Writing on his Truth Social platform, Trump said that following surrender and the selection of what he called \"acceptable\" new leadership, the U.S. and its allies would work to make Iran \"economically bigger, better, and stronger than ever before.\" White House press secretary Karoline Leavitt told reporters the administration expects military operations to last four to six weeks.\n\nThe conflict, now close to entering its second week, began following the killing of Supreme Leader Ali Khamenei. U.S. Central Command reported that in the first seven days of Operation Epic Fury, American forces have struck more than 3,000 targets and damaged or destroyed 43 Iranian ships. On Friday, Israeli forces launched what the Israeli military described as a \"broad-scale new wave of strikes\" on Mehrabad Airport, Tehran's main domestic hub, with eyewitness footage showing burning aircraft and large plumes of smoke — a significantly heavier bombardment than an earlier Israeli strike on the facility March 4.\n\nA separate and serious development emerged Friday when U.S. investigators said they believe the United States may have been responsible for a deadly airstrike on a girls' primary school in Iran on Feb. 28, the first day of the war. Iranian state media reported the strike killed dozens of people, including schoolgirls ages 7 to 12. Investigators reached that preliminary assessment because the U.S. was operating in the area while Israel was not, though the White House said no final conclusions have been reached and called speculation otherwise \"irresponsible and false.\"\n\nThe war has drawn in additional geopolitical complications, with multiple sources reporting that Russia has been providing intelligence to Iran on U.S. military movements in the region. Defense Secretary Pete Hegseth said in an interview set to air Sunday on \"60 Minutes\" that the U.S. is \"tracking everything\" and incorporating the intelligence-sharing into battle plans. A dozen Senate Democrats, including Minority Leader Chuck Schumer, separately criticized Trump for waiving sanctions to allow India to more easily purchase Russian oil, arguing the move enriches Moscow at a time when U.S. strikes have already driven a spike in global energy prices.\n\nTrump has declined to use the term \"regime change\" in describing U.S. objectives, though he has indicated he intends to play a role in selecting Iran's next leader. He told Axios earlier this week that installing Khamenei's son Mojtaba — seen as close to the Islamic Revolutionary Guard Corps — would be \"unacceptable.\" The White House likened the situation to the U.S. operation in Venezuela earlier this year, in which American forces removed President Nicolás Maduro and the administration backed a chosen successor, a comparison that underscores the administration's willingness to pursue direct intervention in foreign leadership transitions.",
+    "headline": "Trump Demands Iran's 'Unconditional Surrender' as U.S. Strikes Enter Second Week, Russia Reported Aiding Tehran",
+    "summary": "President Donald Trump declared Friday that any resolution to the U.S.-Iran conflict must result in Iran's \"unconditional surrender,\" rejecting the prospect of a negotiated settlement even as Iranian President Masoud Pezeshkian confirmed that unnamed countries are pursuing diplomatic mediation efforts. Trump posted the demand on Truth Social, adding that after surrender the U.S. and its allies would work to rebuild Iran economically under new leadership. The statement marks a significant hardening of stated U.S. war objectives and appears to foreclose compromise options that had been signaled by Iran's government.\n\nU.S. Central Command reported that in the first seven days of Operation Epic Fury, American forces have struck more than 3,000 targets and damaged or destroyed 43 Iranian ships. Strikes continued Friday night near Tehran's Mehrabad airport, where Iranian state media and the semiofficial Tasnim news agency reported multiple explosions and large fires visible from the city. The U.S. Embassy in Baghdad issued an emergency alert urging American citizens in Iraq to depart immediately, warning that Iran-aligned militant groups may be planning attacks on Americans at hotels and other locations, as commercial flights in and out of Iraq have ceased.\n\nA serious new complication emerged Friday when four sources told NBC News that Russia is providing Iran with intelligence on the locations of U.S. forces in the Middle East, including the positions of American warships, radar installations, and communication systems. The sources said there is no current indication that Russian intelligence is being used to direct Iranian missile or drone strikes, but the assistance could improve Iran's targeting capabilities. Defense Secretary Pete Hegseth, in an interview set to air Sunday on CBS News' \"60 Minutes,\" said Trump is \"well aware of who's talking to who\" and that anything that \"shouldn't be happening\" is being confronted.\n\nA separate and potentially significant development involves a deadly airstrike on a girls' primary school in the southern Iranian city of Minab on the opening day of the conflict, Feb. 28. U.S. investigators now believe the United States may have been responsible for the strike, which Iranian authorities said killed approximately 180 pupils and staff, including children ages 7 to 12, according to a person familiar with the ongoing inquiry. The assessment is based in part on the fact that U.S. forces were operating in the area while Israeli aircraft were not, though White House spokesperson Anna Kelly said the investigation is ongoing and no final conclusions have been reached. UNICEF has reported that at least 1,332 people have been killed in Iran since the conflict began, including 181 children.\n\nA dozen Senate Democrats, including Minority Leader Chuck Schumer, issued a letter Friday criticizing the strikes as \"reckless and poorly conceived\" and blaming the conflict for sharp increases in global oil prices. The senators also criticized Trump for temporarily waiving sanctions to allow India to more easily purchase Russian oil, arguing the move enriches Vladimir Putin and undermines pressure on Moscow. Iran's Foreign Minister Abbas Araghchi said Thursday that the U.S. plan for a \"clean rapid military victory failed\" and warned that any follow-on strategy would also fall short, as Iranian officials publicly maintain readiness for a prolonged conflict.",
     "sources": [
       {
         "name": "CBS News Colorado",
         "url": "https://www.cbsnews.com/live-updates/us-iran-war-israel-strikes-regime-targets/"
       },
       {
-        "name": "bbc.com",
-        "url": "https://www.bbc.com/news/live/ceqvwrydzpqt"
+        "name": "nbcnews.com",
+        "url": "https://www.nbcnews.com/world/iran/live-blog/live-updates-iran-war-israel-strikes-tehran-beirut-trump-leader-rcna262018"
       },
       {
-        "name": "bbc.com",
-        "url": "https://www.bbc.com/news/articles/c5yq82k1wk8o"
+        "name": "aljazeera.com",
+        "url": "https://www.aljazeera.com/news/2026/3/6/no-deal-with-iran-except-unconditional-surrender-trump-says"
       }
     ]
   }
