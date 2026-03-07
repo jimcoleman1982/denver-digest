@@ -1474,6 +1474,44 @@ Return ONLY the JSON array, no other text."""
 SYSTEM_PROMPT = """You are the editor-in-chief of 303 News, a daily digest for the Denver, Colorado metro area. You select and summarize the most important local stories each day. Write factual, detailed summaries in clean newspaper style. No editorializing, no emojis. Categories: crime, business, politics, sports, other."""
 
 
+def _try_parse_json(text):
+    """Try multiple strategies to extract a JSON array from API response text."""
+    # 1. Direct parse
+    try:
+        return json.loads(text)
+    except (json.JSONDecodeError, ValueError):
+        pass
+
+    # 2. Strip markdown code fences (greedy match for the outermost fences)
+    cleaned = re.sub(r"^```(?:json)?\s*\n?", "", text.strip())
+    cleaned = re.sub(r"\n?```\s*$", "", cleaned).strip()
+    if cleaned != text.strip():
+        try:
+            return json.loads(cleaned)
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+    # 3. Extract JSON array between outermost [ and ]
+    first_bracket = text.find("[")
+    last_bracket = text.rfind("]")
+    if first_bracket != -1 and last_bracket > first_bracket:
+        try:
+            return json.loads(text[first_bracket:last_bracket + 1])
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+    # 4. Try fixing trailing commas before ] or }
+    if first_bracket != -1 and last_bracket > first_bracket:
+        candidate = text[first_bracket:last_bracket + 1]
+        candidate = re.sub(r",\s*([}\]])", r"\1", candidate)
+        try:
+            return json.loads(candidate)
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+    return None
+
+
 def call_anthropic(stories, target_date_str):
     """Send stories to Anthropic API and get curated, summarized JSON back."""
     global anthropic_call_count
@@ -1531,29 +1569,39 @@ def call_anthropic(stories, target_date_str):
     # Extract text content
     raw_text = response.content[0].text
 
-    # Try to parse JSON directly
+    parsed = _try_parse_json(raw_text)
+    if parsed is not None:
+        return parsed
+
+    # Parsing failed -- retry once with a fresh API call asking for clean JSON
+    print(f"  Failed to parse JSON from response. Retrying...")
+    anthropic_call_count += 1
+    if anthropic_call_count > MAX_ANTHROPIC_CALLS_PER_RUN:
+        print(f"  LIMIT: Anthropic call cap ({MAX_ANTHROPIC_CALLS_PER_RUN}) reached. Exiting.")
+        sys.exit(1)
     try:
-        return json.loads(raw_text)
-    except json.JSONDecodeError:
-        pass
+        retry_response = client.messages.create(
+            model=ANTHROPIC_MODEL,
+            max_tokens=ANTHROPIC_MAX_TOKENS,
+            system=SYSTEM_PROMPT,
+            messages=[
+                {"role": "user", "content": user_prompt},
+                {"role": "assistant", "content": raw_text},
+                {"role": "user", "content": "Your previous response could not be parsed as JSON. Please return the EXACT same content as a valid JSON array. No markdown code fences, no commentary -- just the raw [ ... ] JSON array."},
+            ],
+        )
+        retry_text = retry_response.content[0].text
+        usage2 = retry_response.usage
+        cost2 = (usage2.input_tokens * 3 + usage2.output_tokens * 15) / 1_000_000
+        print(f"  Retry tokens: {usage2.input_tokens + usage2.output_tokens}, ${cost2:.4f}")
 
-    # Try to extract JSON from markdown code fences
-    match = re.search(r"```(?:json)?\s*\n?(.*?)\n?```", raw_text, re.DOTALL)
-    if match:
-        try:
-            return json.loads(match.group(1))
-        except json.JSONDecodeError:
-            pass
+        parsed = _try_parse_json(retry_text)
+        if parsed is not None:
+            return parsed
+    except Exception as e:
+        print(f"  Retry API call failed: {e}")
 
-    # Try to find a JSON array in the text
-    match = re.search(r"\[.*\]", raw_text, re.DOTALL)
-    if match:
-        try:
-            return json.loads(match.group(0))
-        except json.JSONDecodeError:
-            pass
-
-    print(f"  Failed to parse JSON from response. Raw text:\n{raw_text[:500]}")
+    print(f"  Failed to parse JSON after retry. Raw text:\n{raw_text[:500]}")
     sys.exit(1)
 
 
