@@ -1462,7 +1462,12 @@ YOUR TASK: Write summaries for as many stories as possible, up to {MAX_ARTICLES}
 ---
 
 Produce a JSON array of {num_to_produce} stories (or as many as are genuinely relevant, up to {MAX_ARTICLES}). For each story:
-- "category": one of "crime", "business", "politics", "sports", or "other"
+- "category": one of "crime", "business", "politics", "sports", or "other". Use these definitions:
+  - "sports": ANY story about a professional or college sports team, athlete, game, trade, draft, contract, roster move, coaching hire/fire, or league decision -- even if it involves money or legal matters. If the subject is a sports team or athlete, it is ALWAYS sports.
+  - "business": Economy, real estate, corporate news, startups, employment trends, business openings/closings. NOT stories about sports teams or athletes.
+  - "crime": Crimes, arrests, court cases, public safety. NOT sports-related legal issues.
+  - "politics": Government, legislation, elections, policy.
+  - "other": Community events, weather impacts, health, education, transportation, anything that doesn't fit above.
 - "headline": clear, factual headline
 - "summary": 3-4 paragraphs, each 2-4 sentences. Use \\n\\n between paragraphs. Cover what happened, who is involved, where, why it matters.
 - "source": publication name
@@ -1471,7 +1476,7 @@ Produce a JSON array of {num_to_produce} stories (or as many as are genuinely re
 Return ONLY the JSON array, no other text."""
 
 
-SYSTEM_PROMPT = """You are the editor-in-chief of 303 News, a daily digest for the Denver, Colorado metro area. You select and summarize the most important local stories each day. Write factual, detailed summaries in clean newspaper style. No editorializing, no emojis. Categories: crime, business, politics, sports, other."""
+SYSTEM_PROMPT = """You are the editor-in-chief of 303 News, a daily digest for the Denver, Colorado metro area. You select and summarize the most important local stories each day. Write factual, detailed summaries in clean newspaper style. No editorializing, no emojis. Categories: crime, business, politics, sports, other. IMPORTANT: Any story about a sports team, athlete, game, trade, contract, roster move, or coaching decision is ALWAYS category "sports" -- never "business", even if it involves money."""
 
 
 def _try_parse_json(text):
@@ -2022,6 +2027,27 @@ def main():
     # Step 4: Curate and summarize via Anthropic
     print(f"\n[Step 4] Sending {len(stories_with_text)} candidates to Anthropic for curation...")
     summaries = call_anthropic(stories_with_text, target_date_str)
+
+    # Reclassify miscategorized sports stories (safety net for prompt misclassification)
+    SPORTS_KEYWORDS = [
+        "broncos", "nuggets", "avalanche", "rockies", "rapids",
+        "buffaloes", "buffs", "rams", "falcons", "pioneers",
+        "nfl", "nba", "nhl", "mlb", "mls",
+        "quarterback", "wide receiver", "running back", "offensive line",
+        "point guard", "center forward", "goaltender", "pitcher",
+        "trade deadline", "free agent", "draft pick", "roster",
+        "salary cap", "cap hit", "tender", "contract extension",
+        "head coach", "coaching staff", "starting lineup",
+        "playoff", "postseason", "preseason", "regular season",
+    ]
+    for story in summaries:
+        if story.get("category") != "sports":
+            text = (story.get("headline", "") + " " + story.get("summary", "")).lower()
+            matches = [kw for kw in SPORTS_KEYWORDS if kw in text]
+            if len(matches) >= 2:
+                old_cat = story["category"]
+                story["category"] = "sports"
+                print(f"  Reclassified '{story['headline'][:60]}' from {old_cat} -> sports (matched: {matches[:5]})")
 
     # Enforce hard cap: max 3 sports stories (safety net for prompt instruction)
     MAX_SPORTS = 3
