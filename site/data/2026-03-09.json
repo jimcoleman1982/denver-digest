@@ -101,5 +101,23 @@
   "joke": {
     "comedian": "Jim Gaffigan",
     "joke": "Home Depot is amazing. You walk in thinking you're going to fix a faucet and walk out $300 poorer with a grill."
+  },
+  "topStory": {
+    "headline": "Iran Names Mojtaba Khamenei as New Supreme Leader After Father Killed in U.S.-Israeli Strikes",
+    "summary": "Iran's Assembly of Experts on Saturday named Mojtaba Khamenei, the 56-year-old son of slain Supreme Leader Ali Khamenei, as the third supreme leader of the Islamic Republic. The elder Khamenei was killed on February 28 in joint U.S.-Israeli airstrikes that launched the current conflict. The Assembly declared that Mojtaba had been selected \"by a decisive vote,\" though reports from Iran International indicated that Islamic Revolutionary Guard Corps commanders pressured Assembly members into the selection, with those who argued against the appointment given limited time to speak before discussion was cut off.\n\nMojtaba Khamenei is widely regarded as a hardline figure with deep ties to the IRGC. A mid-ranking cleric who has never given a public speech and has long operated behind the scenes, his appointment marks the first time leadership of the Islamic Republic has passed from father to son -- a striking development for a revolutionary system founded on the explicit rejection of hereditary monarchy. His father was reportedly opposed to the idea of dynastic succession, fearing it would undermine the republic's founding principles.\n\nThe appointment drew swift international reaction. President Trump, who had previously called Mojtaba a \"lightweight,\" said he was \"not happy\" with the selection and that any leader named without U.S. approval would \"not last long.\" Israel's military warned that any successor to the late Khamenei would be considered a target. Russia and China, meanwhile, voiced support for the new leader, with President Putin pledging \"unwavering\" backing.\n\nAnalysts say the selection of Mojtaba Khamenei signals that Iran's hardline establishment intends to maintain its current course rather than pursue negotiations as the U.S.-Israeli military campaign enters its second week. Oil prices surged past $100 per barrel for the first time since 2022, with Brent crude reaching $118, and global stock markets tumbled on Monday as the geopolitical crisis deepened.",
+    "sources": [
+      {
+        "name": "Al Jazeera",
+        "url": "https://www.aljazeera.com/news/2026/3/8/iran-names-khameneis-son-as-new-supreme-leader-after-fathers-killing-2"
+      },
+      {
+        "name": "NBC News",
+        "url": "https://www.nbcnews.com/world/iran/iran-supreme-leader-mojtaba-khamenei-rcna261645"
+      },
+      {
+        "name": "CBS News",
+        "url": "https://www.cbsnews.com/news/mojtaba-khamenei-iran-new-supreme-leader/"
+      }
+    ]
   }
 }
