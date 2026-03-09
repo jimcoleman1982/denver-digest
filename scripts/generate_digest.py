@@ -938,6 +938,11 @@ def fetch_top_world_story(brave_key, target_date_str):
             if "news.google.com" in url:
                 continue  # couldn't resolve
         text = fetch_article_text(url)
+        via_cache = False
+        # If direct fetch failed, try Google Cache
+        if not text or len(text) <= 200:
+            text = fetch_article_text_cached(url)
+            via_cache = True
         if text and len(text) > 200:
             article_texts.append({
                 "source": entry["source"],
@@ -945,7 +950,8 @@ def fetch_top_world_story(brave_key, target_date_str):
                 "text": text,
             })
             sources_used.append({"name": entry["source"], "url": url})
-            print(f"    Fetched {len(text)} chars from {entry['source']}")
+            label = " (via cache)" if via_cache else ""
+            print(f"    Fetched {len(text)} chars from {entry['source']}{label}")
             if len(article_texts) >= 3:
                 break
         time.sleep(0.3)
@@ -1406,6 +1412,41 @@ def validate_event_dates(events, target_friday):
     return kept
 
 
+def _extract_article_text(html):
+    """Extract article body text from HTML content. Returns text or None."""
+    soup = BeautifulSoup(html, "html.parser")
+
+    for tag in soup.find_all(["script", "style", "nav", "header", "footer", "aside", "figure", "figcaption"]):
+        tag.decompose()
+
+    article_body = None
+    selectors = [
+        "article",
+        '[class*="article-body"]',
+        '[class*="story-body"]',
+        '[class*="entry-content"]',
+        '[class*="post-content"]',
+        '[class*="article-content"]',
+        "main",
+    ]
+    for selector in selectors:
+        found = soup.select_one(selector)
+        if found:
+            article_body = found
+            break
+
+    if not article_body:
+        article_body = soup.body if soup.body else soup
+
+    paragraphs = article_body.find_all("p")
+    text = "\n".join(p.get_text(strip=True) for p in paragraphs if len(p.get_text(strip=True)) > 30)
+
+    if len(text) < 100:
+        return None
+
+    return text[:ARTICLE_TEXT_LIMIT]
+
+
 def fetch_article_text(url):
     """Fetch and extract article body text from a URL."""
     if any(s in url for s in UNRELIABLE_SOURCES):
@@ -1415,41 +1456,23 @@ def fetch_article_text(url):
         resp = requests.get(url, headers=HEADERS, timeout=10)
         if resp.status_code != 200:
             return None
-
-        soup = BeautifulSoup(resp.text, "html.parser")
-
-        for tag in soup.find_all(["script", "style", "nav", "header", "footer", "aside", "figure", "figcaption"]):
-            tag.decompose()
-
-        article_body = None
-        selectors = [
-            "article",
-            '[class*="article-body"]',
-            '[class*="story-body"]',
-            '[class*="entry-content"]',
-            '[class*="post-content"]',
-            '[class*="article-content"]',
-            "main",
-        ]
-        for selector in selectors:
-            found = soup.select_one(selector)
-            if found:
-                article_body = found
-                break
-
-        if not article_body:
-            article_body = soup.body if soup.body else soup
-
-        paragraphs = article_body.find_all("p")
-        text = "\n".join(p.get_text(strip=True) for p in paragraphs if len(p.get_text(strip=True)) > 30)
-
-        if len(text) < 100:
-            return None
-
-        return text[:ARTICLE_TEXT_LIMIT]
-
+        return _extract_article_text(resp.text)
     except Exception as e:
         print(f"  Failed to fetch {url}: {e}")
+        return None
+
+
+def fetch_article_text_cached(url):
+    """Try fetching article text via Google's web cache as a paywall fallback."""
+    try:
+        from urllib.parse import quote
+        cache_url = f"https://webcache.googleusercontent.com/search?q=cache:{quote(url, safe='')}"
+        cache_headers = {**HEADERS, "Referer": "https://www.google.com/"}
+        resp = requests.get(cache_url, headers=cache_headers, timeout=10)
+        if resp.status_code != 200:
+            return None
+        return _extract_article_text(resp.text)
+    except Exception:
         return None
 
 
