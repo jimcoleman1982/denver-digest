@@ -901,6 +901,7 @@ def fetch_top_world_story(brave_key, target_date_str):
             "link": br["url"],
             "source": br["source"],
             "pub_date": "",
+            "snippet": br.get("snippet", ""),
         })
 
     # Re-cluster with the combined pool
@@ -929,7 +930,7 @@ def fetch_top_world_story(brave_key, target_date_str):
 
     article_texts = []
     sources_used = []
-    for entry in sorted_entries[:5]:  # try up to 5
+    for entry in sorted_entries[:8]:  # try up to 8
         url = entry["link"]
         # Resolve Google News redirect URLs
         if "news.google.com" in url:
@@ -949,8 +950,40 @@ def fetch_top_world_story(brave_key, target_date_str):
                 break
         time.sleep(0.3)
 
+    # Fallback: if no article text, use headlines + snippets from the cluster
+    using_snippet_fallback = False
     if not article_texts:
-        print("  Could not fetch article text for top story")
+        print("  Could not fetch article text -- falling back to headlines + snippets")
+        using_snippet_fallback = True
+        for entry in sorted_entries[:8]:
+            snippet = entry.get("snippet", "")
+            url = entry["link"]
+            if "news.google.com" in url:
+                url = resolve_google_news_url(url)
+            if snippet and len(snippet) > 30:
+                article_texts.append({
+                    "source": entry["source"],
+                    "url": url if "news.google.com" not in url else entry["link"],
+                    "text": f"Headline: {entry['title']}\n{snippet}",
+                })
+                if url and "news.google.com" not in url:
+                    sources_used.append({"name": entry["source"], "url": url})
+            elif entry["title"]:
+                article_texts.append({
+                    "source": entry["source"],
+                    "url": url if "news.google.com" not in url else entry["link"],
+                    "text": f"Headline: {entry['title']}",
+                })
+                if url and "news.google.com" not in url:
+                    sources_used.append({"name": entry["source"], "url": url})
+        if not sources_used:
+            # Last resort: use Google News links as sources
+            for entry in sorted_entries[:3]:
+                sources_used.append({"name": entry["source"], "url": entry["link"]})
+        print(f"    Assembled {len(article_texts)} headline/snippet entries for fallback")
+
+    if not article_texts:
+        print("  No article texts or snippets available for top story")
         return None
 
     # Step 5: Send to Claude for detailed summary
@@ -967,7 +1000,25 @@ def fetch_top_world_story(brave_key, target_date_str):
     # Build the representative headline from the cluster
     representative_headline = top_cluster[0]["title"]
 
-    user_prompt = f"""Below are {len(article_texts)} articles about the top news story of the day.
+    if using_snippet_fallback:
+        user_prompt = f"""Below are headlines and brief descriptions from {len(article_texts)} sources about the top news story of the day.
+
+Topic: {representative_headline}
+
+{sources_text}
+
+---
+
+Based on these headlines and descriptions, write a summary of this story. Your summary should be 2-3 paragraphs long, with each paragraph 2-4 sentences. Cover:
+- What happened (the core facts)
+- Who is involved
+- Why it matters
+
+Also write a clear, factual headline for the story.
+
+Focus on hard news with genuine global or national significance. Write in clean newspaper style. No editorializing, no emojis. Only state facts that are clearly supported by the headlines and descriptions provided."""
+    else:
+        user_prompt = f"""Below are {len(article_texts)} articles about the top news story of the day.
 
 Topic: {representative_headline}
 
