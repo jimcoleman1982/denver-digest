@@ -592,7 +592,7 @@ def deduplicate_and_rank(results):
     return top_stories
 
 
-def load_recent_headlines(target_date_str, days_back=3):
+def load_recent_headlines(target_date_str, days_back=7):
     """Load headlines from previous days' JSON files for cross-day dedup."""
     target = datetime.date.fromisoformat(target_date_str)
     previous_headlines = []
@@ -610,28 +610,57 @@ def load_recent_headlines(target_date_str, days_back=3):
     return previous_headlines
 
 
-# Words in a candidate headline that suggest a genuinely new development
-# on a previously covered story (arrest after a crime, verdict after trial, etc.)
+# Words that ONLY appear in follow-up/update headlines, NOT in original crime reports.
+# "killed", "dead", "arrested" etc. were removed because they appear in first-day
+# crime reporting just as often as in updates, causing false bypasses.
 UPDATE_INDICATOR_WORDS = {
-    "update", "arrested", "arrest", "charged", "convicted", "verdict",
-    "sentenced", "indicted", "identified", "confirmed", "dead", "dies",
-    "killed", "death toll", "aftermath", "response", "fallout", "ruling",
-    "decision", "settlement", "reopened", "recalled", "expanded", "closed",
-    "reopens", "closes", "cleared", "suspended", "fired", "resigned",
-    "released", "evacuated", "contained", "extinguished", "reopened",
-    "investigation", "cause", "lawsuit", "sues", "sued",
+    "update", "convicted", "verdict", "sentenced", "indicted",
+    "aftermath", "fallout", "ruling", "settlement", "recalled",
+    "reopened", "reopens", "cleared", "fired", "resigned",
+    "extinguished", "cause", "lawsuit", "sues", "sued",
 }
 
 
-def has_update_indicators(title_lower):
-    """Check if a headline contains words suggesting a new development on a known story."""
-    title_words = set(re.findall(r'[a-z]+', title_lower))
-    return bool(title_words & UPDATE_INDICATOR_WORDS)
+def has_update_indicators(candidate_title_lower, previous_headline_lower, strict=False):
+    """Check if a candidate headline represents a genuine update to a prior story.
+
+    In normal mode: checks for explicit update indicator words OR significant new words.
+    In strict mode (used for keyword-overlap matches): ONLY checks explicit indicator words.
+    Strict mode prevents different-wording-same-event headlines from bypassing dedup.
+    """
+    candidate_words = set(re.findall(r'[a-z]+', candidate_title_lower))
+    # Check for explicit update indicator words
+    if candidate_words & UPDATE_INDICATOR_WORDS:
+        return True
+    # In strict mode, only explicit indicator words count
+    if strict:
+        return False
+    # In normal mode, also check if candidate has genuinely new significant words
+    candidate_sig = extract_significant_words(candidate_title_lower)
+    prev_sig = extract_significant_words(previous_headline_lower)
+    new_words = candidate_sig - prev_sig
+    # Must have at least 3 significant words not in the prior headline
+    if len(new_words) >= 3:
+        return True
+    return False
+
+
+def _is_homepage_url(url):
+    """Check if a URL is just a site homepage with no article path."""
+    from urllib.parse import urlparse
+    parsed = urlparse(url)
+    path = parsed.path.strip("/")
+    return path == "" or path in ("news", "sports", "politics", "business")
 
 
 def filter_cross_day_duplicates(candidates, target_date_str):
     """Remove candidates whose headlines are too similar to recent days' stories.
-    Allows potential updates (new developments) through for Claude to evaluate."""
+    Allows genuine updates (new developments) through for Claude to evaluate.
+
+    Stories with homepage-only URLs (no specific article path) are held to a
+    stricter standard because they are more likely to be stale/recycled content
+    from search engine snippets rather than fresh articles.
+    """
     previous_headlines = load_recent_headlines(target_date_str)
     if not previous_headlines:
         print("  No previous days' data found -- skipping cross-day dedup")
@@ -642,27 +671,37 @@ def filter_cross_day_duplicates(candidates, target_date_str):
     removed = 0
     for candidate in candidates:
         title_lower = candidate["title"].lower()
+        candidate_url = candidate.get("url", "")
+        is_homepage = _is_homepage_url(candidate_url)
         is_duplicate = False
         for prev_headline in previous_headlines:
             similarity = SequenceMatcher(None, title_lower, prev_headline).ratio()
-            if similarity > 0.55:
-                # Very high similarity -- only allow through if update indicators present
-                if has_update_indicators(title_lower):
+            # Homepage URLs use a stricter similarity threshold (0.40 vs 0.55)
+            # because they are more likely to be stale recycled search snippets
+            sim_threshold = 0.40 if is_homepage else 0.55
+            if similarity > sim_threshold:
+                # Only allow through if this is a genuine update
+                if has_update_indicators(title_lower, prev_headline):
                     print(f"  Potential update allowed: '{candidate['title'][:60]}...'")
                     break
                 is_duplicate = True
-                print(f"  Cross-day dup removed: '{candidate['title'][:60]}...'")
+                reason = "(homepage URL)" if is_homepage else ""
+                print(f"  Cross-day dup removed {reason}: '{candidate['title'][:60]}...'")
                 break
-            # Also check keyword overlap (raised threshold from 3 to 4)
+            # Also check keyword overlap -- use strict mode for update check
+            # because keyword matches indicate same-event coverage, and different
+            # wording alone should not bypass the dedup
             candidate_words = extract_significant_words(title_lower)
             prev_words = extract_significant_words(prev_headline)
             shared = candidate_words & prev_words
-            if len(shared) >= 4:
-                if has_update_indicators(title_lower):
+            kw_threshold = 3 if is_homepage else 4
+            if len(shared) >= kw_threshold:
+                if has_update_indicators(title_lower, prev_headline, strict=True):
                     print(f"  Potential update allowed (keywords): '{candidate['title'][:60]}...'")
                     break
                 is_duplicate = True
-                print(f"  Cross-day dup removed (keywords): '{candidate['title'][:60]}...'")
+                reason = "(homepage URL)" if is_homepage else ""
+                print(f"  Cross-day dup removed (keywords) {reason}: '{candidate['title'][:60]}...'")
                 break
         if is_duplicate:
             removed += 1
@@ -1512,7 +1551,11 @@ Article text: {story['article_text']}"""
 IMPORTANT -- STORIES ALREADY PUBLISHED ON PREVIOUS DAYS (do NOT repeat these):
 {hl_list}
 
-Do NOT select any candidate that covers the same event as the headlines above. Only include a story if there is a genuinely new development not covered by the previous headline."""
+STRICT DEDUP RULES:
+- Do NOT select any candidate that covers the same event as the headlines above, even if the wording is slightly different.
+- A story is a duplicate even if the source is different or the angle has shifted, as long as the underlying EVENT is the same.
+- Only include a previously covered story if there is a MAJOR new development (arrest, conviction, verdict, policy reversal, new fatality, significant dollar figure change). Minor rewording or a different source's take on the same facts is NOT a new development.
+- If you do include a story with a new development, you MUST prefix the headline with "Update: " to signal to readers that this is a follow-up."""
 
     num_to_produce = min(MAX_ARTICLES, len(stories))
 
@@ -1527,8 +1570,8 @@ YOUR TASK: Write summaries for as many stories as possible, up to {MAX_ARTICLES}
 - Prefer stories from credible local sources (Denver Post, Colorado Sun, Denver Gazette, CPR News, Denver Business Journal, 9News, Denver7)
 - Only drop a story if it is truly clickbait, entirely national with zero Denver relevance, or an exact duplicate of another candidate
 - If two candidates cover the same event, pick the one with better sourcing
-- CRITICAL: Do NOT include stories that were already covered on previous days (see list below)
-- EXCEPTION: If a previously covered story has a genuinely new development (arrest, verdict, policy change, new damage estimate, etc.), you may include it BUT you MUST prefix the headline with "Update: " (e.g., "Update: Suspect in Denver shooting arraigned on first-degree murder charge")
+- CRITICAL: Do NOT include stories that were already covered on previous days (see list below). This is a HARD rule -- readers have already seen these stories.
+- EXCEPTION: If a previously covered story has a MAJOR new development (arrest, conviction, verdict, policy reversal, new fatality, significant new information), you may include it BUT you MUST prefix the headline with "Update: " (e.g., "Update: Suspect in Denver shooting arraigned on first-degree murder charge"). A different source covering the same facts or minor rewording does NOT qualify as an update.
 {dedup_block}
 
 {stories_text}
