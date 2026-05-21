@@ -1,0 +1,144 @@
+{
+  "date": "2026-05-21",
+  "dateFormatted": "Thursday, May 21, 2026",
+  "stories": [
+    {
+      "category": "other",
+      "headline": "Denver homelessness drops 12.5% in annual count, first decrease in nine years",
+      "summary": "Overall homelessness in Denver fell 12.5% in the 2026 Point-in-Time count compared to 2025, the first year-over-year decline in nine years, according to the Metro Denver Homeless Initiative's annual one-night census. Unsheltered homelessness dropped 34% from the prior year, with 518 people counted sleeping on streets or in tents on the January survey night, down from 785 in 2025 and a decade peak of 1,423 in 2023.\n\nDenver Mayor Mike Johnston credited his All In Mile High homelessness program, which has spent roughly $178 million on initiatives since he took office in 2023. Johnston called the results a 'historic accomplishment' and said the goal of ending the cycle of street homelessness 'now feels like a very real possibility.'\n\nThe metro-wide count across six counties found 9,950 people experiencing homelessness, down 7.6%, with 1,703 living unsheltered — a nearly 21% drop. Officials noted that sub-freezing temperatures on the January 26 count night activated cold-weather shelters, which may have reduced the unsheltered tally relative to warmer nights.\n\nAnalysts caution that the PIT count reflects a single night and can be influenced by weather and participation rates. A separate statewide report relying on year-round data counted 35,601 people experiencing homelessness in metro Denver in 2025, and family and youth homelessness rose in that dataset.",
+      "source": "Denver Post",
+      "url": "https://www.denverpost.com/2026/05/20/denver-annual-homeless-count-decreases-unsheltered/"
+    },
+    {
+      "category": "crime",
+      "headline": "18 bodies found in hidden Pueblo mortuary room identified; charges pending CBI review",
+      "summary": "Colorado Bureau of Investigation officials announced Wednesday that 18 of the human remains discovered in a hidden back room at Davis Mortuary in Pueblo have been identified. All identified individuals died between 2010 and 2012, and six sets of remains are still unidentified, with investigators using forensic genetic genealogy to work through degraded DNA and missing records.\n\nState inspectors found the room of decomposing remains in August during Davis Mortuary's first inspection following strengthened Colorado funeral home regulations enacted after similar scandals elsewhere in the state. The mortuary was operated by then-Pueblo County Coroner Brian Cotter and his brother Chris Cotter; Brian Cotter resigned after calls from dozens of officials but neither man currently faces criminal charges.\n\nPueblo County District Attorney Kala Beauvais has said she will not consider charges until the CBI investigation is complete. CBI officials said Wednesday that case information will be presented to the district attorney's office for review and potential filing of charges once all remains are identified.\n\nThe case echoes other Colorado funeral home scandals, including that of Sunset Mesa Funeral Directors, whose operators Megan Hess and Shirley Koch are now serving prison sentences after pleading guilty to mail fraud for harvesting and selling body parts without family consent.",
+      "source": "Denver Post",
+      "url": "https://www.denverpost.com/2026/05/20/davis-mortuary-pueblo-brian-cotter/"
+    },
+    {
+      "category": "politics",
+      "headline": "Congressional panel probes Denver, Boulder over limits on ICE cooperation",
+      "summary": "A U.S. House Judiciary Committee panel announced Wednesday it is reviewing Denver and Boulder's policies limiting cooperation with federal immigration authorities. Committee Chairman Rep. Jim Jordan of Ohio sent letters to district attorneys, sheriffs and police chiefs in both cities, accusing local officials of prioritizing 'illegal and criminal aliens over American citizens' and undermining public safety.\n\nRep. Tom McClintock, chairman of the Subcommittee on Immigration Integrity, Security and Environment, co-signed the letters, as did Rep. Gabe Evans, the Republican representing Colorado's 8th Congressional District, for the letters directed at Denver officials. The letters specifically cited Denver and Boulder policies against sharing databases and technology with federal immigration agents, and Boulder's decision to restrict ICE access to license plate reader data after three years of sharing it.\n\nDenver Mayor Mike Johnston signed an executive order in February barring city agencies from sharing databases or technology agreements with the Department of Homeland Security without a subpoena, judicial warrant or court order, and prohibiting city property from being used as staging areas for civil immigration enforcement absent legal process. Colorado state law also expressly prohibits local law enforcement from holding individuals solely on the basis of federal immigration detainer requests.\n\nThe probe reflects ongoing federal pressure on Colorado's sanctuary jurisdictions and comes as immigration enforcement remains a flashpoint between the state's Democratic-leaning local governments and the federal administration.",
+      "source": "Denver Gazette",
+      "url": "https://www.denvergazette.com/2026/05/20/congressional-panel-probes-denver-boulder-over-ice-cooperation-limits/"
+    },
+    {
+      "category": "politics",
+      "headline": "Colorado GOP governor primary features MAGA candidates against establishment contender",
+      "summary": "Three candidates are vying to be the Republican nominee for Colorado governor, with the primary pitting two candidates aligned with the MAGA movement against a longtime political insider. State Rep. Scott Bottoms, a Colorado Springs pastor, leads the field and has publicly claimed without evidence that Democratic lawmakers are 'buying children,' saying he is pursuing 'pedophilia in this building' but will only present evidence to the FBI.\n\nA second candidate has claimed he helped kill a man when he was 7 years old, though no evidence supports that account. The third is described as a political establishment figure who argues she can fix what ails Colorado. Republicans have not won a statewide office in Colorado since 2014, and political strategists note the nominee's primary value may be in propping up competitive down-ballot races rather than winning the governorship.\n\nFormer state GOP chairman Dick Wadhams said the nominee must avoid 'dragging down the rest of the ticket.' Gov. Jared Polis is term-limited and cannot seek re-election, opening the governor's race for both parties.\n\nThe race illustrates the broader tension within Colorado's Republican Party between candidates appealing to the national MAGA base and those seeking a more traditional conservative approach in a state that has trended Democratic for over a decade.",
+      "source": "Colorado Sun",
+      "url": "https://coloradosun.com/2026/05/20/colorado-gop-governor-primary-pits-maga-against-establishment/"
+    },
+    {
+      "category": "politics",
+      "headline": "Gov. Polis urges restraint on tech regulations at legislative wrap-up event",
+      "summary": "Gov. Jared Polis told business leaders and lawmakers Tuesday that Colorado should avoid a 'heavy hand' when regulating emerging technology, arguing that state-level rules risk cutting Colorado off from economic opportunity. Polis made the remarks at the Denver Metro Chamber of Commerce and Colorado Competitive Council's annual legislative wrap-up, where he spoke alongside University of Colorado President Todd Saliman and other business figures.\n\nPolis cautioned that while consumer protection matters, Colorado is a mid-sized state that cannot easily set national technology policy and must be careful about regulations that become a 'cost of doing business' and confuse consumers. He noted that Congress has not advanced meaningful AI accountability legislation, leaving states to navigate a patchwork approach.\n\nThis year, Polis signed a reworked AI regulation following two years of negotiations between business groups and labor interests. The new law replaced Colorado's 2024 first-in-the-nation AI regulatory framework with a version that dropped requirements for businesses to conduct risk assessments and other preventive measures.\n\nPolis is term-limited and will leave office before the next regular legislative session. His likely Democratic successor could take a different approach to technology regulation, particularly on pending bills involving AI chatbot disclosures, in-game purchase fees, and a ban on using personal data to set prices and wages.",
+      "source": "Colorado Newsline",
+      "url": "https://coloradonewsline.com/briefs/polis-colorado-tech-regulations/"
+    },
+    {
+      "category": "crime",
+      "headline": "Denver jury convicts activist of 'doxing' police commander in apparent first under state anti-doxing law",
+      "summary": "A Denver jury has found activist Regan Benson guilty of doxing a Denver Police Department commander during a livestream last September, in what appears to be the first conviction under Colorado's anti-doxing law. Benson was known as a frequent critic of police prior to the incident.\n\nThe case drew attention as a test of the relatively new state statute, which criminalizes the public release of private personal information with intent to harm. Details about the specific information Benson shared during the livestream were not fully described in available reporting.\n\nThe conviction marks a significant application of Colorado's anti-doxing legislation in the context of activism and law enforcement criticism. Sentencing details were not immediately available.",
+      "source": "KKCO 11 News",
+      "url": "https://www.kkco11news.com/"
+    },
+    {
+      "category": "crime",
+      "headline": "Multi-agency wiretap investigation leads to nearly two dozen arrests across Colorado for drug trafficking",
+      "summary": "Nearly two dozen people were arrested across Colorado as part of a multi-agency wiretapping investigation targeting several drug trafficking organizations, according to law enforcement officials. The operation involved coordination among multiple agencies and relied on wiretap evidence to build cases against the suspects.\n\nFurther details about the specific organizations targeted, the drugs involved, or the jurisdictions where arrests occurred were not fully detailed in initial reports. The investigation reflects ongoing law enforcement efforts to disrupt organized drug distribution networks operating in Colorado.\n\nThe arrests come as Colorado faces a worsening overdose crisis, with preliminary state data showing fatal overdoses rose from 1,603 in 2024 to 1,813 in 2025.",
+      "source": "KKCO 11 News",
+      "url": "https://www.kkco11news.com/"
+    },
+    {
+      "category": "other",
+      "headline": "Colorado overdose deaths rose 13% in 2025, bucking national trend of improvement",
+      "summary": "Fatal overdoses in Colorado increased from 1,603 in 2024 to 1,813 in 2025, a 13% rise that runs counter to a 15% nationwide decrease in overdose deaths reported by the Centers for Disease Control and Prevention. Colorado was among the biggest outliers in the country alongside New Mexico, which saw a 21% increase, and Arizona at 17%.\n\nWithin Denver, March and May 2025 tied for the worst months for fatal overdoses on record, with roughly two people dying per day during a three-month stretch. Most victims had both fentanyl and methamphetamine in their systems, according to Denver's chief medical examiner, Dr. Sterling McLaren.\n\nPublic health officials point to a shift in the fentanyl supply as a likely driver — powder fentanyl, which is easier to inject and potentially more dangerous, is making up a growing share of what is available on the street, replacing the counterfeit pills that had been more common. Injection carries a higher overdose risk than smoking, and the illicit supply lacks consistent potency testing.\n\nExperts also note that fentanyl arrived in the Mountain West later than in other regions, meaning Colorado may simply be at an earlier and more deadly point on the overdose epidemic curve than coastal states that have seen larger declines.",
+      "source": "Denver Post",
+      "url": "https://www.denverpost.com/2026/05/20/colorado-overdose-deaths-fentanyl-meth/"
+    },
+    {
+      "category": "other",
+      "headline": "Boulder County moves forward on $95 million bike path along dangerous U.S. 36 corridor",
+      "summary": "Boulder County is advancing plans for the North Foothills Bikeway, an 11-mile dedicated cycling path along U.S. 36 between Boulder and Lyons, following a 2024 feasibility study and recent public input sessions. The proposed 12-foot-wide concrete path would be set 20 to 30 feet from the highway in most locations, with barriers, retaining walls, and grade-separated crossings at complex intersections.\n\nU.S. 36 is the deadliest road in unincorporated Boulder County, with 13 injuries and six deaths recorded between 2015 and 2024. A cyclist was reported seriously injured in a hit-and-run on the highway just last week, and an in-ground counter records about 52,000 cyclists using the route annually despite the dangers.\n\nThe project is estimated to cost $95 million, with Boulder County seeking federal grants to cover the majority of the expense. The county has identified the east side of the highway as the preferred alignment to take advantage of existing Colorado Department of Transportation rights of way.\n\nA final contracted engineering study is still likely two years away, and the project requires additional bureaucratic approvals before construction can begin. Public feedback is currently being collected on four focus areas identified in the feasibility study that require deeper technical analysis.",
+      "source": "Denver Gazette",
+      "url": "https://www.denvergazette.com/2026/05/20/vision-shaping-for-long-sought-bike-path-off-scenic-deadly-highway-in-colorado/"
+    },
+    {
+      "category": "business",
+      "headline": "Southwest Airlines launches first nonstop Denver-to-Anchorage service",
+      "summary": "Southwest Airlines has added a nonstop flight route between Denver and Anchorage, Alaska, making Alaska the 43rd state in Southwest's domestic network. The new service marks the first time the carrier has offered direct flights between Denver International Airport and the Alaskan market.\n\nThe addition expands Denver's connectivity to Alaska, a destination that has historically required a connection for most travelers flying from Colorado. Southwest has been expanding its Denver presence as one of the airport's major carriers.\n\nThe announcement comes amid broader scrutiny of Denver International Airport's on-time performance, which recently ranked below the national average in a flight delay study.",
+      "source": "Denver Business Journal",
+      "url": "https://www.bizjournals.com/denver/news/2026/05/20/southwest-denver-alaska-anchorage.html"
+    },
+    {
+      "category": "sports",
+      "headline": "Avalanche drop Game 1 of Western Conference Final to Vegas Golden Knights 4-2, Cale Makar sidelined",
+      "summary": "The Colorado Avalanche lost Game 1 of the Western Conference Final to the Vegas Golden Knights 4-2 at Ball Arena on Wednesday, falling behind in a playoff series for the first time this postseason. Colorado was unable to overcome a three-goal deficit despite a late push.\n\nDefenseman Cale Makar was ruled out before the game after being seen on the ice during morning skate. Makar's absence loomed large given his status as one of the team's most impactful players, and multiple analysts noted the Avalanche face a difficult path if he cannot return quickly.\n\nThe Golden Knights controlled much of the contest and used their depth and physicality to neutralize Colorado's offensive attack. Game 2 of the series is scheduled to remain in Denver.",
+      "source": "Denver Gazette",
+      "url": "https://www.denvergazette.com/"
+    },
+    {
+      "category": "sports",
+      "headline": "Broncos announce all-Friday-night preseason schedule for 2026 season",
+      "summary": "The Denver Broncos will play all three of their 2026 preseason games on Friday nights in August, the team announced Wednesday. The schedule opens Aug. 14 at the Atlanta Falcons at 5 p.m. MT, followed by a home game against the Green Bay Packers on Aug. 21 and a home finale against the Minnesota Vikings on Aug. 28, with both home games kicking off at 7 p.m. MT. All games will be broadcast on 9News.\n\nIt marks the first time in head coach Sean Payton's tenure that all three preseason games have landed on the same day of the week. Previous years under Payton featured all-Sunday slates in 2024 and all-Saturday matchups in 2025.\n\nThe Broncos are not expected to hold joint practices with any of the three opponents this preseason, which would be a first under Payton, who has organized joint sessions with the Rams, Packers and Cardinals in prior summers. A source with knowledge of Denver's scheduling confirmed the absence of joint practices to The Denver Post.",
+      "source": "Denver Post",
+      "url": "https://www.denverpost.com/2026/05/20/broncos-nfl-preseason-schedule/"
+    }
+  ],
+  "weather": {
+    "high": 74,
+    "low": 40,
+    "conditions": "Overcast",
+    "wind_mph": 16.6,
+    "wind_gusts_mph": 33.8,
+    "precipitation_inches": 0,
+    "snowfall_inches": 0,
+    "precipitation_probability": 17,
+    "feels_high": 71,
+    "feels_low": 36,
+    "sunrise": "5:40 AM",
+    "sunset": "8:13 PM",
+    "daylight": "14h 33m",
+    "uv_index": 8.2,
+    "uv_label": "Very High",
+    "uv_class": "uv-very-high",
+    "uv_advice": "Avoid midday sun, seek shade",
+    "notable": "",
+    "current": {
+      "temp": 40,
+      "feels_like": 36,
+      "humidity": 89,
+      "conditions": "Clear sky",
+      "wind_mph": 3.6,
+      "wind_dir": "S",
+      "wind_gusts_mph": 4.9,
+      "pressure_inhg": 29.94,
+      "cloud_cover": 1,
+      "time_label": "5:45 AM"
+    }
+  },
+  "joke": {
+    "comedian": "Brian Regan",
+    "joke": "Science experiments are cool, because at the end you get to fill in whether your hypothesis was correct. And mine never was. I always picked the wrong one."
+  },
+  "topStory": {
+    "headline": "House Democrats Condemn Texas Candidate Galindo Over Antisemitic Remarks as Republican-Linked PAC Backs Her Runoff Bid",
+    "summary": "Top House Democrats have moved to publicly distance the party from Maureen Galindo, a Texas congressional candidate who posted on Instagram that she would convert a federal immigration detention facility into a \"prison for American Zionists and former ICE officers for human trafficking\" and described many Zionists as \"pedophiles.\" Galindo, a sex therapist and housing activist, finished first in the March Democratic primary for Texas' 35th Congressional District and faces Bexar County sheriff's deputy Johnny Garcia in a runoff scheduled for May 26.\n\nHouse Minority Leader Hakeem Jeffries and Democratic Congressional Campaign Committee Chair Suzan DelBene issued a joint statement Tuesday calling Galindo's language \"vile\" and \"disqualifying,\" saying it has \"no place in American politics, and certainly not in the Democratic Party.\" Reps. Josh Gottheimer of New Jersey and Jared Moskowitz of Florida escalated the condemnation Wednesday, threatening to force daily House floor votes to expel Galindo if she wins the seat. Rep. Alexandria Ocasio-Cortez, a prominent progressive critic of Israeli military operations in Gaza, also backed Garcia and called Galindo's remarks \"absolutely disgusting\" and \"bigoted garbage.\" The Texas Democratic Party has formally endorsed Garcia.\n\nGalindo's comments are not limited to the Instagram post. During a May 13 appearance on Texas Public Radio, she said that anyone \"supported by Israel should be tried for treason\" and repeated claims described by critics as antisemitic tropes about Zionist influence over media, banking, and politics. In a statement to CNN, Galindo said her detention center proposal was directed at \"billionaire Zionists, regardless of religion\" and denied that her remarks were antisemitic.\n\nThe controversy has been amplified by the involvement of Lead Left PAC, a newly registered political action committee that has spent approximately $428,000 in the district, primarily on printing and postage to boost Galindo. The group registered with the Federal Election Commission on May 6 and has not yet been required to disclose its donors. Reporting from Punchbowl News and The New York Times identified links between the PAC's website metadata and WinRed, the principal fundraising platform used by Republican campaigns, and noted that Lead Left's advertising in Nebraska closely mirrored messaging previously used by a nonprofit tied to House Republican leadership. Jeffries and DelBene called on House Republicans to immediately cease spending in the race and forcefully condemn Galindo's comments.\n\nThe runoff outcome will determine which Democrat faces the winner of a separate Republican runoff between Trump-backed Air Force veteran Carlos De La Cruz and state Rep. John Lujan, who has the backing of Gov. Greg Abbott. Texas Republicans redrew the 35th District to be more favorable to the GOP, making the Democratic nominee's strength in the general election a significant factor for both parties. Garcia has said that Galindo's remarks have discouraged Democratic voters and damaged confidence in the party among members of San Antonio's Jewish community.",
+    "sources": [
+      {
+        "name": "nbcnews.com",
+        "url": "https://www.nbcnews.com/politics/2026-election/house-democratic-texas-candidate-maureen-galindo-antisemitic-comments-rcna346022"
+      },
+      {
+        "name": "cnn.com",
+        "url": "https://www.cnn.com/2026/05/19/politics/maureen-galindo-texas-house-democrats-antisemitism"
+      },
+      {
+        "name": "tpr.org",
+        "url": "https://www.tpr.org/government-politics/2026-05-20/democrats-threaten-to-expel-tx-35-candidate-maureen-galindo-over-antisemitic-remarks-if-elected"
+      }
+    ]
+  }
+}
