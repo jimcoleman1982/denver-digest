@@ -264,28 +264,30 @@ def parse_args():
 
 
 def check_denver_time():
-    """Exit early if Denver local time is before 5:30 AM or if the wrong DST cron fired.
+    """Exit early if Denver local time is outside the morning publish window.
 
-    Two crons fire daily: 11:45 UTC (for MDT) and 12:45 UTC (for MST).
-    This guard ensures only the correct one produces output by checking
-    whether the current UTC hour matches the active timezone offset.
+    Two GitHub Actions schedule cron entries fire daily:
+        12:00 UTC -> 6:00 AM MDT (intended for summer, March-November)
+        13:00 UTC -> 6:00 AM MST (intended for winter, November-March)
+    Plus the cron-job.org primary trigger via workflow_dispatch (bypasses
+    this check via --force).
+
+    Rather than tying the guard to specific UTC hours (brittle when the
+    backup cron times change), this guard simply checks: are we within the
+    intended ~5:30-7:30 AM Denver local window? If yes, proceed. If no,
+    the wrong-timezone cron fired -- exit cleanly.
     """
     now = datetime.datetime.now(DENVER_TZ)
-    utc_now = datetime.datetime.now(datetime.timezone.utc)
-    is_dst = bool(now.dst())
-    utc_hour = utc_now.hour
+    hour = now.hour
+    minute = now.minute
 
-    # 11:45 UTC cron should only run during MDT (dst=True)
-    # 12:45 UTC cron should only run during MST (dst=False)
-    if utc_hour <= 11 and not is_dst:
-        print(f"Denver time is {now.strftime('%H:%M %Z')} (MST) but UTC hour is {utc_hour} (MDT cron). Skipping.")
-        sys.exit(0)
-    if utc_hour >= 12 and is_dst:
-        print(f"Denver time is {now.strftime('%H:%M %Z')} (MDT) but UTC hour is {utc_hour} (MST cron). Skipping.")
-        sys.exit(0)
-
-    if now.hour < 5 or (now.hour == 5 and now.minute < 30):
-        print(f"Denver time is {now.strftime('%H:%M %Z')} -- too early, skipping.")
+    # Allow only 5:30 AM - 7:30 AM Denver local time.
+    # This covers both DST states' 6:00 AM cron fires + ~90 min of cron drift.
+    too_early = hour < 5 or (hour == 5 and minute < 30)
+    too_late = hour > 7 or (hour == 7 and minute > 30)
+    if too_early or too_late:
+        print(f"Denver time is {now.strftime('%H:%M %Z')} -- outside 5:30-7:30 AM "
+              f"publish window. (Wrong-timezone cron fired, or out-of-band trigger.) Skipping.")
         sys.exit(0)
 
 

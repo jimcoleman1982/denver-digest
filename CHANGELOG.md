@@ -4,6 +4,38 @@ All notable changes to the Denver Digest (303 News) project will be documented i
 
 Versioning follows the date format: `vYYYY.M.D`
 
+## v2026.5.26
+
+### Changed: Daily fire time moved to 6:00 AM Denver local, year-round
+
+The GitHub Actions schedule cron (backup trigger) was firing at 6:15 AM Denver
+local. Moved to 6:00 AM exactly so the email arrives at ~6:00 AM on the dot.
+
+**Workflow changes:**
+- `12:00 UTC` cron (was `12:15`) -> 6:00 AM MDT during summer
+- `13:00 UTC` cron (was `13:15`) -> 6:00 AM MST during winter
+
+**Script changes:**
+- `check_denver_time()` rewritten. Old logic was buggy: it had a strict
+  UTC-hour-based DST guard tied to the old 11:45/12:45 UTC cron times that
+  no longer matched the actual `15 12 / 15 13` cron entries. During MDT,
+  the guard would have rejected BOTH cron fires (including the correct
+  one), so the backup was effectively non-functional during summer.
+- New guard uses Denver local hour directly. Allows any fire between
+  5:30 AM and 7:30 AM Denver local time (covers both DST states' 6:00 AM
+  cron fires plus ~90 minutes of cron drift). Outside that window, exit.
+- The script's `check_already_generated` continues to handle the case
+  where both the primary (cron-job.org) and backup (GitHub schedule)
+  fire on the same day -- the second one sees the file exists, exits.
+
+**For 6:00 AM on the dot year-round, update cron-job.org primary trigger to:**
+- Timezone: `America/Denver`
+- Cron: `0 6 * * *` (or `55 5 * * *` if you want the email to actually
+  ARRIVE at 6:00 AM after ~3-5 min of script processing)
+
+This way cron-job.org handles DST automatically and fires once per day at
+exactly 6:00 AM local time.
+
 ## v2026.4.13
 
 ### Fixed: Cross-day story deduplication
