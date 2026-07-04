@@ -4,6 +4,33 @@ All notable changes to the Denver Digest (303 News) project will be documented i
 
 Versioning follows the date format: `vYYYY.M.D`
 
+## v2026.7.4
+
+### Fixed: Site served stale data when the GitHub Pages deploy failed silently
+
+On 2026-07-04 the digest generated, emailed, and pushed correctly at 5:55 AM,
+but GitHub's Pages deploy errored ("Deployment failed, try again later") and
+the follow-up build hung in "building" for hours. The site served July 3
+data all morning. Nothing in the pipeline verified the live site updated
+after the push.
+
+**Workflow changes:**
+
+- New "Verify today's digest is live" step: after the push, polls
+  `https://303news.org/site/data/<today>.json` for up to 4 minutes; if not
+  live, requests a fresh Pages build via the API and polls again (up to 3
+  attempts total) before failing the run
+- New `14:00 UTC` schedule entry as a deploy-verification pass: generation
+  no-ops (digest already exists) but the verify step re-checks the live
+  site mid-morning and re-kicks Pages if needed
+- Failure notification generalized to cover verify failures and now dedupes
+  to one issue per day
+- Fixed latent bug: the workflow token was never granted `issues: write`,
+  so the existing failure-notification step could not actually create an
+  issue. Added `issues: write` and `pages: write` to the permissions block
+- Job timeout raised from 15 to 30 minutes to accommodate verification
+  polling
+
 ## v2026.5.26
 
 ### Changed: Daily fire time moved to 6:00 AM Denver local, year-round

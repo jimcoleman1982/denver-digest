@@ -10,8 +10,12 @@ on:
     # work even if both primary and backup fire.
     #   12:00 UTC = 6:00 AM MDT (March-November)
     #   13:00 UTC = 6:00 AM MST (November-March)
+    # The 14:00 UTC run is a deploy-verification pass: generation no-ops
+    # (digest already exists) but the verify step below confirms the live
+    # site is actually serving today's data and re-kicks Pages if not.
     - cron: '0 12 * * *'
     - cron: '0 13 * * *'
+    - cron: '0 14 * * *'
   workflow_dispatch: # Manual trigger from GitHub UI
     inputs:
       date:
@@ -21,11 +25,13 @@ on:
 
 permissions:
   contents: write  # Needed to commit and push JSON data files
+  pages: write     # Needed to request Pages rebuilds when a deploy fails
+  issues: write    # Needed by the failure-notification step
 
 jobs:
   generate:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repo
@@ -90,15 +96,63 @@ jobs:
           echo "Investigate GitHub status or manual conflict."
           exit 1
 
-      - name: Notify on push failure
+      - name: Verify today's digest is live (rebuild Pages if not)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # A successful push does not mean the site updated: GitHub's Pages
+          # build can error or hang afterward (2026-07-04: deploy errored,
+          # the build sat in "building" for hours, and the site served stale
+          # data all morning). Poll the live site for today's data; if it
+          # isn't served, request a fresh Pages build and poll again.
+          TODAY=$(TZ=America/Denver date +%F)
+          # Nothing to verify if today's digest doesn't exist yet (e.g. the
+          # early backup cron firing before the primary trigger, or the DST
+          # guard exiting cleanly).
+          if [ ! -f "site/data/${TODAY}.json" ]; then
+            echo "No data file for ${TODAY} in the repo yet -- skipping."
+            exit 0
+          fi
+          URL="https://303news.org/site/data/${TODAY}.json"
+          for attempt in 1 2 3; do
+            for i in $(seq 1 16); do
+              if [ "$(curl -s -o /dev/null -w '%{http_code}' "$URL")" = "200" ]; then
+                echo "Live on attempt $attempt: $URL"
+                exit 0
+              fi
+              sleep 15
+            done
+            echo "Attempt $attempt: $URL is still not live."
+            if [ $attempt -lt 3 ]; then
+              echo "Requesting a fresh Pages build..."
+              gh api "repos/${GITHUB_REPOSITORY}/pages/builds" -X POST || true
+            fi
+          done
+          echo "ERROR: Today's digest is not live on 303news.org after repeated"
+          echo "Pages rebuild requests. GitHub Pages may be having an incident."
+          exit 1
+
+      - name: Notify on failure
         if: failure()
         uses: actions/github-script@v7
         with:
           script: |
+            const today = new Date().toISOString().slice(0, 10);
+            const title = `303 News digest failure - ${today}`;
+            const { data: open } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'bug'
+            });
+            if (open.some(i => i.title === title)) {
+              console.log('Issue already open for today -- not filing a duplicate.');
+              return;
+            }
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: `303 News digest push failed - ${new Date().toISOString().slice(0,10)}`,
-              body: `The digest was generated and the email may have been sent, but the data push to the repo failed after retries.\n\n[View run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+              title,
+              body: `A step in today's digest run failed -- either the digest generation, the data push, or the live-site verification. The email may already have been sent.\n\n[View run](${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
               labels: ['bug']
             });
