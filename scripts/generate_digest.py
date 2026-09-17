@@ -182,6 +182,7 @@ EVENTS_SYSTEM_PROMPT = """You are the events editor for 303 News, a Denver metro
 FEED_HEADERS = {
     "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36",
     "Accept": "text/html,application/xhtml+xml,text/calendar,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
 }
 
 # kind: how to parse the source.
@@ -247,6 +248,14 @@ DOUGLAS_COUNTY_PLACES = [
     "parker", "castle rock", "castle pines", "highlands ranch", "lone tree",
     "larkspur", "sedalia", "franktown", "roxborough", "louviers",
 ]
+
+# Brave returns results for the other Parkers (Kansas, Arizona, South Dakota,
+# Texas, ...). Drop any search result that names one of them.
+OTHER_PARKER_PATTERN = re.compile(
+    r"\b(kansas|iola|arizona|south dakota|texas|florida|pennsylvania|"
+    r"parker,? (?:ks|az|sd|tx|fl|pa|wa)|la paz county|turner county)\b",
+    re.I,
+)
 
 # Feed items that are never weekend-guide material. Filtered before curation
 # so the prompt stays focused on things people actually go to.
@@ -1636,7 +1645,7 @@ def _parse_ics_events(text):
             key, _, val = line.partition(":")
             name = key.split(";")[0].upper()
             if name not in ev:
-                ev[name] = val.strip().replace("\\,", ",").replace("\;", ";").replace("\\n", " ").replace("\\N", " ")
+                ev[name] = val.strip().replace("\\,", ",").replace("\\;", ";").replace("\\n", " ").replace("\\N", " ")
         events.append(ev)
     return events
 
@@ -1884,12 +1893,18 @@ def fetch_parker_events(brave_key, target_date_str, metro_titles=None):
 
     seen_urls = set()
     unique_results = []
+    dropped = 0
     for r in search_results:
         norm = r["url"].split("?")[0].rstrip("/")
         if norm in seen_urls or not r.get("url"):
             continue
         seen_urls.add(norm)
+        if OTHER_PARKER_PATTERN.search(r["title"] + " " + r.get("snippet", "") + " " + r["url"]):
+            dropped += 1
+            continue
         unique_results.append(r)
+    if dropped:
+        print(f"  Dropped {dropped} search results about a Parker outside Colorado")
     # Favor results that name the area in the title or snippet
     def _local_score(r):
         text = (r["title"] + " " + r.get("snippet", "")).lower()
@@ -1963,7 +1978,8 @@ Rules:
 - ONLY include events happening on one of the three dates above. An ongoing exhibit counts only if it is open on those dates, and include at most one.
 - Skip government meetings, hearings, commissions, public notices, business networking, ribbon cuttings, fitness classes, certification courses, and anything that requires registering weeks in advance.
 - Prefer festivals, farmers markets, concerts, theater and comedy, family and kids events, outdoor and nature programs, library and arts events, community celebrations, races, and sports.
-- FEED entries come straight from official calendars and are reliable for dates and locations. SEARCH entries are editorial roundups; use them for extra events and details, but only include an event with a confirmed date this weekend.
+- This guide is for Parker, COLORADO (Douglas County). There are other towns named Parker in Kansas, Arizona, South Dakota, and Texas; never include their events. If a SEARCH entry does not clearly place an event in Colorado, skip it.
+- FEED entries come straight from official Colorado calendars and are reliable for dates and locations. SEARCH entries are editorial roundups; use them for extra events and details, but only include an event with a confirmed date this weekend and a venue you can name.
 - Give each event a real, specific location with the town name.{metro_note}
 
 {source_text}
