@@ -172,10 +172,12 @@ WEEKEND_EVENT_QUERIES = [
 EVENTS_SYSTEM_PROMPT = """You are the events editor for 303 News, a Denver metro daily digest. You curate weekend event picks for Denver metro residents. Be factual and helpful. No editorializing, no emojis."""
 
 
-# --- Parker & Douglas County Weekend Guide Configuration (Friday only) ---
-# A second, separate weekend section focused on Parker first, then the rest of
-# Douglas County. Built mostly from official calendars fetched directly (no
-# Brave cost), plus a few Brave queries for editorial "things to do" roundups.
+# --- Parker & Douglas County Week Ahead Configuration (Friday only) ---
+# A second, separate section focused on Parker first, then the rest of Douglas
+# County. Covers one week: the Friday it runs through the following Friday.
+# Built mostly from official calendars fetched directly (no Brave cost), plus a
+# few Brave queries for editorial "things to do" roundups.
+PARKER_GUIDE_DAYS = 7  # Friday + 7 days = through next Friday, inclusive
 
 # Several of these hosts serve HTML (or a 429) to bot user agents, so feeds are
 # fetched with a browser-like UA.
@@ -227,7 +229,7 @@ PARKER_FEED_SOURCES = [
      "url": "https://www.douglasco.gov/events/?ical=1"},
     {"source": "Live Well Douglas County", "kind": "tribe_ics", "area": "auto",
      "url": "https://livewelldougco.com/events/?ical=1"},
-    {"source": "DougCo Social", "kind": "dougcosocial", "area": "auto", "max": 40,
+    {"source": "DougCo Social", "kind": "dougcosocial", "area": "auto", "max": 56,
      "url": "https://dougcosocial.com/events"},
     {"source": "Roxborough State Park", "kind": "cpw_park", "area": "Douglas County",
      "url": "https://cpw.state.co.us/state-parks/roxborough-state-park",
@@ -254,11 +256,11 @@ PARKER_FEED_SOURCES = [
 # Brave queries for editorial roundups (Parker Chronicle, Macaroni KID, etc.)
 PARKER_EVENT_QUERIES = [
     "Parker Colorado events this weekend",
-    "things to do in Parker CO this weekend",
-    "Douglas County Colorado events this weekend",
-    "Castle Rock Colorado events this weekend",
-    "Highlands Ranch Lone Tree Colorado events this weekend",
-    "Parker Castle Rock Highlands Ranch family kids events this weekend",
+    "Parker Colorado events this week",
+    "things to do in Parker CO",
+    "Douglas County Colorado events this week",
+    "Castle Rock Highlands Ranch Lone Tree Colorado events this weekend",
+    "Parker Castle Rock Highlands Ranch family kids events this week",
 ]
 
 # Towns and places inside Douglas County (lowercase, for venue matching)
@@ -285,7 +287,7 @@ PARKER_EXCLUDE_PATTERN = re.compile(
     re.I,
 )
 
-PARKER_SYSTEM_PROMPT = """You are the events editor for 303 News, a Denver metro daily digest. You curate the Parker & Douglas County Weekend Guide for readers who live in Parker, Colorado. Be factual and helpful. No editorializing, no emojis."""
+PARKER_SYSTEM_PROMPT = """You are the events editor for 303 News, a Denver metro daily digest. You curate the Parker & Douglas County Week Ahead guide for readers who live in Parker, Colorado. Be factual and helpful. No editorializing, no emojis."""
 
 # Preferred sources for article fetching (most reliable HTML)
 PREFERRED_SOURCES = [
@@ -1616,11 +1618,15 @@ def _parse_date_text(text, default_year):
     years = [int(y) for _, _, y in matches if y]
     year = years[-1] if years else default_year
     dates = []
+    today = datetime.datetime.now(DENVER_TZ).date()
     for month, day, y in matches:
         try:
-            dates.append(datetime.date(int(y) if y else year, MONTH_NUMBERS[month.lower()], int(day)))
+            d = datetime.date(int(y) if y else year, MONTH_NUMBERS[month.lower()], int(day))
         except (KeyError, ValueError):
             continue
+        if not y and d < today - datetime.timedelta(days=45):
+            d = d.replace(year=d.year + 1)  # "January 3" seen in late December
+        dates.append(d)
     if not dates:
         return None
     return (min(dates), max(dates))
@@ -1750,6 +1756,58 @@ def _parkerarts_to_events(html, src, year):
             "url": a.get("href", src["url"]), "source": src["source"], "area": src["area"],
         })
     return out
+
+
+def _parkerarts_events(src, start, end):
+    """parkerarts.org/events paginates about 30 cards per page, roughly by date.
+    Fetch pages until one is entirely past the window, then read each in-window
+    event page's JSON-LD for the real venue (PACE Center vs. The Schoolhouse
+    Theater) and ticket price. The listing itself does not name the venue."""
+    events = []
+    for page in range(1, 4):
+        url = src["url"] if page == 1 else f"{src['url'].rstrip('/')}/page/{page}/"
+        html = _fetch_feed(url)
+        if not html:
+            break
+        found = _parkerarts_to_events(html, src, start.year)
+        if not found:
+            break
+        events.extend(found)
+        if min(e["start"] for e in found) > end:
+            break
+        time.sleep(0.2)
+
+    venue_names = {"schoolhouse": "The Schoolhouse Theater", "pace": "PACE Center"}
+    in_window = [e for e in events if e["start"] <= end and e["end"] >= start]
+    for e in in_window[:25]:
+        detail = _fetch_feed(e["url"])
+        if not detail:
+            continue
+        for block in re.findall(r'<script type="application/ld\+json"[^>]*>(.*?)</script>', detail, re.S):
+            try:
+                data = json.loads(block)
+            except json.JSONDecodeError:
+                continue
+            items = data.get("@graph", [data]) if isinstance(data, dict) else data
+            hit = next((it for it in items if isinstance(it, dict) and "Event" in str(it.get("@type", ""))), None)
+            if not hit:
+                continue
+            loc = hit.get("location") or {}
+            addr = loc.get("address") or {}
+            raw_name = (loc.get("name") or "").strip()
+            if raw_name:
+                name = next((v for k, v in venue_names.items() if k in raw_name.lower()), raw_name.title())
+                street = (addr.get("streetAddress") or "").title()
+                e["location"] = _clean_text(", ".join(x for x in [name, street, "Parker"] if x), 120)
+            if hit.get("description"):
+                e["description"] = _clean_text(hit["description"], 300)
+            price = str((hit.get("offers") or {}).get("price") or "").strip()
+            if price:
+                note = "Free admission." if price in ("0", "0.00") else f"Tickets from ${price}."
+                e["description"] = _clean_text(f"{e['description']} {note}".strip(), 300)
+            break
+        time.sleep(0.15)
+    return events
 
 
 def _growthzone_to_events(html, src, year):
@@ -1967,20 +2025,23 @@ def _cpw_park_to_events(html, src, year):
     return out
 
 
-def gather_parker_feed_events(fri, sun):
+def gather_parker_feed_events(fri, end):
     """Fetch every configured Parker/Douglas County source and return the
-    normalized events that fall on the Fri-Sun weekend window."""
+    normalized events that fall inside the fri..end window (inclusive)."""
     events = []
     for src in PARKER_FEED_SOURCES:
-        text = _fetch_feed(src["url"])
-        if not text:
-            continue
         try:
             kind = src["kind"]
-            if kind in ("civicplus_ics", "tribe_ics"):
+            if kind == "parkerarts":
+                found = _parkerarts_events(src, fri, end)
+            else:
+                text = _fetch_feed(src["url"])
+                if not text:
+                    continue
+            if kind == "parkerarts":
+                pass
+            elif kind in ("civicplus_ics", "tribe_ics"):
                 found = _ics_to_events(text, src)
-            elif kind == "parkerarts":
-                found = _parkerarts_to_events(text, src, fri.year)
             elif kind == "growthzone":
                 found = _growthzone_to_events(text, src, fri.year)
             elif kind == "hrca":
@@ -2000,12 +2061,12 @@ def gather_parker_feed_events(fri, sun):
         except Exception as e:
             print(f"    Parse failed for {src['source']} ({src['kind']}): {e}")
             continue
-        weekend = [e for e in found if e["start"] <= sun and e["end"] >= fri and e["title"]]
+        weekend = [e for e in found if e["start"] <= end and e["end"] >= fri and e["title"]]
         keep = [e for e in weekend if not PARKER_EXCLUDE_PATTERN.search(e["title"])]
         limit = src.get("max", 100)
         if len(keep) > limit:
-            # Spread the cap across the weekend days so Saturday and Sunday
-            # are not crowded out by a long Friday-night list.
+            # Spread the cap across the days so weekdays and Sunday are not
+            # crowded out by a long Friday-night list.
             by_day = {}
             for e in keep:
                 by_day.setdefault(e["start"], []).append(e)
@@ -2015,7 +2076,7 @@ def gather_parker_feed_events(fri, sun):
                     if by_day[day] and len(spread) < limit:
                         spread.append(by_day[day].pop(0))
             keep = spread
-        print(f"    {src['source']:40s} {len(found):3d} events, {len(weekend):2d} this weekend, {len(keep):2d} kept")
+        print(f"    {src['source']:40s} {len(found):3d} events, {len(weekend):3d} in window, {len(keep):3d} kept")
         events.extend(keep)
         time.sleep(0.2)
 
@@ -2034,11 +2095,11 @@ def fetch_parker_events(brave_key, target_date_str, metro_titles=None):
     """Build the Parker & Douglas County weekend guide: direct calendar feeds
     plus a few Brave searches, curated by Claude. target_date_str must be a Friday."""
     fri = datetime.date.fromisoformat(target_date_str)
-    sun = fri + datetime.timedelta(days=2)
+    end = fri + datetime.timedelta(days=PARKER_GUIDE_DAYS)
 
-    print("  Fetching Parker & Douglas County calendar feeds...")
-    feed_events = gather_parker_feed_events(fri, sun)
-    print(f"  {len(feed_events)} weekend events from feeds "
+    print(f"  Fetching Parker & Douglas County calendar feeds ({fri} through {end})...")
+    feed_events = gather_parker_feed_events(fri, end)
+    print(f"  {len(feed_events)} events in window from feeds "
           f"({sum(1 for e in feed_events if e['area'] == 'Parker')} in Parker)")
 
     print("  Searching for Parker & Douglas County weekend roundups...")
@@ -2080,9 +2141,26 @@ def fetch_parker_events(brave_key, target_date_str, metro_titles=None):
 
     events = curate_parker_events(feed_events, unique_results[:fetch_limit], target_date_str, metro_titles)
     if events:
-        events = validate_event_dates(events, fri)
-        events.sort(key=lambda e: 0 if (e.get("area") or "").lower() == "parker" else 1)
+        events = validate_event_window(events, fri, end)
+        def _sort_key(e):
+            parsed = _parse_date_text(e.get("date", ""), fri.year)
+            return (0 if (e.get("area") or "").lower() == "parker" else 1, parsed[0] if parsed else end)
+        events.sort(key=_sort_key)
     return events
+
+
+def validate_event_window(events, start, end):
+    """Keep events whose 'date' text parses to a range overlapping start..end."""
+    kept = []
+    for evt in events:
+        parsed = _parse_date_text(evt.get("date", ""), start.year)
+        if parsed and parsed[0] <= end and parsed[1] >= start:
+            kept.append(evt)
+        else:
+            print(f"  Event date validation: removed '{evt.get('title', '')[:50]}' (date: '{evt.get('date', '')}')")
+    if len(kept) < len(events):
+        print(f"  Validated events: {len(kept)} of {len(events)} passed window check")
+    return kept
 
 
 def curate_parker_events(feed_events, search_results, target_date_str, metro_titles=None):
@@ -2094,14 +2172,14 @@ def curate_parker_events(feed_events, search_results, target_date_str, metro_tit
         return []
 
     fri = datetime.date.fromisoformat(target_date_str)
-    sat = fri + datetime.timedelta(days=1)
-    sun = fri + datetime.timedelta(days=2)
-    fri_str = fri.strftime("%A, %B %d").replace(" 0", " ")
-    sat_str = sat.strftime("%A, %B %d").replace(" 0", " ")
-    sun_str = sun.strftime("%A, %B %d").replace(" 0", " ")
+    end = fri + datetime.timedelta(days=PARKER_GUIDE_DAYS)
+    day_strs = [(fri + datetime.timedelta(days=i)).strftime("%A, %B %d").replace(" 0", " ")
+                for i in range(PARKER_GUIDE_DAYS + 1)]
+    fri_str, sat_str, sun_str, end_str = day_strs[0], day_strs[1], day_strs[2], day_strs[-1]
+    dates_list = "\n".join(f"- {d}" for d in day_strs)
 
     blocks = []
-    for i, e in enumerate(feed_events[:80], 1):
+    for i, e in enumerate(feed_events[:120], 1):
         when = e["start"].strftime("%A, %B %d").replace(" 0", " ")
         if e["end"] != e["start"]:
             when += " - " + e["end"].strftime("%A, %B %d").replace(" 0", " ")
@@ -2122,19 +2200,17 @@ def curate_parker_events(feed_events, search_results, target_date_str, metro_tit
         metro_note = ("\n- Do not repeat these events, which already appear in the metro weekend guide: "
                       + "; ".join(t for t in metro_titles if t))
 
-    user_prompt = f"""This weekend's dates:
-- {fri_str} (Friday)
-- {sat_str} (Saturday)
-- {sun_str} (Sunday)
+    user_prompt = f"""The week ahead ({fri_str} through {end_str}):
+{dates_list}
 
-You are building the Parker & Douglas County Weekend Guide. The readers live in Parker, Colorado. Pick the best 6-10 things to do THIS weekend.
+You are building the Parker & Douglas County Week Ahead guide. The readers live in Parker, Colorado. Pick the best 10-16 things to do during these eight days: this weekend plus the weekdays that follow.
 
 Priority order:
-1. Events in Parker (aim for 4-6 when enough good ones exist)
+1. Events in Parker (aim for 6-10 when enough good ones exist). Parker Arts shows at the PACE Center and The Schoolhouse Theater are must-includes whenever they fall inside the window.
 2. Events elsewhere in Douglas County: Castle Rock, Highlands Ranch, Lone Tree, Castle Pines, Larkspur, Sedalia, Franktown, Roxborough
 
 Rules:
-- ONLY include events happening on one of the three dates above. An ongoing exhibit counts only if it is open on those dates, and include at most one.
+- ONLY include events happening on the dates listed above. Cover the whole week, not just the weekend: weekday evening concerts, talks, markets, and family programs belong here too. An ongoing exhibit counts only if it is open during the window, and include at most one.
 - Skip government meetings, hearings, commissions, public notices, business networking, ribbon cuttings, fitness classes, certification courses, and anything that requires registering weeks in advance.
 - Prefer festivals, farmers markets, concerts, theater and comedy, family and kids events, outdoor and nature programs, library and arts events, community celebrations, races, and sports.
 - This guide is for Parker, COLORADO (Douglas County). There are other towns named Parker in Kansas, Arizona, South Dakota, and Texas; never include their events. If a SEARCH entry does not clearly place an event in Colorado, skip it.
@@ -2148,13 +2224,13 @@ Rules:
 For each event, produce a JSON object with:
 - "title": event name
 - "description": 1-2 sentences about what it is
-- "date": "{fri_str}", "{sat_str}", "{sun_str}", or a range like "{sat_str}-{sun_str}"
+- "date": one date from the list above, like "{sat_str}", or a range like "{sat_str}-{sun_str}"
 - "time": time if known, otherwise "See event page for times"
 - "location": venue and town
 - "url": link to event info
 - "area": "Parker" or "Douglas County"
 
-Order the array with all Parker events first, then Douglas County. Return ONLY a JSON array. If you cannot find at least 3 real events for this weekend, return an empty array []."""
+Order the array with all Parker events first (by date), then Douglas County (by date). Return ONLY a JSON array. If you cannot find at least 3 real events for this week, return an empty array []."""
 
     client = anthropic.Anthropic()
     try:
@@ -2500,8 +2576,16 @@ def _email_events_block(heading, events):
     """Render one weekend-guide section (heading row + event rows) for the email."""
     if not events:
         return ""
+    area_labels = {"parker": "In Parker", "douglas county": "Around Douglas County"}
     rows = ""
+    last_area = None
     for evt in events:
+        area = (evt.get("area") or "").lower()
+        if area in area_labels and area != last_area:
+            rows += f'''
+        <tr><td style="padding: 14px 0 0 0; font-family: Georgia, 'Times New Roman', serif; font-size: 11px; font-weight: 700; letter-spacing: 1.5px; color: #8b1a1a; text-transform: uppercase;">{area_labels[area]}</td></tr>
+'''
+            last_area = area
         meta_parts = []
         if evt.get("date"):
             meta_parts.append(evt["date"])
@@ -2670,7 +2754,7 @@ def build_email_html(stories_json, date_str, date_formatted, joke=None, weather=
             story_index += 1
 
     # Weekend guides (Friday only): Parker & Douglas County first, then metro
-    parker_html = _email_events_block("PARKER &amp; DOUGLAS COUNTY WEEKEND GUIDE", parker_events)
+    parker_html = _email_events_block("PARKER &amp; DOUGLAS COUNTY WEEK AHEAD", parker_events)
     events_html = _email_events_block("YOUR WEEKEND ACTIVITY GUIDE", weekend_events)
 
     html = f'''<!DOCTYPE html>
@@ -2962,7 +3046,7 @@ def main():
     # Step 4d-2: Parker & Douglas County weekend guide (Friday only)
     parker_events = None
     if target_date_obj.weekday() == 4:  # Friday
-        print("\n[Step 4d-2] Building Parker & Douglas County weekend guide...")
+        print("\n[Step 4d-2] Building Parker & Douglas County week-ahead guide...")
         metro_titles = [e.get("title", "") for e in (weekend_events or [])]
         parker_events = fetch_parker_events(brave_key, target_date_str, metro_titles=metro_titles)
         if parker_events:

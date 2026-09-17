@@ -560,6 +560,15 @@
             display: block;
         }
 
+        .event-area-label {
+            font-size: 0.72em;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #8b1a1a;
+            margin: 14px 0 2px 0;
+        }
+
         .event-meta {
             font-size: 0.85em;
             color: #888;
@@ -1251,8 +1260,19 @@
                 var section = document.createElement('div');
                 section.className = 'events-section';
 
+                var areaLabels = { 'parker': 'In Parker', 'douglas county': 'Around Douglas County' };
+                var lastArea = null;
+
                 for (var i = 0; i < events.length; i++) {
                     var evt = events[i];
+                    var area = (evt.area || '').toLowerCase();
+                    if (areaLabels[area] && area !== lastArea) {
+                        var areaEl = document.createElement('div');
+                        areaEl.className = 'event-area-label';
+                        areaEl.textContent = areaLabels[area];
+                        section.appendChild(areaEl);
+                        lastArea = area;
+                    }
                     var item = document.createElement('div');
                     item.className = 'event-item';
 
@@ -1337,8 +1357,8 @@
                     content.appendChild(topStoryEl);
                 }
 
-                // Parker & Douglas County Weekend Guide (Friday only)
-                var parkerEl = renderEventsSection(data.parkerEvents, 'Parker & Douglas County Weekend Guide', '\uD83D\uDCCD');
+                // Parker & Douglas County Week Ahead (Friday only, Friday through next Friday)
+                var parkerEl = renderEventsSection(data.parkerEvents, 'Parker & Douglas County Week Ahead', '\uD83D\uDCCD');
                 if (parkerEl) {
                     content.appendChild(parkerEl);
                 }
