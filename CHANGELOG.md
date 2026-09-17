@@ -4,6 +4,65 @@ All notable changes to the Denver Digest (303 News) project will be documented i
 
 Versioning follows the date format: `vYYYY.M.D`
 
+## v2026.9.17
+
+### Added: Parker & Douglas County Weekend Guide (Fridays)
+
+A second weekend section, separate from the metro Weekend Activity Guide,
+focused on Parker first and then the rest of Douglas County. It renders
+above the metro guide on the site and in the email, under the label
+"Parker & Douglas County Weekend Guide". Stored as `parkerEvents` in the
+daily JSON.
+
+**Sources (fetched directly, no Brave cost):**
+
+- Town of Parker CivicPlus iCal feeds (community events, signature events)
+- Parker Parks & Recreation CivicPlus iCal feed
+- Parker Arts / PACE Center events page
+- Parker Chamber of Commerce events page (GrowthZone)
+- Douglas County events iCal feed (The Events Calendar)
+- Town of Castle Rock CivicPlus iCal feeds (events, parks and recreation)
+- Highlands Ranch Community Association events page
+- Lone Tree Arts Center events page
+- Eventbrite "this weekend" pages for Parker, Castle Rock, and Highlands
+  Ranch, read from the embedded JSON-LD and kept only when the venue is
+  in a Douglas County town
+
+Plus six Brave web queries for editorial roundups (Parker Chronicle,
+Macaroni KID, etc.).
+
+**Pipeline:** every feed is parsed into a normalized event, filtered to the
+Friday-Sunday window, stripped of meetings, hearings, networking, and
+canceled items, and deduplicated. The result (plus up to 8 fetched search
+results and the metro guide's titles, to avoid repeats) goes to one Claude
+call that returns 6-10 picks ordered Parker first. Dates are validated with
+the same check the metro guide uses.
+
+**Script changes:**
+
+- New `--parker-test` flag: builds only the Parker guide for the next
+  Friday, prints it, writes nothing, sends nothing. Exposed in the workflow
+  as the `parker_test` input for dry runs from the Actions tab.
+- `MAX_BRAVE_QUERIES_PER_RUN` 55 -> 65 and `MAX_ANTHROPIC_CALLS_PER_RUN`
+  6 -> 8 so a Friday with fallback searches still fits (about 34 Brave
+  queries on a normal day, about 52 on Fridays)
+- Email weekend blocks refactored into `_email_events_block()`; site
+  renderer generalized to `renderEventsSection(events, label, emoji)`
+
+**Notes for future maintenance:**
+
+- parkeronline.org now redirects to parkerco.gov; the CivicPlus iCal URLs
+  use `catID` 22 and 28 (Parker), 20 (Parker Rec), 18 and 111 (Castle Rock)
+- Douglas County's REST endpoint ignores date parameters (cached), so the
+  iCal export is used instead
+- Colorado Community Media (Parker Chronicle) returns HTTP 429 to direct
+  fetches; it is reached only through Brave results
+- Eventbrite answers HTTP 405 to GitHub Actions runner IPs (works from a
+  home connection). The source stays configured and is skipped cleanly
+  when blocked; it contributed nothing in the two dry runs on 2026-09-17
+- Brave returns results for Parker, Kansas / Arizona / South Dakota; those
+  are dropped by `OTHER_PARKER_PATTERN` before curation
+
 ## v2026.7.4
 
 ### Fixed: Site served stale data when the GitHub Pages deploy failed silently
