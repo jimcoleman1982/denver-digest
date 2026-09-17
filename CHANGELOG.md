@@ -6,19 +6,28 @@ Versioning follows the date format: `vYYYY.M.D`
 
 ## v2026.9.17
 
-### Added: Parker & Douglas County Weekend Guide (Fridays)
+### Added: Parker & Douglas County Week Ahead (Fridays)
 
-A second weekend section, separate from the metro Weekend Activity Guide,
-focused on Parker first and then the rest of Douglas County. It renders
-above the metro guide on the site and in the email, under the label
-"Parker & Douglas County Weekend Guide". Stored as `parkerEvents` in the
-daily JSON.
+A second section, separate from the metro Weekend Activity Guide, focused
+on Parker first and then the rest of Douglas County. It covers one week
+at a time: the Friday it runs through the following Friday (eight days),
+so the weekend plus the weekdays after it. It renders above the metro
+guide on the site and in the email under the label "Parker & Douglas
+County Week Ahead", with "In Parker" and "Around Douglas County" subheads.
+Stored as `parkerEvents` in the daily JSON.
+
+Parker Arts shows at the PACE Center and The Schoolhouse Theater are
+treated as must-includes. The Parker Arts listing paginates and never
+names the venue, so the parser walks up to three pages and reads each
+in-window event page's structured data for the real venue and ticket
+price.
 
 **Sources (fetched directly, no Brave cost):**
 
 - Town of Parker CivicPlus iCal feeds (community events, signature events)
 - Parker Parks & Recreation CivicPlus iCal feed
-- Parker Arts / PACE Center events page
+- Parker Arts / PACE Center events listing (paginated) plus each event
+  page's JSON-LD for venue and price
 - Parker Chamber of Commerce events page (GrowthZone)
 - Douglas County events iCal feed (The Events Calendar)
 - Town of Castle Rock CivicPlus iCal feeds (events, parks and recreation)
@@ -26,8 +35,8 @@ daily JSON.
 - Lone Tree Arts Center events page
 - Live Well Douglas County iCal feed (county community events with full
   addresses; The Events Calendar)
-- DougCo Social events page (county-wide aggregator, about 100 weekend
-  listings; capped at 40 per run, spread across Friday, Saturday, Sunday)
+- DougCo Social events page (county-wide aggregator, about 200 listings
+  per week; capped at 56 per run, spread evenly across the eight days)
 - Patch Parker calendar (events read from the page's `__NEXT_DATA__` JSON)
 - Roxborough State Park and Castlewood Canyon State Park program cards
 - Eventbrite "this weekend" pages for Parker, Castle Rock, and Highlands
@@ -38,22 +47,28 @@ Plus six Brave web queries for editorial roundups (Parker Chronicle,
 Macaroni KID, etc.).
 
 **Pipeline:** every feed is parsed into a normalized event, filtered to the
-Friday-Sunday window, stripped of meetings, hearings, networking, and
-canceled items, and deduplicated. The result (plus up to 8 fetched search
-results and the metro guide's titles, to avoid repeats) goes to one Claude
-call that returns 6-10 picks ordered Parker first. Dates are validated with
-the same check the metro guide uses.
+Friday-to-next-Friday window, stripped of meetings, hearings, networking,
+and canceled items, and deduplicated. The result (plus up to 8 fetched
+search results and the metro guide's titles, to avoid repeats) goes to one
+Claude call that returns 10-16 picks, Parker first, each area in date
+order. Dates are validated against the window and events are sorted by
+area, then date.
 
 **Script changes:**
 
 - New `--parker-test` flag: builds only the Parker guide for the next
-  Friday, prints it, writes nothing, sends nothing. Exposed in the workflow
+  Friday (and the week after it), prints it, writes nothing, sends nothing. Exposed in the workflow
   as the `parker_test` input for dry runs from the Actions tab.
 - `MAX_BRAVE_QUERIES_PER_RUN` 55 -> 65 and `MAX_ANTHROPIC_CALLS_PER_RUN`
   6 -> 8 so a Friday with fallback searches still fits (about 34 Brave
   queries on a normal day, about 52 on Fridays)
 - Email weekend blocks refactored into `_email_events_block()`; site
   renderer generalized to `renderEventsSection(events, label, emoji)`
+- Feed fetches retry once after a pause on timeouts (the Town of Parker
+  and Parker Rec calendars timed out from a runner in one dry run)
+- Curation call gets 6000 output tokens for the week-long list, and a
+  reply cut off at the limit is salvaged down to its complete events
+  instead of discarded
 
 **Notes for future maintenance:**
 
