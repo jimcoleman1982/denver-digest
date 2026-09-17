@@ -1236,15 +1236,15 @@
                 return div;
             }
 
-            // --- Weekend Events ---
-            function renderWeekendEvents(events) {
+            // --- Weekend Events (metro guide and Parker & Douglas County guide) ---
+            function renderEventsSection(events, label, emoji) {
                 if (!events || events.length === 0) return null;
                 var frag = document.createDocumentFragment();
 
                 var divider = document.createElement('div');
                 divider.className = 'section-divider';
                 divider.innerHTML = '<hr class="rule">' +
-                    '<div class="section-label"><span class="section-emoji">\uD83C\uDFAD</span> Weekend Activity Guide</div>' +
+                    '<div class="section-label"><span class="section-emoji">' + emoji + '</span> ' + escapeHTML(label) + '</div>' +
                     '<hr class="rule">';
                 frag.appendChild(divider);
 
@@ -1337,8 +1337,14 @@
                     content.appendChild(topStoryEl);
                 }
 
-                // Weekend Events
-                var eventsEl = renderWeekendEvents(data.weekendEvents);
+                // Parker & Douglas County Weekend Guide (Friday only)
+                var parkerEl = renderEventsSection(data.parkerEvents, 'Parker & Douglas County Weekend Guide', '\uD83D\uDCCD');
+                if (parkerEl) {
+                    content.appendChild(parkerEl);
+                }
+
+                // Metro Weekend Activity Guide (Friday only)
+                var eventsEl = renderEventsSection(data.weekendEvents, 'Weekend Activity Guide', '\uD83C\uDFAD');
                 if (eventsEl) {
                     content.appendChild(eventsEl);
                 }
