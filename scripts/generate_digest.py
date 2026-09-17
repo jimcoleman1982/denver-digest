@@ -195,6 +195,12 @@ FEED_HEADERS = {
 #   lonetreearts  -- lonetreeartscenter.org/events HTML cards
 #   eventbrite    -- Eventbrite city page; events come from the embedded JSON-LD
 #                    and are kept only if the venue is in Douglas County.
+#                    (Eventbrite answers HTTP 405 to GitHub runner IPs; skipped cleanly.)
+#   dougcosocial  -- dougcosocial.com/events HTML cards (county-wide aggregator)
+#   patch         -- Patch calendar page; events are in the __NEXT_DATA__ JSON
+#   cpw_park      -- Colorado Parks & Wildlife park page "Upcoming Events" cards
+# area "auto" means: "Parker" if the venue is in Parker, else "Douglas County".
+# "max" caps how many weekend events one source may contribute.
 PARKER_FEED_SOURCES = [
     # Parker
     {"source": "Town of Parker", "kind": "civicplus_ics", "area": "Parker",
@@ -210,6 +216,8 @@ PARKER_FEED_SOURCES = [
      "url": "https://parkerarts.org/events/"},
     {"source": "Parker Chamber of Commerce", "kind": "growthzone", "area": "Parker",
      "url": "https://business.parkerchamber.com/events/"},
+    {"source": "Patch Parker", "kind": "patch", "area": "auto",
+     "url": "https://patch.com/colorado/parker-co/calendar"},
     {"source": "Eventbrite", "kind": "eventbrite", "area": "auto",
      "url": "https://www.eventbrite.com/d/co--parker/events--this-weekend/"},
     {"source": "Eventbrite", "kind": "eventbrite", "area": "auto",
@@ -217,6 +225,16 @@ PARKER_FEED_SOURCES = [
     # Douglas County
     {"source": "Douglas County", "kind": "tribe_ics", "area": "Douglas County",
      "url": "https://www.douglasco.gov/events/?ical=1"},
+    {"source": "Live Well Douglas County", "kind": "tribe_ics", "area": "auto",
+     "url": "https://livewelldougco.com/events/?ical=1"},
+    {"source": "DougCo Social", "kind": "dougcosocial", "area": "auto", "max": 40,
+     "url": "https://dougcosocial.com/events"},
+    {"source": "Roxborough State Park", "kind": "cpw_park", "area": "Douglas County",
+     "url": "https://cpw.state.co.us/state-parks/roxborough-state-park",
+     "location": "Roxborough State Park, Roxborough"},
+    {"source": "Castlewood Canyon State Park", "kind": "cpw_park", "area": "Douglas County",
+     "url": "https://cpw.state.co.us/state-parks/castlewood-canyon-state-park",
+     "location": "Castlewood Canyon State Park, Franktown"},
     {"source": "Town of Castle Rock", "kind": "civicplus_ics", "area": "Douglas County",
      "url": "https://www.crgov.com/common/modules/iCalendar/iCalendar.aspx?catID=18&feed=calendar",
      "link_base": "https://www.crgov.com/Calendar.aspx?EID="},
@@ -1609,14 +1627,21 @@ def _parse_date_text(text, default_year):
 
 
 def _parse_time_text(text):
-    """Pull '7:30 p.m.' or '9:00 AM - 12:00 PM' out of prose. Returns '' if none."""
-    m = _TIME_TEXT_RE.search(text or "")
-    if not m:
-        return ""
+    """Pull '7:30 p.m.' or '9:00 AM - 12:00 PM' out of prose. Returns '' if none.
+    With several times in the text, returns 'first - last'."""
     def norm(t):
         t = t.replace(".", "").upper().replace(" ", "")
         return t[:-2] + " " + t[-2:]
-    return norm(m.group(1)) + (" - " + norm(m.group(2)) if m.group(2) else "")
+    times = []
+    for m in _TIME_TEXT_RE.finditer(text or ""):
+        times.append(norm(m.group(1)))
+        if m.group(2):
+            times.append(norm(m.group(2)))
+    if not times:
+        return ""
+    if len(times) > 1 and times[-1] != times[0]:
+        return f"{times[0]} - {times[-1]}"
+    return times[0]
 
 
 def _fetch_feed(url):
@@ -1668,6 +1693,13 @@ def _ics_time(val):
     return f"{h % 12 or 12}:{mi:02d} {'AM' if h < 12 else 'PM'}"
 
 
+def _resolve_area(src, location):
+    """Source area, or for 'auto' sources: Parker if the venue is in Parker."""
+    if src.get("area") != "auto":
+        return src["area"]
+    return "Parker" if "parker" in (location or "").lower() else "Douglas County"
+
+
 def _ics_to_events(text, src):
     """Convert an iCal feed into normalized event dicts."""
     out = []
@@ -1689,7 +1721,8 @@ def _ics_to_events(text, src):
             "start": start, "end": end, "time": time_str,
             "location": _clean_text(ev.get("LOCATION", ""), 120),
             "description": _clean_text(ev.get("DESCRIPTION", ""), 300),
-            "url": url, "source": src["source"], "area": src["area"],
+            "url": url, "source": src["source"],
+            "area": _resolve_area(src, ev.get("LOCATION", "")),
         })
     return out
 
@@ -1827,6 +1860,113 @@ def _eventbrite_to_events(html, src):
     return out
 
 
+def _dougcosocial_to_events(html, src):
+    """dougcosocial.com/events: one <article> per event with an ISO <time>,
+    an <h3> title inside the event link, and the town in the link path."""
+    soup = BeautifulSoup(html, "html.parser")
+    place_re = re.compile(r"([^,|]{3,80}?)\s*,\s*(" + "|".join(re.escape(p) for p in DOUGLAS_COUNTY_PLACES) + r")\b", re.I)
+    out = []
+    for card in soup.select("article"):
+        tm = card.select_one("time[datetime]")
+        a = card.select_one("a[href]")
+        h = card.select_one("h3")
+        if not (tm and a and h):
+            continue
+        iso = tm.get("datetime", "")
+        start = _ics_date(iso[:10].replace("-", ""))
+        if not start:
+            continue
+        href = a.get("href", "")
+        town = href.split("/events/")[1].split("/")[0].replace("-", " ") if "/events/" in href else ""
+        if town and town not in DOUGLAS_COUNTY_PLACES:
+            continue
+        body = card.select_one("div.p-4") or card
+        text = body.get_text(" ", strip=True)
+        loc_div = body.select_one("div.items-start")
+        if loc_div:
+            location = re.sub(r"\s*,\s*", ", ", loc_div.get_text(" ", strip=True))
+        else:
+            m = place_re.search(text)
+            location = f"{m.group(1)}, {m.group(2)}" if m else town.title()
+        location = _clean_text(location, 120)
+        time_str = _ics_time(iso.replace("-", "").replace(":", "")) if "T" in iso else _parse_time_text(text)
+        p = body.select_one("p")
+        tags = ", ".join(t.get_text(" ", strip=True) for t in body.select("div.mt-3 span"))
+        desc = (p.get_text(" ", strip=True) if p else "") + (f" [{tags}]" if tags else "")
+        out.append({
+            "title": _clean_text(h.get_text(" ", strip=True)),
+            "start": start, "end": start, "time": time_str,
+            "location": location,
+            "description": _clean_text(desc, 300),
+            "url": href if href.startswith("http") else "https://dougcosocial.com" + href,
+            "source": src["source"],
+            "area": "Parker" if town == "parker" or "parker" in location.lower() else "Douglas County",
+        })
+    return out
+
+
+def _patch_to_events(html, src):
+    """Patch calendar pages ship their events in the __NEXT_DATA__ JSON."""
+    m = re.search(r'<script id="__NEXT_DATA__" type="application/json">(.*?)</script>', html, re.S)
+    if not m:
+        return []
+    try:
+        data = json.loads(m.group(1))
+        all_events = data["props"]["pageProps"]["mainContent"]["allEvents"]
+    except (json.JSONDecodeError, KeyError, TypeError):
+        return []
+    out = []
+    groups = all_events.values() if isinstance(all_events, dict) else all_events
+    for group in groups:
+        for ev in (group if isinstance(group, list) else [group]):
+            if not isinstance(ev, dict):
+                continue
+            start = _ics_date((ev.get("dateForGroupBy") or "").replace("-", ""))
+            addr = ev.get("address") or {}
+            city = (addr.get("city") or "").strip()
+            if not start or city.lower() not in DOUGLAS_COUNTY_PLACES:
+                continue
+            location = addr.get("patchAmAddressStr") or f"{addr.get('name', '')}, {city}"
+            out.append({
+                "title": _clean_text(ev.get("title", "")),
+                "start": start, "end": start,
+                "time": _parse_time_text(ev.get("displayTime", "")),
+                "location": _clean_text(location, 120),
+                "description": "",
+                "url": ev.get("externalUrl") or src["url"],
+                "source": src["source"], "area": _resolve_area(src, city),
+            })
+    return out
+
+
+def _cpw_park_to_events(html, src, year):
+    """Colorado Parks & Wildlife park pages list upcoming programs as cards:
+    <h3>title</h3><p>Sep 19, 2026 · 9:00am - Sep 19, 2026 · 1:00pm</p><p>park</p>..."""
+    soup = BeautifulSoup(html, "html.parser")
+    out = []
+    for card in soup.select(".card-content"):
+        h = card.select_one("h3")
+        ps = card.select("p")
+        if not h or not ps:
+            continue
+        when = ps[0].get_text(" ", strip=True)
+        dates = _parse_date_text(when, year)
+        if not dates:
+            continue
+        link = card.find_parent("a") or card.select_one("a[href]")
+        href = link.get("href", "") if link else ""
+        desc = " ".join(p.get_text(" ", strip=True) for p in ps[2:]) if len(ps) > 2 else ""
+        out.append({
+            "title": _clean_text(h.get_text(" ", strip=True)),
+            "start": dates[0], "end": dates[1], "time": _parse_time_text(when),
+            "location": src.get("location", "Douglas County"),
+            "description": _clean_text(desc, 300),
+            "url": href if href.startswith("http") else ("https://cpw.state.co.us" + href if href else src["url"]),
+            "source": src["source"], "area": src["area"],
+        })
+    return out
+
+
 def gather_parker_feed_events(fri, sun):
     """Fetch every configured Parker/Douglas County source and return the
     normalized events that fall on the Fri-Sun weekend window."""
@@ -1849,6 +1989,12 @@ def gather_parker_feed_events(fri, sun):
                 found = _lonetreearts_to_events(text, src, fri.year)
             elif kind == "eventbrite":
                 found = _eventbrite_to_events(text, src)
+            elif kind == "dougcosocial":
+                found = _dougcosocial_to_events(text, src)
+            elif kind == "patch":
+                found = _patch_to_events(text, src)
+            elif kind == "cpw_park":
+                found = _cpw_park_to_events(text, src, fri.year)
             else:
                 found = []
         except Exception as e:
@@ -1856,6 +2002,19 @@ def gather_parker_feed_events(fri, sun):
             continue
         weekend = [e for e in found if e["start"] <= sun and e["end"] >= fri and e["title"]]
         keep = [e for e in weekend if not PARKER_EXCLUDE_PATTERN.search(e["title"])]
+        limit = src.get("max", 100)
+        if len(keep) > limit:
+            # Spread the cap across the weekend days so Saturday and Sunday
+            # are not crowded out by a long Friday-night list.
+            by_day = {}
+            for e in keep:
+                by_day.setdefault(e["start"], []).append(e)
+            spread = []
+            while len(spread) < limit and any(by_day.values()):
+                for day in sorted(by_day):
+                    if by_day[day] and len(spread) < limit:
+                        spread.append(by_day[day].pop(0))
+            keep = spread
         print(f"    {src['source']:40s} {len(found):3d} events, {len(weekend):2d} this weekend, {len(keep):2d} kept")
         events.extend(keep)
         time.sleep(0.2)
@@ -1942,7 +2101,7 @@ def curate_parker_events(feed_events, search_results, target_date_str, metro_tit
     sun_str = sun.strftime("%A, %B %d").replace(" 0", " ")
 
     blocks = []
-    for i, e in enumerate(feed_events[:60], 1):
+    for i, e in enumerate(feed_events[:80], 1):
         when = e["start"].strftime("%A, %B %d").replace(" 0", " ")
         if e["end"] != e["start"]:
             when += " - " + e["end"].strftime("%A, %B %d").replace(" 0", " ")
