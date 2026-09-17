@@ -24,6 +24,12 @@ daily JSON.
 - Town of Castle Rock CivicPlus iCal feeds (events, parks and recreation)
 - Highlands Ranch Community Association events page
 - Lone Tree Arts Center events page
+- Live Well Douglas County iCal feed (county community events with full
+  addresses; The Events Calendar)
+- DougCo Social events page (county-wide aggregator, about 100 weekend
+  listings; capped at 40 per run, spread across Friday, Saturday, Sunday)
+- Patch Parker calendar (events read from the page's `__NEXT_DATA__` JSON)
+- Roxborough State Park and Castlewood Canyon State Park program cards
 - Eventbrite "this weekend" pages for Parker, Castle Rock, and Highlands
   Ranch, read from the embedded JSON-LD and kept only when the venue is
   in a Douglas County town
@@ -62,6 +68,10 @@ the same check the metro guide uses.
   when blocked; it contributed nothing in the two dry runs on 2026-09-17
 - Brave returns results for Parker, Kansas / Arizona / South Dakota; those
   are dropped by `OTHER_PARKER_PATTERN` before curation
+- Checked and rejected: Macaroni KID (one combined Highlands Ranch edition,
+  JS-only events, no local roundup), Douglas County Libraries (Communico,
+  JS-only), Colorado Community Media RSS (HTTP 429), Southlands (stale),
+  Visit Castle Rock (AJAX, chamber-only), Downtown Parker (no dated events)
 
 ## v2026.7.4
 
