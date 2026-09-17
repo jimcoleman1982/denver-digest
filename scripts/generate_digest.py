@@ -1650,17 +1650,25 @@ def _parse_time_text(text):
     return times[0]
 
 
-def _fetch_feed(url):
-    """GET a calendar feed or events page with a browser UA. Returns text or None."""
-    try:
-        resp = requests.get(url, headers=FEED_HEADERS, timeout=20)
-        if resp.status_code != 200:
-            print(f"    HTTP {resp.status_code} from {url}")
+def _fetch_feed(url, attempts=2):
+    """GET a calendar feed or events page with a browser UA. Returns text or
+    None. Retries once after a pause on timeouts and connection errors, which
+    the CivicPlus town calendars have thrown intermittently from GitHub runners."""
+    for attempt in range(1, attempts + 1):
+        try:
+            resp = requests.get(url, headers=FEED_HEADERS, timeout=20)
+            if resp.status_code != 200:
+                print(f"    HTTP {resp.status_code} from {url}")
+                return None
+            return resp.text
+        except (requests.ConnectionError, requests.Timeout) as e:
+            print(f"    Attempt {attempt} failed for {url}: {type(e).__name__}")
+            if attempt < attempts:
+                time.sleep(5)
+        except Exception as e:
+            print(f"    Failed to fetch {url}: {e}")
             return None
-        return resp.text
-    except Exception as e:
-        print(f"    Failed to fetch {url}: {e}")
-        return None
+    return None
 
 
 def _parse_ics_events(text):
@@ -2236,19 +2244,24 @@ Order the array with all Parker events first (by date), then Douglas County (by 
     try:
         response = client.messages.create(
             model=ANTHROPIC_MODEL,
-            max_tokens=3000,
+            max_tokens=6000,
             system=PARKER_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": user_prompt}],
         )
         raw_text = response.content[0].text
         usage = response.usage
         cost = (usage.input_tokens * 3 + usage.output_tokens * 15) / 1_000_000
-        print(f"  Parker events curation: {usage.input_tokens + usage.output_tokens} tokens, ${cost:.4f}")
+        print(f"  Parker events curation: {usage.input_tokens + usage.output_tokens} tokens, ${cost:.4f}"
+              f" (stop: {response.stop_reason})")
         parsed = _try_parse_json(raw_text)
-        if isinstance(parsed, list):
-            return [e for e in parsed if isinstance(e, dict) and e.get("title")]
-        print("  Failed to parse Parker events JSON")
-        return []
+        if not isinstance(parsed, list):
+            parsed = _salvage_json_objects(raw_text)
+            if parsed:
+                print(f"  Parker events JSON was cut off; salvaged {len(parsed)} complete events")
+            else:
+                print("  Failed to parse Parker events JSON")
+                return []
+        return [e for e in parsed if isinstance(e, dict) and e.get("title")]
     except Exception as e:
         print(f"  Parker events curation failed: {e}")
         return []
@@ -2397,6 +2410,29 @@ Return ONLY the JSON array, no other text."""
 
 
 SYSTEM_PROMPT = """You are the editor-in-chief of 303 News, a daily digest for the Denver, Colorado metro area. You select and summarize the most important local stories each day. Write factual, detailed summaries in clean newspaper style. No editorializing, no emojis. Categories: crime, business, politics, sports, other. IMPORTANT: Any story about a sports team, athlete, game, trade, contract, roster move, or coaching decision is ALWAYS category "sports" -- never "business", even if it involves money."""
+
+
+def _salvage_json_objects(text):
+    """Recover the complete top-level objects from a JSON array that was cut
+    off mid-way (e.g. the response hit max_tokens). Returns a list."""
+    start = text.find("[")
+    if start == -1:
+        return []
+    decoder = json.JSONDecoder()
+    objects = []
+    i = start + 1
+    while True:
+        j = text.find("{", i)
+        if j == -1:
+            break
+        try:
+            obj, end = decoder.raw_decode(text, j)
+        except json.JSONDecodeError:
+            break
+        if isinstance(obj, dict):
+            objects.append(obj)
+        i = end
+    return objects
 
 
 def _try_parse_json(text):
