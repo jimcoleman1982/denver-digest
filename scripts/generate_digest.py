@@ -2482,7 +2482,7 @@ Produce a JSON array of {num_to_produce} stories (or as many as are genuinely re
   - "politics": Government, legislation, elections, policy.
   - "other": Community events, weather impacts, health, education, transportation, anything that doesn't fit above.
 - "headline": clear, factual headline
-- "summary": 3-4 paragraphs, each 2-4 sentences. Use \\n\\n between paragraphs. Cover what happened, who is involved, where, why it matters.
+- "summary": 3-4 paragraphs, each 2-4 sentences, about 160-220 words in total. Never fewer than 3 paragraphs. Use \\n\\n between paragraphs. Cover what happened, who is involved, where, why it matters.
 - "source": publication name
 - "url": direct link to the original article
 
