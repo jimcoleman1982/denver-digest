@@ -28,8 +28,8 @@ DENVER_TZ = ZoneInfo("America/Denver")
 MAX_CANDIDATES = 25  # gather this many before curation
 MAX_ARTICLES = 12    # final output after Claude curation
 ARTICLE_TEXT_LIMIT = 3000  # chars per article
-ANTHROPIC_MAX_TOKENS = 10000  # hard cap on output tokens
-ANTHROPIC_MODEL = "claude-sonnet-4-6"
+ANTHROPIC_MAX_TOKENS = 16000  # hard cap on output tokens (thinking + reply; Sonnet 5.5 tokenizer counts ~30% more)
+ANTHROPIC_MODEL = "claude-sonnet-5-5"
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "site", "data")
 SITE_URL = "https://303news.org"
 
@@ -42,6 +42,92 @@ CATEGORY_LABELS = {
     "crime": "CRIME & PUBLIC SAFETY",
     "sports": "DENVER SPORTS",
 }
+
+# --- Claude API calls (Sonnet 5.5) ---
+# Every Claude request goes through claude_message() so the model settings,
+# refusal handling, text extraction, and cost accounting live in one place.
+#
+# Sonnet 5.5 notes (migrated from Sonnet 4.6 on 2026-10-10):
+# - Adaptive thinking is on by default. Effort "low" is Anthropic's starting
+#   point for content generation, classification, and extraction: the model
+#   skips thinking on simple requests and keeps it short otherwise.
+# - Responses can begin with a `thinking` block, so text is read by block
+#   type, never as content[0].
+# - The tokenizer counts the same text as ~30% more tokens than Sonnet 4.6,
+#   and thinking counts toward max_tokens, so output limits were raised.
+# - Safety classifiers can decline (stop_reason "refusal"). Server-side
+#   fallback ("default") retries cyber / frontier_llm declines on Claude's
+#   side; any other decline is retried here on ANTHROPIC_FALLBACK_MODEL so a
+#   hard news story never blanks a section.
+ANTHROPIC_EFFORT = "low"
+ANTHROPIC_FALLBACK_MODEL = "claude-sonnet-4-6"
+SERVER_FALLBACK_BETA = "server-side-fallback-2026-07-01"
+
+# $ per million tokens (input, output), from platform.claude.com pricing
+MODEL_PRICES = {
+    "claude-sonnet-5-5": (2.0, 10.0),
+    "claude-sonnet-5": (2.0, 10.0),
+    "claude-sonnet-4-6": (3.0, 15.0),
+    "claude-opus-4-8": (5.0, 25.0),
+    "claude-haiku-4-5": (1.0, 5.0),
+}
+anthropic_cost_total = 0.0
+
+
+def _price_for(model):
+    model = model or ANTHROPIC_MODEL
+    for key, price in MODEL_PRICES.items():
+        if model.startswith(key):
+            return price
+    return MODEL_PRICES["claude-sonnet-5-5"]
+
+
+def _response_text(response):
+    """Join the text blocks of a response, skipping thinking/fallback blocks."""
+    return "".join(getattr(b, "text", "") for b in response.content
+                   if getattr(b, "type", "") == "text")
+
+
+def claude_message(client, messages, max_tokens, label, system=None):
+    """Make one Claude request. Returns (text, response, cost_usd).
+
+    Raises on API errors after its own recovery attempts, so callers keep
+    their existing retry and failure handling."""
+    global anthropic_cost_total
+    base = {"max_tokens": max_tokens, "messages": messages}
+    if system:
+        base["system"] = system
+    try:
+        response = client.beta.messages.create(
+            model=ANTHROPIC_MODEL,
+            output_config={"effort": ANTHROPIC_EFFORT},
+            betas=[SERVER_FALLBACK_BETA],
+            fallbacks="default",
+            **base,
+        )
+    except anthropic.BadRequestError as e:
+        # A 400 here would mean the model or one of its newer parameters was
+        # rejected. Keep the site running on the previous model and say so.
+        print(f"  {label}: {ANTHROPIC_MODEL} request rejected ({e}). "
+              f"Retrying on {ANTHROPIC_FALLBACK_MODEL}.")
+        response = client.messages.create(model=ANTHROPIC_FALLBACK_MODEL, **base)
+
+    if response.stop_reason == "refusal":
+        details = getattr(response, "stop_details", None)
+        category = getattr(details, "category", None) if details else None
+        print(f"  {label}: declined by {response.model} (category: {category}). "
+              f"Retrying on {ANTHROPIC_FALLBACK_MODEL}.")
+        response = client.messages.create(model=ANTHROPIC_FALLBACK_MODEL, **base)
+
+    served_by = getattr(response, "model", None) or ANTHROPIC_MODEL
+    in_price, out_price = _price_for(served_by)
+    usage = response.usage
+    cost = (usage.input_tokens * in_price + usage.output_tokens * out_price) / 1_000_000
+    anthropic_cost_total += cost
+    if not served_by.startswith(ANTHROPIC_MODEL):
+        print(f"  {label}: served by {served_by}")
+    return _response_text(response), response, cost
+
 
 # --- Budget Safety Limits ---
 MAX_BRAVE_QUERIES_PER_RUN = 65  # hard cap on search API calls per run (~34/day, ~52 on Fridays)
@@ -377,6 +463,12 @@ def parse_args():
         "--force",
         action="store_true",
         help="Overwrite existing digest file for the target date.",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Run the whole pipeline, including both Friday guides for the next Friday, "
+             "then print the results. Writes no file and sends no email.",
     )
     parser.add_argument(
         "--parker-test",
@@ -1214,15 +1306,11 @@ Return ONLY the JSON object, no other text."""
 
     client = anthropic.Anthropic()
     try:
-        response = client.messages.create(
-            model=ANTHROPIC_MODEL,
-            max_tokens=2000,
-            system=TOP_STORY_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_prompt}],
+        raw_text, response, cost = claude_message(
+            client, [{"role": "user", "content": user_prompt}], max_tokens=4000,
+            label="Top story", system=TOP_STORY_SYSTEM_PROMPT,
         )
-        raw_text = response.content[0].text
         usage = response.usage
-        cost = (usage.input_tokens * 3 + usage.output_tokens * 15) / 1_000_000
         print(f"  Top story summary: {usage.input_tokens + usage.output_tokens} tokens, ${cost:.4f}")
 
         # Parse JSON
@@ -1501,15 +1589,11 @@ Return ONLY a JSON array. If you cannot find at least 5 specific events with rea
 
     client = anthropic.Anthropic()
     try:
-        response = client.messages.create(
-            model=ANTHROPIC_MODEL,
-            max_tokens=3000,
-            system=EVENTS_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_prompt}],
+        raw_text, response, cost = claude_message(
+            client, [{"role": "user", "content": user_prompt}], max_tokens=6000,
+            label="Events curation", system=EVENTS_SYSTEM_PROMPT,
         )
-        raw_text = response.content[0].text
         usage = response.usage
-        cost = (usage.input_tokens * 3 + usage.output_tokens * 15) / 1_000_000
         print(f"  Events curation: {usage.input_tokens + usage.output_tokens} tokens, ${cost:.4f}")
 
         # Parse JSON (same pattern as call_anthropic)
@@ -2242,15 +2326,11 @@ Order the array with all Parker events first (by date), then Douglas County (by 
 
     client = anthropic.Anthropic()
     try:
-        response = client.messages.create(
-            model=ANTHROPIC_MODEL,
-            max_tokens=6000,
-            system=PARKER_SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_prompt}],
+        raw_text, response, cost = claude_message(
+            client, [{"role": "user", "content": user_prompt}], max_tokens=10000,
+            label="Parker events curation", system=PARKER_SYSTEM_PROMPT,
         )
-        raw_text = response.content[0].text
         usage = response.usage
-        cost = (usage.input_tokens * 3 + usage.output_tokens * 15) / 1_000_000
         print(f"  Parker events curation: {usage.input_tokens + usage.output_tokens} tokens, ${cost:.4f}"
               f" (stop: {response.stop_reason})")
         parsed = _try_parse_json(raw_text)
@@ -2491,13 +2571,10 @@ def call_anthropic(stories, target_date_str):
         print(f"  LIMIT: Anthropic call cap ({MAX_ANTHROPIC_CALLS_PER_RUN}) reached. Exiting.")
         sys.exit(1)
 
+    news_messages = [{"role": "user", "content": user_prompt}]
     try:
-        response = client.messages.create(
-            model=ANTHROPIC_MODEL,
-            max_tokens=ANTHROPIC_MAX_TOKENS,
-            system=SYSTEM_PROMPT,
-            messages=[{"role": "user", "content": user_prompt}],
-        )
+        raw_text, response, cost = claude_message(
+            client, news_messages, ANTHROPIC_MAX_TOKENS, "News curation", system=SYSTEM_PROMPT)
     except Exception as e:
         print(f"  API call failed: {e}")
         print("  Retrying in 30 seconds...")
@@ -2507,12 +2584,8 @@ def call_anthropic(stories, target_date_str):
             print(f"  LIMIT: Anthropic call cap ({MAX_ANTHROPIC_CALLS_PER_RUN}) reached. Exiting.")
             sys.exit(1)
         try:
-            response = client.messages.create(
-                model=ANTHROPIC_MODEL,
-                max_tokens=ANTHROPIC_MAX_TOKENS,
-                system=SYSTEM_PROMPT,
-                messages=[{"role": "user", "content": user_prompt}],
-            )
+            raw_text, response, cost = claude_message(
+                client, news_messages, ANTHROPIC_MAX_TOKENS, "News curation", system=SYSTEM_PROMPT)
         except Exception as e2:
             print(f"  Retry failed: {e2}")
             sys.exit(1)
@@ -2521,14 +2594,10 @@ def call_anthropic(stories, target_date_str):
     usage = response.usage
     input_tokens = usage.input_tokens
     output_tokens = usage.output_tokens
-    cost = (input_tokens * 3 + output_tokens * 15) / 1_000_000
     print(f"  Input tokens:  {input_tokens:,}")
     print(f"  Output tokens: {output_tokens:,}")
     print(f"  Estimated cost: ${cost:.4f}")
     print(f"  Stop reason: {response.stop_reason}")
-
-    # Extract text content
-    raw_text = response.content[0].text
 
     parsed = _try_parse_json(raw_text)
     if parsed is not None:
@@ -2541,19 +2610,16 @@ def call_anthropic(stories, target_date_str):
         print(f"  LIMIT: Anthropic call cap ({MAX_ANTHROPIC_CALLS_PER_RUN}) reached. Exiting.")
         sys.exit(1)
     try:
-        retry_response = client.messages.create(
-            model=ANTHROPIC_MODEL,
-            max_tokens=ANTHROPIC_MAX_TOKENS,
-            system=SYSTEM_PROMPT,
-            messages=[
+        retry_text, retry_response, cost2 = claude_message(
+            client,
+            [
                 {"role": "user", "content": user_prompt},
                 {"role": "assistant", "content": raw_text},
                 {"role": "user", "content": "Your previous response could not be parsed as JSON. Please return the EXACT same content as a valid JSON array. No markdown code fences, no commentary -- just the raw [ ... ] JSON array."},
             ],
+            ANTHROPIC_MAX_TOKENS, "News curation retry", system=SYSTEM_PROMPT,
         )
-        retry_text = retry_response.content[0].text
         usage2 = retry_response.usage
-        cost2 = (usage2.input_tokens * 3 + usage2.output_tokens * 15) / 1_000_000
         print(f"  Retry tokens: {usage2.input_tokens + usage2.output_tokens}, ${cost2:.4f}")
 
         parsed = _try_parse_json(retry_text)
@@ -3068,10 +3134,17 @@ def main():
     # Step 4d: Fetch weekend events (Friday only)
     weekend_events = None
     target_date_obj = datetime.datetime.strptime(target_date_str, "%Y-%m-%d").date()
-    if target_date_obj.weekday() == 4:  # Friday
+    # A dry run builds both Friday guides for the coming Friday on any day,
+    # so every Claude call gets exercised.
+    friday_str = target_date_str
+    if args.dry_run and target_date_obj.weekday() != 4:
+        friday_str = (target_date_obj + datetime.timedelta(days=(4 - target_date_obj.weekday()) % 7)).isoformat()
+        print(f"\n[Dry run] Building the Friday guides for {friday_str}")
+    friday_obj = datetime.date.fromisoformat(friday_str)
+    if friday_obj.weekday() == 4:  # Friday
         print("\n[Step 4d] Fetching weekend events (it's Friday!)...")
         brave_key = os.environ.get("BRAVE_SEARCH_API_KEY")
-        weekend_events = fetch_weekend_events(brave_key, target_date_str, freshness)
+        weekend_events = fetch_weekend_events(brave_key, friday_str, freshness)
         if weekend_events:
             print(f"  Found {len(weekend_events)} weekend events")
         else:
@@ -3081,10 +3154,10 @@ def main():
 
     # Step 4d-2: Parker & Douglas County weekend guide (Friday only)
     parker_events = None
-    if target_date_obj.weekday() == 4:  # Friday
+    if friday_obj.weekday() == 4:  # Friday
         print("\n[Step 4d-2] Building Parker & Douglas County week-ahead guide...")
         metro_titles = [e.get("title", "") for e in (weekend_events or [])]
-        parker_events = fetch_parker_events(brave_key, target_date_str, metro_titles=metro_titles)
+        parker_events = fetch_parker_events(brave_key, friday_str, metro_titles=metro_titles)
         if parker_events:
             print(f"  Found {len(parker_events)} Parker/Douglas County events "
                   f"({sum(1 for e in parker_events if (e.get('area') or '').lower() == 'parker')} in Parker)")
@@ -3098,6 +3171,16 @@ def main():
         print(f"  Top story: {top_story['headline'][:70]}...")
     else:
         print("  Top story: skipped (fetch/curation failed)")
+
+    if args.dry_run:
+        print("\n[Dry run] Nothing written, nothing emailed. Results:")
+        print(json.dumps({"stories": summaries, "topStory": top_story,
+                          "weekendEvents": weekend_events, "parkerEvents": parker_events},
+                         indent=2, ensure_ascii=False))
+        print(f"\n[Dry run] Model: {ANTHROPIC_MODEL} (effort {ANTHROPIC_EFFORT}), "
+              f"Anthropic calls: {anthropic_call_count}, Brave queries: {brave_query_count}, "
+              f"Claude cost: ${anthropic_cost_total:.4f}")
+        return None
 
     # Step 5: Write output
     print("\n[Step 5] Writing JSON output...")
@@ -3114,6 +3197,7 @@ def main():
     else:
         print("\n[Step 6] Skipping email (backfill mode).")
 
+    print(f"\nClaude cost this run: ${anthropic_cost_total:.4f} ({ANTHROPIC_MODEL}, effort {ANTHROPIC_EFFORT})")
     print("\nDone!")
     return filepath
 

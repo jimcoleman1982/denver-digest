@@ -27,6 +27,11 @@ on:
         required: false
         type: boolean
         default: false
+      dry_run:
+        description: 'Dry run: full pipeline plus both Friday guides, printed to the log. Writes nothing, sends nothing.'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write  # Needed to commit and push JSON data files
@@ -65,6 +70,9 @@ jobs:
           fi
           if [ "${{ github.event.inputs.parker_test }}" = "true" ]; then
             ARGS="$ARGS --parker-test"
+          fi
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
           fi
           python scripts/generate_digest.py $ARGS
 
