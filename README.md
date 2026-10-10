@@ -2,14 +2,14 @@
 
 Automated daily news digest for the Denver metro area. Runs entirely on GitHub infrastructure.
 
-Every day at 7:00 AM Denver local time, a GitHub Actions workflow gathers the top 10 Denver news stories, summarizes them via the Anthropic API (Claude Sonnet 4.6), and publishes them to a static site hosted on GitHub Pages.
+Every day at 7:00 AM Denver local time, a GitHub Actions workflow gathers the top 10 Denver news stories, summarizes them via the Anthropic API (Claude Sonnet 5.5), and publishes them to a static site hosted on GitHub Pages.
 
 ## How It Works
 
 1. **GitHub Actions** fires a cron job daily at 7 AM MT (handles MST/MDT automatically)
 2. **Python script** searches for Denver news via Brave Search API
 3. Fetches article content from Denver Post, Colorado Sun, Denver Gazette, CPR News, and others
-4. Sends articles to **Claude Sonnet 4.6** for categorization and multi-paragraph summarization
+4. Sends articles to **Claude Sonnet 5.5** for categorization and multi-paragraph summarization
 5. Writes a dated JSON file to `site/data/`
 6. Commits and pushes -- **GitHub Pages** auto-deploys the updated site
 
@@ -54,7 +54,7 @@ Every day at 7:00 AM Denver local time, a GitHub Actions workflow gathers the to
 |---------|------|
 | GitHub Actions | Free (well within 2,000 min/month free tier) |
 | GitHub Pages | Free |
-| Anthropic API | ~$0.10-$0.30/day (Sonnet 4.6, ~5K input + ~3K output tokens) |
+| Anthropic API | ~$0.10/day, ~$0.17 on Fridays (Sonnet 5.5 at low effort) |
 | Brave Search API | Free (free tier: 2,000 queries/month, uses ~300/month) |
 | **Monthly total** | **~$3-$9/month** |
 

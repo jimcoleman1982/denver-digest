@@ -4,6 +4,54 @@ All notable changes to the Denver Digest (303 News) project will be documented i
 
 Versioning follows the date format: `vYYYY.M.D`
 
+## v2026.10.10
+
+### Changed: Claude Sonnet 4.6 -> Claude Sonnet 5.5
+
+Measured in dry runs on 2026-10-10 against the same day's news:
+
+| Call | Sonnet 4.6 (typical) | Sonnet 5.5 |
+|---|---|---|
+| News curation | $0.097 | $0.083 |
+| Top world story | $0.013 | $0.012 |
+| Metro weekend guide (Fri) | $0.055 | $0.028 |
+| Parker week ahead (Fri) | $0.090 | $0.047 |
+| Full Friday run | $0.243 | $0.170 |
+
+About $3.20 a month, down from about $4.00. Summaries: median 154 words,
+all three paragraphs (production median 168).
+
+**Request changes (in `claude_message()`, which every call now uses):**
+
+- Model `claude-sonnet-5-5` at `output_config.effort: "low"` with adaptive
+  thinking, Anthropic's starting point for content generation and
+  extraction
+- Reply text is read by block type, because Sonnet 5.5 replies can begin
+  with a `thinking` block
+- Server-side refusal fallback (`fallbacks: "default"`, beta
+  `server-side-fallback-2026-07-01`), plus a client-side retry on
+  `claude-sonnet-4-6` for any other decline or a rejected request, so a
+  hard news story can't blank a section
+- Cost is computed from the model that served each call and totaled per run
+- Output limits raised for the new tokenizer (~30% more tokens for the
+  same text) and for thinking, which counts toward `max_tokens`
+- Anthropic SDK pinned to `>=1.13.0,<2` for the `fallbacks` and
+  `output_config` parameters
+
+**Prompt change:** Sonnet 5.5 reads "3-4 paragraphs, each 2-4 sentences"
+literally and writes tighter sentences, so the first dry run came back
+30-40% shorter than production. The summary instruction now carries a
+word target and a three-paragraph floor.
+
+**New:** `--dry-run` flag and `dry_run` workflow input. Runs the pipeline
+and prints the results; writes nothing, sends no email, and also builds both Friday
+guides for the coming Friday so every Claude call is exercised.
+
+**Not yet exercised on a real Friday:** the dry run on a Saturday built
+the metro guide for the following Friday, and its search results (this
+weekend's listings) correctly produced no events. The first live Friday
+run is 2026-10-16.
+
 ## v2026.9.17
 
 ### Added: Parker & Douglas County Week Ahead (Fridays)
