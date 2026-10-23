@@ -4,7 +4,100 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>303 News</title>
+    <meta name="theme-color" content="#f5f0e8" data-light="#f5f0e8" data-dark="#15130f">
+    <script>
+/* Night mode: dark from sunset to sunrise in Denver, or whenever the device
+   is set to dark. Re-checked every minute, so an open page switches at sunset.
+   Add ?theme=dark or ?theme=light to the URL to force one for testing. */
+(function () {
+  var LAT = 39.74, LNG = -104.99;
+  function denverDay(d) {
+    var o = {};
+    new Intl.DateTimeFormat('en-US', { timeZone: 'America/Denver', year: 'numeric', month: 'numeric', day: 'numeric' })
+      .formatToParts(d).forEach(function (p) { o[p.type] = +p.value; });
+    return o;
+  }
+  function sunTimes(d) {
+    var t = denverDay(d), base = Date.UTC(t.year, t.month - 1, t.day), r = Math.PI / 180;
+    var g = 2 * Math.PI / 365 * ((base - Date.UTC(t.year, 0, 0)) / 864e5 - 1);
+    var eq = 229.18 * (0.000075 + 0.001868 * Math.cos(g) - 0.032077 * Math.sin(g) - 0.014615 * Math.cos(2 * g) - 0.040849 * Math.sin(2 * g));
+    var dec = 0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g) - 0.006758 * Math.cos(2 * g) + 0.000907 * Math.sin(2 * g) - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g);
+    var ha = Math.acos(Math.cos(90.833 * r) / (Math.cos(LAT * r) * Math.cos(dec)) - Math.tan(LAT * r) * Math.tan(dec)) / r;
+    return { rise: base + (720 - 4 * (LNG + ha) - eq) * 6e4, set: base + (720 - 4 * (LNG - ha) - eq) * 6e4 };
+  }
+  var forced = (location.search.match(/[?&]theme=(dark|light)\b/) || [])[1];
+  var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+  function apply() {
+    var now = Date.now(), s = sunTimes(new Date(now));
+    var dark = forced ? forced === 'dark' : (now < s.rise || now >= s.set || !!(mq && mq.matches));
+    var root = document.documentElement;
+    if (root.classList.contains('theme-dark') !== dark) root.classList.toggle('theme-dark', dark);
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', dark ? meta.getAttribute('data-dark') : meta.getAttribute('data-light'));
+  }
+  window.__sunTimes = sunTimes;
+  apply();
+  setInterval(apply, 60000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) apply(); });
+  if (mq && mq.addEventListener) mq.addEventListener('change', apply);
+})();
+    </script>
     <style>
+        /* Colors live in variables so night mode can swap them (theme-dark is set
+           by the script in <head>: sunset to sunrise in Denver, or device dark mode). */
+        :root {
+            --c-1a1a1a: #1a1a1a;
+            --c-1a3a6a: #1a3a6a;
+            --c-222222: #222222;
+            --c-2d6a2e: #2d6a2e;
+            --c-333333: #333333;
+            --c-444444: #444444;
+            --c-555555: #555555;
+            --c-666655: #666655;
+            --c-666666: #666666;
+            --c-777777: #777777;
+            --c-888888: #888888;
+            --c-8b1a1a: #8b1a1a;
+            --c-999999: #999999;
+            --c-aaaaaa: #aaaaaa;
+            --c-bbbbbb: #bbbbbb;
+            --c-c9a959: #c9a959;
+            --c-cccccc: #cccccc;
+            --c-d5d0c4: #d5d0c4;
+            --c-dddddd: #dddddd;
+            --c-f5f0e8: #f5f0e8;
+            --c-f9f6ee: #f9f6ee;
+            --c-fdf6e3: #fdf6e3;
+            --c-ffffff: #ffffff;
+            color-scheme: light;
+        }
+        html.theme-dark {
+            --c-1a1a1a: #ebe5da;
+            --c-1a3a6a: #92b4e8;
+            --c-222222: #e2dcd1;
+            --c-2d6a2e: #7cc47e;
+            --c-333333: #d3cdc2;
+            --c-444444: #c8c2b7;
+            --c-555555: #b9b3a8;
+            --c-666655: #aaa494;
+            --c-666666: #aea89d;
+            --c-777777: #a39d93;
+            --c-888888: #9a948a;
+            --c-8b1a1a: #e07d72;
+            --c-999999: #8f897f;
+            --c-aaaaaa: #7f796f;
+            --c-bbbbbb: #6d675d;
+            --c-c9a959: #c9a959;
+            --c-cccccc: #46413a;
+            --c-d5d0c4: #3b362e;
+            --c-dddddd: #3a3630;
+            --c-f5f0e8: #15130f;
+            --c-f9f6ee: #1d1a15;
+            --c-fdf6e3: #221e17;
+            --c-ffffff: #1d1a15;
+            color-scheme: dark;
+        }
+
         *, *::before, *::after {
             box-sizing: border-box;
             margin: 0;
@@ -15,8 +108,8 @@
             font-family: Georgia, 'Times New Roman', serif;
             font-size: 17px;
             line-height: 1.6;
-            color: #1a1a1a;
-            background-color: #f5f0e8;
+            color: var(--c-1a1a1a);
+            background-color: var(--c-f5f0e8);
             -webkit-font-smoothing: antialiased;
         }
 
@@ -30,7 +123,7 @@
         .masthead {
             text-align: center;
             padding-bottom: 16px;
-            border-bottom: 4px double #1a1a1a;
+            border-bottom: 4px double var(--c-1a1a1a);
             margin-bottom: 0;
         }
 
@@ -39,7 +132,7 @@
             justify-content: space-between;
             align-items: center;
             font-size: 0.72em;
-            color: #888;
+            color: var(--c-888888);
             letter-spacing: 0.05em;
             text-transform: uppercase;
         }
@@ -53,12 +146,12 @@
         }
 
         .masthead-title .three-oh-three {
-            color: #8b1a1a;
+            color: var(--c-8b1a1a);
         }
 
         .masthead-dateline {
             font-size: 0.82em;
-            color: #666;
+            color: var(--c-666666);
             font-style: italic;
             margin-top: 4px;
             letter-spacing: 0.03em;
@@ -66,7 +159,7 @@
 
         .masthead-rule {
             border: none;
-            border-top: 1px solid #1a1a1a;
+            border-top: 1px solid var(--c-1a1a1a);
             margin-top: 10px;
         }
 
@@ -79,7 +172,7 @@
 
         .subscribe-tagline {
             font-size: 0.92em;
-            color: #888;
+            color: var(--c-888888);
             margin-bottom: 12px;
             font-style: italic;
         }
@@ -96,19 +189,19 @@
             padding: 10px 14px;
             font-family: Georgia, 'Times New Roman', serif;
             font-size: 0.92em;
-            border: 1px solid #aaa;
-            background: #fff;
-            color: #1a1a1a;
+            border: 1px solid var(--c-aaaaaa);
+            background: var(--c-ffffff);
+            color: var(--c-1a1a1a);
             min-width: 0;
         }
 
         .subscribe-form input[type="email"]::placeholder {
-            color: #999;
+            color: var(--c-999999);
         }
 
         .subscribe-form input[type="email"]:focus {
             outline: none;
-            border-color: #1a3a6a;
+            border-color: var(--c-1a3a6a);
         }
 
         .subscribe-form button {
@@ -117,31 +210,31 @@
             font-size: 0.88em;
             font-weight: 700;
             letter-spacing: 0.05em;
-            background: #1a1a1a;
-            color: #f5f0e8;
+            background: var(--c-1a1a1a);
+            color: var(--c-f5f0e8);
             border: none;
             cursor: pointer;
             white-space: nowrap;
         }
 
         .subscribe-form button:hover {
-            background: #333;
+            background: var(--c-333333);
         }
 
         .subscribe-msg {
             font-size: 0.82em;
             margin-top: 10px;
             min-height: 1.2em;
-            color: #666;
+            color: var(--c-666666);
             font-style: italic;
         }
 
         .subscribe-msg.success {
-            color: #2d6a2e;
+            color: var(--c-2d6a2e);
         }
 
         .subscribe-msg.error {
-            color: #8b1a1a;
+            color: var(--c-8b1a1a);
         }
 
         /* --- Section Dividers --- */
@@ -155,11 +248,11 @@
         .section-divider .rule {
             flex: 1;
             border: none;
-            border-top: 2px solid #1a1a1a;
+            border-top: 2px solid var(--c-1a1a1a);
         }
 
         .section-divider .rule-light {
-            border-top: 1px solid #bbb;
+            border-top: 1px solid var(--c-bbbbbb);
         }
 
         .section-label {
@@ -169,7 +262,7 @@
             font-size: 0.78em;
             font-weight: 700;
             letter-spacing: 0.12em;
-            color: #444;
+            color: var(--c-444444);
             text-transform: uppercase;
             white-space: nowrap;
         }
@@ -183,7 +276,7 @@
         .lead-story {
             margin-bottom: 18px;
             padding-bottom: 16px;
-            border-bottom: 1px dotted #ccc;
+            border-bottom: 1px dotted var(--c-cccccc);
         }
 
         .lead-headline-row {
@@ -194,13 +287,13 @@
         }
 
         .lead-headline-row:hover .lead-title {
-            color: #8b1a1a;
+            color: var(--c-8b1a1a);
         }
 
         .lead-title {
             font-size: 1.45em;
             line-height: 1.25;
-            color: #1a3a6a;
+            color: var(--c-1a3a6a);
             font-weight: 700;
             transition: color 0.15s ease;
             display: block;
@@ -209,7 +302,7 @@
 
         .lead-deck {
             font-size: 1.0em;
-            color: #555;
+            color: var(--c-555555);
             font-style: italic;
             line-height: 1.5;
             margin-bottom: 8px;
@@ -219,7 +312,7 @@
             font-size: 0.72em;
             font-weight: 700;
             letter-spacing: 0.08em;
-            color: #999;
+            color: var(--c-999999);
             text-transform: uppercase;
         }
 
@@ -228,7 +321,7 @@
             margin-top: 12px;
             font-size: 1.02em;
             line-height: 1.8;
-            color: #222;
+            color: var(--c-222222);
             text-align: justify;
             hyphens: auto;
             -webkit-hyphens: auto;
@@ -244,7 +337,7 @@
             line-height: 0.8;
             padding-right: 6px;
             padding-top: 4px;
-            color: #8b1a1a;
+            color: var(--c-8b1a1a);
             font-weight: 700;
         }
 
@@ -253,7 +346,7 @@
         }
 
         .end-mark {
-            color: #8b1a1a;
+            color: var(--c-8b1a1a);
             font-size: 0.7em;
             margin-left: 4px;
         }
@@ -262,7 +355,7 @@
         .top-story {
             margin-bottom: 18px;
             padding-bottom: 16px;
-            border-bottom: 1px dotted #ccc;
+            border-bottom: 1px dotted var(--c-cccccc);
         }
 
         .top-story-headline-row {
@@ -273,13 +366,13 @@
         }
 
         .top-story-headline-row:hover .top-story-title {
-            color: #8b1a1a;
+            color: var(--c-8b1a1a);
         }
 
         .top-story-title {
             font-size: 1.5em;
             line-height: 1.25;
-            color: #1a3a6a;
+            color: var(--c-1a3a6a);
             font-weight: 700;
             transition: color 0.15s ease;
             display: block;
@@ -288,7 +381,7 @@
 
         .top-story-deck {
             font-size: 1.0em;
-            color: #555;
+            color: var(--c-555555);
             font-style: italic;
             line-height: 1.5;
             margin-bottom: 8px;
@@ -298,7 +391,7 @@
             font-size: 0.72em;
             font-weight: 700;
             letter-spacing: 0.08em;
-            color: #999;
+            color: var(--c-999999);
             text-transform: uppercase;
         }
 
@@ -307,7 +400,7 @@
             margin-top: 12px;
             font-size: 1.02em;
             line-height: 1.8;
-            color: #222;
+            color: var(--c-222222);
             text-align: justify;
             hyphens: auto;
             -webkit-hyphens: auto;
@@ -323,7 +416,7 @@
             line-height: 0.8;
             padding-right: 6px;
             padding-top: 4px;
-            color: #8b1a1a;
+            color: var(--c-8b1a1a);
             font-weight: 700;
         }
 
@@ -333,12 +426,12 @@
 
         .top-story-source-links {
             font-size: 0.82em;
-            color: #888;
+            color: var(--c-888888);
             margin-top: 8px;
         }
 
         .top-story-source-links a {
-            color: #1a3a6a;
+            color: var(--c-1a3a6a);
             text-decoration: none;
         }
 
@@ -349,7 +442,7 @@
         /* --- Story items --- */
         .story-item {
             padding: 8px 0;
-            border-bottom: 1px dotted #ccc;
+            border-bottom: 1px dotted var(--c-cccccc);
         }
 
         .story-item:last-child {
@@ -368,11 +461,11 @@
         }
 
         .story-headline:hover .story-title {
-            color: #8b1a1a;
+            color: var(--c-8b1a1a);
         }
 
         .story-bullet {
-            color: #999;
+            color: var(--c-999999);
             font-size: 0.6em;
             flex-shrink: 0;
             position: relative;
@@ -381,7 +474,7 @@
 
         .story-title {
             font-size: 1.05em;
-            color: #1a3a6a;
+            color: var(--c-1a3a6a);
             line-height: 1.35;
             transition: color 0.15s ease;
         }
@@ -390,7 +483,7 @@
             font-size: 0.72em;
             font-weight: 700;
             letter-spacing: 0.06em;
-            color: #999;
+            color: var(--c-999999);
             text-transform: uppercase;
             margin-top: 2px;
             margin-left: 18px;
@@ -401,10 +494,10 @@
             display: none;
             margin: 8px 0 4px 18px;
             padding-left: 16px;
-            border-left: 2px solid #ddd;
+            border-left: 2px solid var(--c-dddddd);
             font-size: 1.0em;
             line-height: 1.75;
-            color: #222;
+            color: var(--c-222222);
             text-align: justify;
             hyphens: auto;
             -webkit-hyphens: auto;
@@ -422,27 +515,27 @@
         .source-link {
             font-size: 0.88em;
             font-style: italic;
-            color: #666;
+            color: var(--c-666666);
             margin-top: 8px;
             padding-top: 8px;
-            border-top: 1px dotted #ddd;
+            border-top: 1px dotted var(--c-dddddd);
         }
 
         .source-link a {
-            color: #1a3a6a;
+            color: var(--c-1a3a6a);
             text-decoration: none;
-            border-bottom: 1px dotted #1a3a6a;
+            border-bottom: 1px dotted var(--c-1a3a6a);
         }
 
         .source-link a:hover {
-            color: #8b1a1a;
-            border-bottom-color: #8b1a1a;
+            color: var(--c-8b1a1a);
+            border-bottom-color: var(--c-8b1a1a);
         }
 
         /* --- Weather section (click-to-expand) --- */
         .weather-section {
-            background: #f9f6ee;
-            border-left: 3px solid #c9a959;
+            background: var(--c-f9f6ee);
+            border-left: 3px solid var(--c-c9a959);
             padding: 12px 16px;
             margin-bottom: 18px;
         }
@@ -453,24 +546,24 @@
             user-select: none;
             gap: 10px;
         }
-        .weather-summary-row:hover .weather-expand-hint { color: #1a3a6a; }
+        .weather-summary-row:hover .weather-expand-hint { color: var(--c-1a3a6a); }
         .weather-label {
             font-size: 0.72em;
             font-weight: 700;
             letter-spacing: 0.12em;
             text-transform: uppercase;
-            color: #888;
+            color: var(--c-888888);
             white-space: nowrap;
         }
         .weather-one-liner {
             font-size: 0.95em;
-            color: #333;
+            color: var(--c-333333);
             flex: 1;
         }
-        .weather-one-liner strong { color: #1a1a1a; }
+        .weather-one-liner strong { color: var(--c-1a1a1a); }
         .weather-expand-hint {
             font-size: 0.78em;
-            color: #aaa;
+            color: var(--c-aaaaaa);
             letter-spacing: 0.05em;
             white-space: nowrap;
             transition: color 0.15s;
@@ -483,32 +576,32 @@
         .weather-section.open .weather-chevron { transform: rotate(90deg); }
 
         /* Expanded detail panel */
-        .weather-detail-panel { display: none; margin-top: 14px; padding-top: 12px; border-top: 1px dotted #d5d0c4; }
+        .weather-detail-panel { display: none; margin-top: 14px; padding-top: 12px; border-top: 1px dotted var(--c-d5d0c4); }
         .weather-section.open .weather-detail-panel { display: block; }
-        .weather-current-label { font-size: 0.68em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #999; margin-bottom: 4px; }
-        .weather-current-temp { font-size: 1.15em; color: #222; margin-bottom: 2px; }
-        .weather-current-detail { font-size: 0.88em; color: #555; margin-bottom: 12px; }
+        .weather-current-label { font-size: 0.68em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--c-999999); margin-bottom: 4px; }
+        .weather-current-temp { font-size: 1.15em; color: var(--c-222222); margin-bottom: 2px; }
+        .weather-current-detail { font-size: 0.88em; color: var(--c-555555); margin-bottom: 12px; }
         .weather-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
         .weather-block { padding: 10px 0; }
-        .weather-block:nth-child(odd) { padding-right: 16px; border-right: 1px dotted #d5d0c4; }
+        .weather-block:nth-child(odd) { padding-right: 16px; border-right: 1px dotted var(--c-d5d0c4); }
         .weather-block:nth-child(even) { padding-left: 16px; }
-        .weather-block:nth-child(n+3) { border-top: 1px dotted #d5d0c4; }
-        .weather-block-label { font-size: 0.68em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #999; margin-bottom: 3px; }
-        .weather-block-value { font-size: 1.05em; color: #222; }
+        .weather-block:nth-child(n+3) { border-top: 1px dotted var(--c-d5d0c4); }
+        .weather-block-label { font-size: 0.68em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--c-999999); margin-bottom: 3px; }
+        .weather-block-value { font-size: 1.05em; color: var(--c-222222); }
         .weather-block-value strong { font-weight: 700; }
-        .weather-block-sub { font-size: 0.82em; color: #777; margin-top: 2px; }
-        .weather-tonight { padding-top: 12px; border-top: 1px dotted #d5d0c4; }
-        .weather-tonight-label { font-size: 0.68em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: #999; margin-bottom: 4px; }
-        .weather-tonight-text { font-size: 0.92em; color: #444; }
-        .weather-callout { margin-top: 12px; padding: 8px 12px; background: #fdf6e3; border-left: 3px solid #c9a959; font-size: 0.88em; font-style: italic; color: #665; }
+        .weather-block-sub { font-size: 0.82em; color: var(--c-777777); margin-top: 2px; }
+        .weather-tonight { padding-top: 12px; border-top: 1px dotted var(--c-d5d0c4); }
+        .weather-tonight-label { font-size: 0.68em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--c-999999); margin-bottom: 4px; }
+        .weather-tonight-text { font-size: 0.92em; color: var(--c-444444); }
+        .weather-callout { margin-top: 12px; padding: 8px 12px; background: var(--c-fdf6e3); border-left: 3px solid var(--c-c9a959); font-size: 0.88em; font-style: italic; color: var(--c-666655); }
         .uv-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 0.78em; font-weight: 700; color: #fff; margin-left: 4px; vertical-align: middle; }
         .uv-low { background: #4caf50; }
         .uv-moderate { background: #ff9800; }
         .uv-high { background: #f44336; }
         .uv-very-high { background: #9c27b0; }
         .uv-extreme { background: #d50000; }
-        .weather-attribution { font-size: 0.68em; color: #bbb; margin-top: 10px; text-align: right; }
-        .weather-attribution a { color: #aaa; text-decoration: none; }
+        .weather-attribution { font-size: 0.68em; color: var(--c-bbbbbb); margin-top: 10px; text-align: right; }
+        .weather-attribution a { color: var(--c-aaaaaa); text-decoration: none; }
 
         /* --- Weekend Events section --- */
         .events-section {
@@ -517,7 +610,7 @@
 
         .event-item {
             padding: 8px 0;
-            border-bottom: 1px dotted #ccc;
+            border-bottom: 1px dotted var(--c-cccccc);
         }
 
         .event-item:last-child {
@@ -536,12 +629,12 @@
         }
 
         .event-headline:hover .event-title {
-            color: #8b1a1a;
+            color: var(--c-8b1a1a);
         }
 
         .event-title {
             font-size: 1.0em;
-            color: #1a3a6a;
+            color: var(--c-1a3a6a);
             line-height: 1.35;
             transition: color 0.15s ease;
         }
@@ -550,10 +643,10 @@
             display: none;
             margin: 6px 0 4px 18px;
             padding-left: 16px;
-            border-left: 2px solid #c9a959;
+            border-left: 2px solid var(--c-c9a959);
             font-size: 0.92em;
             line-height: 1.6;
-            color: #444;
+            color: var(--c-444444);
         }
 
         .event-item.open > .event-body {
@@ -565,13 +658,13 @@
             font-weight: 700;
             letter-spacing: 1.5px;
             text-transform: uppercase;
-            color: #8b1a1a;
+            color: var(--c-8b1a1a);
             margin: 14px 0 2px 0;
         }
 
         .event-meta {
             font-size: 0.85em;
-            color: #888;
+            color: var(--c-888888);
             font-style: italic;
             margin-bottom: 6px;
         }
@@ -585,14 +678,14 @@
         }
 
         .event-link a {
-            color: #1a3a6a;
+            color: var(--c-1a3a6a);
             text-decoration: none;
-            border-bottom: 1px dotted #1a3a6a;
+            border-bottom: 1px dotted var(--c-1a3a6a);
         }
 
         .event-link a:hover {
-            color: #8b1a1a;
-            border-bottom-color: #8b1a1a;
+            color: var(--c-8b1a1a);
+            border-bottom-color: var(--c-8b1a1a);
         }
 
         /* --- Daily Laugh --- */
@@ -604,7 +697,7 @@
 
         .joke-text {
             font-size: 1.02em;
-            color: #333;
+            color: var(--c-333333);
             line-height: 1.55;
             margin-top: 8px;
             max-width: 620px;
@@ -614,7 +707,7 @@
 
         .joke-credit {
             font-size: 0.85em;
-            color: #999;
+            color: var(--c-999999);
             font-style: italic;
             margin-top: 8px;
         }
@@ -623,7 +716,7 @@
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: #666;
+            color: var(--c-666666);
             font-style: italic;
             font-size: 1.05em;
         }
@@ -640,7 +733,7 @@
             gap: 6px 10px;
             padding: 12px 0;
             cursor: pointer;
-            border-bottom: 1px solid #cccccc;
+            border-bottom: 1px solid var(--c-cccccc);
             user-select: none;
             -webkit-user-select: none;
             min-height: 48px;
@@ -652,7 +745,7 @@
 
         .day-arrow {
             font-size: 0.7em;
-            color: #888;
+            color: var(--c-888888);
             transition: transform 0.2s ease;
             flex-shrink: 0;
             width: 14px;
@@ -666,16 +759,16 @@
         .day-date {
             font-size: 1.2em;
             font-weight: 700;
-            color: #444;
+            color: var(--c-444444);
         }
 
         .day-section.today > .day-header .day-date {
-            color: #8b1a1a;
+            color: var(--c-8b1a1a);
         }
 
         .day-count {
             font-size: 0.82em;
-            color: #888;
+            color: var(--c-888888);
             font-style: italic;
         }
 
@@ -693,9 +786,9 @@
             text-align: center;
             padding: 20px 0;
             margin-top: 32px;
-            border-top: 2px double #1a1a1a;
+            border-top: 2px double var(--c-1a1a1a);
             font-size: 0.82em;
-            color: #888;
+            color: var(--c-888888);
             font-style: italic;
         }
 
@@ -734,7 +827,7 @@
             }
             .weather-block:nth-child(even) {
                 padding-left: 0;
-                border-top: 1px dotted #d5d0c4;
+                border-top: 1px dotted var(--c-d5d0c4);
             }
         }
 
@@ -1154,7 +1247,7 @@
 
                     var curTemp = document.createElement('div');
                     curTemp.className = 'weather-current-temp';
-                    curTemp.innerHTML = '<strong>' + cur.temp + '\u00B0F</strong>' + (cur.feels_like != null ? ' <span style="font-size:0.85em;color:#777">(feels like ' + cur.feels_like + '\u00B0F)</span>' : '');
+                    curTemp.innerHTML = '<strong>' + cur.temp + '\u00B0F</strong>' + (cur.feels_like != null ? ' <span style="font-size:0.85em;color:var(--c-777777)">(feels like ' + cur.feels_like + '\u00B0F)</span>' : '');
                     panel.appendChild(curTemp);
 
                     var curDetail = document.createElement('div');
