@@ -1,0 +1,130 @@
+{
+  "date": "2026-11-09",
+  "dateFormatted": "Monday, November 9, 2026",
+  "stories": [
+    {
+      "category": "sports",
+      "headline": "Broncos beat Panthers 26-21 for NFL-record 16th straight one-score win",
+      "summary": "The Denver Broncos defeated the Carolina Panthers 26-21 on Sunday at Bank of America Stadium, extending their NFL-record streak of one-score victories to 16 games. Denver improved to 7-2 and became the first team in the league to reach seven wins this season before its bye week.\n\nQuarterback Bo Nix led consecutive fourth-quarter touchdown drives to turn a one-point deficit into a 26-14 lead, going 8-of-11 for 90 yards on those possessions. A 26-yard touchdown pass to Pat Bryant, who returned from injured reserve, capped the surge. The Broncos struggled to run the ball, averaging 2.5 yards per carry through much of the second half.\n\nCarolina cut the margin late, but outside linebacker Nik Bonitto strip-sacked quarterback Bryce Young and recovered the fumble with 1:24 left to seal the win. Coach Sean Payton said some of the games should not have been so close, but that the results are not by accident. Denver next plays the Raiders in Week 11.",
+      "source": "Denver Post",
+      "url": "https://www.denverpost.com/2026/11/08/broncos-panthers-report-card-grades-week-9/"
+    },
+    {
+      "category": "sports",
+      "headline": "Broncos' Jaylen Waddle, Riley Moss ruled out of Panthers game with concussions",
+      "summary": "Broncos receiver Jaylen Waddle and cornerback Riley Moss both left Sunday's game against the Carolina Panthers and were ruled out with concussions. Moss was hurt in the second quarter while tackling running back Trevor Etienne, and Waddle was injured on a hit from a Panthers cornerback after catching one pass for 22 yards.\n\nJahdae Barron replaced Moss, with reserve cornerback Kris Abrams-Draine already out with an ankle injury. Safeties Talanoa Hufanga and Brandon Jones were also unavailable, leaving the secondary thin.\n\nCoach Sean Payton said he does not believe the team suffered any serious injuries. With the bye week ahead, both players have time to recover before the Week 11 game against the Raiders. The Broncos also placed defensive tackle Eyioma Uwazurike on injured reserve, and he is first eligible to return Dec. 13.",
+      "source": "Denver Post",
+      "url": "https://www.denverpost.com/2026/11/08/broncos-jaylen-waddle-riley-moss-injuries-panthers/"
+    },
+    {
+      "category": "sports",
+      "headline": "Avalanche blank Red Wings 4-0 as Blackwood stops 27 shots",
+      "summary": "The Colorado Avalanche beat the Detroit Red Wings 4-0 on Saturday at Ball Arena. Goaltender Mackenzie Blackwood made 27 saves for his first shutout of the season and the 18th of his career, including 13 saves in a scoreless first period.\n\nMartin Necas scored twice and added two assists, while Nathan MacKinnon and Cale Makar each had a goal and two assists. Necas opened the scoring on a power play at 9:46 of the second period, and MacKinnon made it 2-0 on another power-play goal. Detroit was called for five penalties in a 10-minute span.\n\nColorado improved to 10-6-2 and is 4-1-1 in its past six games. Coach Jared Bednar praised the team's contributions throughout the lineup. Detroit has lost three straight.",
+      "source": "NHL.com",
+      "url": "https://www.nhl.com/news/detroit-red-wings-colorado-avalanche-game-recap-november-7-2026"
+    },
+    {
+      "category": "other",
+      "headline": "Third officer injured in RTD bus shooting released from hospital",
+      "summary": "The last of three police officers wounded in Thursday's shooting on an RTD bus in Lakewood was released from the hospital Sunday, the Lakewood Police Department said. Two other officers were discharged Friday and are recovering at home with their families.\n\nThe shooting at West Colfax Avenue and Wadsworth Boulevard killed Agent Nick Graham, 33, who joined the department in January 2019. One of four people on the bus was also wounded, treated and released Thursday night.\n\nOn Saturday, athletes and fans at a football playoff game between Eaton and Strasburg high schools held a moment of silence for Graham, who is from Strasburg.",
+      "source": "Colorado Sun",
+      "url": "https://coloradosun.com/2026/11/08/lakewood-rtd-shooting-injured-police-officer-released/"
+    },
+    {
+      "category": "politics",
+      "headline": "Colorado voters reject several local tax hikes while approving statewide measures",
+      "summary": "Voters along the Front Range turned down many local tax questions last Tuesday while approving statewide and regional measures. Mill levy overrides failed in Douglas and Jefferson counties, and tax increases were rejected in Aurora, Northglenn and Lakewood.\n\nStatewide, Proposition NN passed with 57 percent, and Amendment 87's graduated income tax won 51.4 percent to 48.6 percent. Ballot Issue 7A, a 0.333 percent sales and use tax for Front Range passenger rail, passed with 55.1 percent.\n\nSome local measures succeeded. Wheat Ridge approved a 1 percent sales tax for infrastructure, school mill levy overrides passed in Denver, Westminster and Littleton, and Boulder voters approved a residential vacancy tax. Analysts pointed to cost-of-living worries, while Aurora officials said infrastructure needs and a budget deficit remain.",
+      "source": "Denver Gazette",
+      "url": "https://www.denvergazette.com/2026/11/08/amid-money-worries-colorado-voters-reject-local-tax-hikes/"
+    },
+    {
+      "category": "other",
+      "headline": "Colorado's population is still growing, state demographers say",
+      "summary": "State demographers said at their annual summit Friday that Colorado's population is still growing despite talk of decline. As of July 1, 2025, the population was 6,011,146, up 0.4 percent, or 23,725 people, from a year earlier.\n\nNatural increase added about 20,000 people, with the most births since 2017, and international migration added a net 15,000. Domestic migration was negative for the first time since the early 2000s, a net loss of about 3,451. Officials tied part of that to humanitarian migrants who did not stay after being bused in.\n\nTwenty-three counties lost population. Jefferson and Boulder counties lost the most, while Weld County gained 46,639 people. State Demographer Neal Marquez said Colorado is expected to keep growing faster than the nation.",
+      "source": "Colorado Sun",
+      "url": "https://coloradosun.com/2026/11/09/colorado-population-growing-state-demographers-data/"
+    },
+    {
+      "category": "politics",
+      "headline": "Boulder County to consider data center rules limiting power draw to 75 kilowatts",
+      "summary": "Boulder County commissioners will hear draft rules Tuesday that would limit new data centers to 75 kilowatts of power, roughly the draw of a marijuana grow. Planning staff acknowledged the cap means standalone data centers would not come to the county.\n\nThe county currently has a moratorium while it writes zoning rules. By comparison, a proposed Colorado Springs project could draw 50 megawatts, and Larimer County commissioners will vote in January on a 30-megawatt limit.\n\nCounty leaders cited concerns over electricity, water use, noise and industrial aesthetics. The debate reflects a wider national backlash over data center growth.",
+      "source": "Colorado Sun",
+      "url": "https://coloradosun.com/2026/11/09/boulder-county-data-center-rules-against-growth/"
+    },
+    {
+      "category": "other",
+      "headline": "Brown Palace's 38th Champagne Cascade benefits Denver Rescue Mission",
+      "summary": "The 38th annual Champagne Cascade at downtown Denver's Brown Palace Hotel opened the holiday season Sunday with its first sellout in five years. About 800 guests attended.\n\nThe event, benefiting the Denver Rescue Mission, was expected to beat last year's record of $32,500. A $20,000 winning bid from DraftKings chief legal officer R. Stanton Dodge to pour champagne over the 6,000-glass pyramid helped. Twenty-five percent of ticket sales and day-of beverage sales go to the mission.\n\nGeneral manager Alfonso Perez-Vega noted the mission and hotel were both founded in 1892. The mission is a faith-based group working to end homelessness.",
+      "source": "Denver Gazette",
+      "url": "https://www.denvergazette.com/2026/11/08/christmas-cheer-charity-and-champagne-fill-denvers-brown-palace/"
+    },
+    {
+      "category": "other",
+      "headline": "Boulder rolls out 'BoulderWise' signs ahead of Sundance Film Festival",
+      "summary": "Boulder is placing posters and pamphlets around town and in lodging to teach visitors seven 'BoulderWise' principles ahead of the Sundance Film Festival, Jan. 21 to 31, when about 50,000 visitors are expected.\n\nThe principles were developed by Boulder-based Leave No Trace and Visit Boulder, which in October became the first tourism-destination organization to earn Leave No Trace's gold standard designation. They cover picking up trash, using transit, checking weather, yielding to uphill hikers and not playing loud music on trails.\n\nThe designation required collaboration with the city, state, University of Colorado and open space agencies, including hiker shuttles to popular trailheads.",
+      "source": "Colorado Sun",
+      "url": "https://coloradosun.com/2026/11/09/boulder-sundance-festival-leave-no-trace/"
+    },
+    {
+      "category": "other",
+      "headline": "University of Denver professor uses debate to bridge political divides",
+      "summary": "University of Denver communication studies professor Darrin Hicks leads the Debate Across Curriculum program, which coaches students in every college on campus to debate as a collective search for truth rather than a contest to win.\n\nStudents debate topics from environmental law in business to the observer effect in physics and themes in Russian literature. Hicks said campus climate surveys about five years ago showed 70 percent of students limiting how often they spoke in class, which helped spur the program's growth.\n\nHicks argues public debate has been distorted by verbal aggression, and aims to teach students to defend ideas and listen to opposing views.",
+      "source": "Colorado Sun",
+      "url": "https://coloradosun.com/2026/11/09/university-of-denver-debate-across-curriculum/"
+    }
+  ],
+  "weather": {
+    "high": 71,
+    "low": 37,
+    "conditions": "Clear sky",
+    "wind_mph": 8.9,
+    "wind_gusts_mph": 13.9,
+    "precipitation_inches": 0,
+    "snowfall_inches": 0,
+    "precipitation_probability": 0,
+    "feels_high": 62,
+    "feels_low": 28,
+    "sunrise": "6:37 AM",
+    "sunset": "4:49 PM",
+    "daylight": "10h 12m",
+    "uv_index": 4.0,
+    "uv_label": "Moderate",
+    "uv_class": "uv-moderate",
+    "uv_advice": "Wear sunscreen after 10 AM",
+    "notable": "About 18 degrees above the average high for this time of year!",
+    "current": {
+      "temp": 37,
+      "feels_like": 29,
+      "humidity": 44,
+      "conditions": "Clear sky",
+      "wind_mph": 6.5,
+      "wind_dir": "S",
+      "wind_gusts_mph": 12.3,
+      "pressure_inhg": 29.93,
+      "cloud_cover": 0,
+      "time_label": "5:45 AM"
+    }
+  },
+  "joke": {
+    "comedian": "John Mulaney",
+    "joke": "I like making people laugh. It's less complicated than making them think."
+  },
+  "topStory": {
+    "headline": "Gunman Who Killed Six in Krakow Main Market Square Shooting Dies in Hospital, Polish Police Say",
+    "summary": "The 24-year-old Polish man who opened fire in Krakow's Main Market Square on Saturday afternoon, killing six people, has died of his injuries, police said early Monday. He was shot by police during the rampage, which also injured 15 others, including two police officers. Authorities say he wore a bulletproof vest and used an automatic rifle. Prosecutors had said he remained in critical condition through Sunday.\n\nThe dead are four Polish nationals, a man from the United Kingdom and a woman from Austria, according to regional official Krzysztof Jan Klęczar. Five foreigners were among the wounded, from the U.K., Portugal, Russia, Germany and Austria. The two officers who subdued the gunman, identified as senior constables Jakub Kulik and Artur Morański, emerged from comas and were conscious by Sunday. Prime Minister Donald Tusk's government hailed them as heroes for preventing further deaths. Two surgeons, Professor Michal Pędziwiatr and a colleague named by local media as Dr Mateusz Wierdak, were eating nearby and treated victims on the street before ambulances arrived. Pędziwiatr told the BBC that Wierdak used his hand to stem the bleeding of the most seriously hurt officer, and that they later learned they had also treated the apparent attacker. Volunteers from the Dublin Civil Defence, in the city on a break, also provided CPR and bleeding control.\n\nPolice also found the bodies of a man and two women, believed to be the suspect's parents and sister, in an apartment in Ostrowiec Świętokrzyski, about 93 miles northeast of Krakow. Police said they most likely died of gunshot wounds, and Justice Minister Waldemar Żurek said the suspect faced separate murder charges in those killings. The attacker has not been officially named. Interior Minister Marcin Kierwiński said the man was a Polish national from that town who \"was fascinated by far-right ideologies\" and held \"ultranationalistic\" views.\n\nThe National Public Prosecutor's Office opened an investigation led by a unit specializing in terrorist offenses. Żurek said the gunman acted \"with the aim of seriously intimidating a large number of people, making this a terrorist offence.\" Officials appeared to soften their earlier statements on motive after nationalist opposition politicians questioned the basis for the far-right characterization. Government spokesman Adam Szlapka said it was best to refrain from comment until authorities have complete information.\n\nThe shooting is the deadliest in Poland in decades. The country declared two days of national mourning, and St. Mary's Basilica paused its hourly trumpet call overnight for the first time since World War II. Despite the suspect's death, Żurek said the investigation will continue to determine whether he acted alone or was inspired by any group, and he asked for restraint as evidence is collected. Autopsies of the victims were set to begin Monday.",
+    "sources": [
+      {
+        "name": "bbc.com",
+        "url": "https://bbc.com/news/articles/c5x2vw4e1gx1o"
+      },
+      {
+        "name": "nbcnews.com",
+        "url": "https://nbcnews.com/world/europe/krakow-shooting-gunman-poland-attack-dies-hospital-rcna608248"
+      },
+      {
+        "name": "nbcnews.com",
+        "url": "https://www.nbcnews.com/world/europe/krakow-shooting-killed-6-motivated-far-right-views-rcna608080"
+      }
+    ]
+  }
+}
