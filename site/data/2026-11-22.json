@@ -1,0 +1,84 @@
+{
+  "date": "2026-11-22",
+  "dateFormatted": "Sunday, November 22, 2026",
+  "stories": [
+    {
+      "category": "other",
+      "headline": "I-70 closes in both directions after 12-vehicle pileup and snow near Floyd Hill",
+      "summary": "Winter weather caused multiple road closures and major crashes across Colorado's mountains on Saturday, including a 12-vehicle pileup on Interstate 70 that temporarily shut down both directions of travel. According to the Colorado State Patrol, the crash occurred near mile marker 241, in a stretch between Exit 248 at Beaver Brook and Floyd Hill and Exit 244 at U.S. 6.\n\nEastbound lanes have since reopened, but westbound lanes remained closed near Evergreen, according to the Clear Creek County Sheriff's Office. Officials said the interstate would not fully reopen until plow crews could treat the roadway and improve driving conditions. No injuries were reported in connection with the pileup.\n\nThe closures followed another major crash on Friday, Nov. 20, on westbound I-70 near Frisco at mile marker 186. That crash involved at least 20 vehicles, including five semitrailers, one of which jackknifed. At least four people were taken to local hospitals, and officials have not released information on the severity of their injuries.",
+      "source": "Denver Gazette",
+      "url": "https://www.denvergazette.com/2026/11/21/colorado-i-70-closures-snow/"
+    },
+    {
+      "category": "other",
+      "headline": "First snow of the season falls in west Denver metro, with up to 5 inches in the foothills",
+      "summary": "Some cities in the western Denver metro area likely saw their first snow of the season Saturday, when a storm dropped several inches along the I-70 corridor and forced parts of the interstate to close. Snow flurries and light snowfall moved across the metro area and foothills, and residents shared photos and videos of the wintry weather.\n\nTemperatures are expected to remain below seasonal averages through the weekend, with highs in the 40s, according to the National Weather Service. Overnight lows are forecast to fall into the 20s, which could create icy conditions on untreated roads.\n\nA cold front is expected to bring lower temperatures and possible mountain snow through midweek. Forecasters said the metro area would return to sunny, dry conditions, though temperatures will fall to the low to mid 20s, the lowest of the season so far. The Denver Department of Housing Stability activates additional cold weather shelters when the shelter system exceeds capacity and certain weather thresholds are met, including overnight temperatures of 25 degrees or below.",
+      "source": "Denver Post",
+      "url": "https://www.denverpost.com/2026/11/21/colorado-weather-first-snow-denver-metro-lakewood/"
+    },
+    {
+      "category": "sports",
+      "headline": "Avalanche star Nathan MacKinnon now expected to miss 12 weeks",
+      "summary": "Colorado Avalanche forward Nathan MacKinnon is expected to be out 12 weeks after his lower-body injury was reevaluated, coach Jared Bednar said Saturday. MacKinnon saw a specialist, and the new timeline is far longer than the original prognosis of about one month.\n\nMacKinnon was hurt Nov. 12 in a 4-3 overtime loss to the Ottawa Senators. Defenseman Cale Makar also left that game with a lower-body injury and was expected to miss about two weeks. If the 12-week window holds and there are no setbacks, MacKinnon could return around mid-to-late February.\n\nMacKinnon had 10 goals and 20 assists in 20 games before the injury. Bednar said the team's message does not change but extends. The Avalanche have won two of three games without their stars, and they return to action Wednesday against Montreal at Ball Arena before a five-game road trip starting Dec. 1.",
+      "source": "Denver Post",
+      "url": "https://www.denverpost.com/2026/11/21/avalanche-mackinnon-injury-12-weeks/"
+    },
+    {
+      "category": "sports",
+      "headline": "Nuggets beat Rockets 133-124 and control path to NBA Cup knockout stage",
+      "summary": "Nikola Jokic had 26 points, 11 assists and seven rebounds as the Denver Nuggets defeated the Houston Rockets 133-124 in an NBA Cup game Friday night. The result moved Denver to 2-0 in West Group A, with two group games remaining.\n\nThe win came two days after the Nuggets beat the Boston Celtics. Denver's push to run up the margin was tied to the NBA Cup tiebreaker rules, in which point differential can decide which teams advance. Cam Johnson and Jokic were involved in the team's efforts to pad that differential late in the game.\n\nThe Nuggets, 9-5 through 14 games, now control their own path to the knockout stage. Houston entered the game at 12-4.",
+      "source": "Denver Post",
+      "url": "https://www.denverpost.com/2026/11/21/nuggets-nba-cup-tiebreaker-rules-point-differential-jokic/"
+    },
+    {
+      "category": "sports",
+      "headline": "Broncos host Raiders in Week 11 seeking sixth straight win",
+      "summary": "The Denver Broncos (7-2) return from their Week 10 bye to host the Las Vegas Raiders (4-6) at Empower Field at Mile High on Sunday, Nov. 22, at 2:25 p.m. MT. The game is on CBS locally. Denver is aiming for its sixth consecutive win and third AFC West win of the season.\n\nThe Broncos have scored at least 26 points in each of their last three games. They face a Raiders defense that has allowed 28.9 points per game, tied for the most in the league. Las Vegas starts rookie quarterback Fernando Mendoza, the No. 1 overall pick in 2026, who made his first NFL start in Week 10 against Seattle.\n\nOn the final injury report, tight end Caleb Lohner was ruled out and safety Brandon Jones was listed as questionable.",
+      "source": "denverbroncos.com",
+      "url": "https://www.denverbroncos.com/news/denver-broncos-vs-las-vegas-raiders-how-to-watch-listen-and-live-stream-the-broncos-week-11-game"
+    },
+    {
+      "category": "crime",
+      "headline": "Woman sues Denver police officers over wrongful arrest in package theft case",
+      "summary": "Ebony Watson has filed a federal lawsuit against three Denver Police Department officers, alleging wrongful arrest and racial discrimination. The suit, filed Friday, stems from a March 3 incident at her apartment complex.\n\nWatson was falsely accused of stealing a package from the complex's mailroom. According to the lawsuit, officers handcuffed her and placed her in the back of a patrol car for 22 minutes before realizing they had the wrong suspect.\n\nThe suit seeks to hold the officers accountable for detaining her for a crime she did not commit.",
+      "source": "9News",
+      "url": "https://www.9news.com/article/money/consumer/steve-on-your-side/woman-sues-denver-police-officers-for-wrongful-arrest-over-package-theft/73-19f55360-5c4a-42e7-9dd8-e0fb51cd002b"
+    },
+    {
+      "category": "business",
+      "headline": "Metro Denver's two largest Realtor associations to merge",
+      "summary": "Metro Denver's two largest Realtor organizations have agreed to merge. The Denver Metro Association of Realtors and the South Metro Denver Realtors Association will combine into a single organization.\n\nThe new group, called Greater Denver Realtors, will replace both associations at the start of the year. The merger consolidates the region's two biggest professional groups for real estate agents under one banner.",
+      "source": "Denver Post",
+      "url": "https://www.denverpost.com/2026/11/21/metro-denvers-two-largest-realtor-associations-merging/"
+    },
+    {
+      "category": "politics",
+      "headline": "Advance Colorado trounced alongside Republicans; conservatives weigh next steps",
+      "summary": "Advance Colorado entered the 2026 election with its most ambitious agenda yet, after years of growing into its role as a frequent adversary of the Democratic-controlled legislature. The conservative group, along with Republican candidates, fared poorly at the ballot box this month.\n\nSupporters of Amendment 87, the graduated income tax proposal, celebrated its result at an election night event in Denver on Nov. 3. The outcome left conservatives facing questions about their strategy and future in the state.\n\nFrank McNulty, the last Republican to serve as speaker of the Colorado House, said Advance has taken the opportunity to do things in its own way. The Denver Post examines what the losses mean for the state's conservative movement going forward.",
+      "source": "Denver Post",
+      "url": "https://www.denverpost.com/2026/11/22/colorado-advance-conservatives-election-losses-future/"
+    }
+  ],
+  "joke": {
+    "comedian": "Kevin James",
+    "joke": "Every dad has a chair. Nobody picks the chair. The chair picks you. And once you're in it, that's your spot for life."
+  },
+  "topStory": {
+    "headline": "Trump Says Breach of FBI Crime Database Could Yield Information on Russia 'Hoax'",
+    "summary": "President Donald Trump said Saturday that a reported hack of the FBI's National Crime Information Center (NCIC) was \"not good,\" but suggested it might reveal information about issues he has long disputed. In a telephone interview with Fox News host Kayleigh McEnany, Trump said, \"Maybe we'll learn things that we would have never learned otherwise, because you know, you had the Russia, Russia, Russia hoax.\" He also referred to the Ukraine matter and to unsubstantiated claims of voter fraud, adding, \"I always like to put things on a positive spin.\"\n\nCNN first reported the suspected intrusion, and two people briefed on the matter said the FBI is investigating. Two people familiar with the matter told MS NOW that the NCIC includes fingerprint records, wanted persons, violent felons, and missing persons information. The database is restricted to law enforcement but is not classified, and it remains unclear what data was extracted. The FBI did not immediately respond to requests for comment from CNN or CNBC.\n\nTrump said that when he first heard of the breach, he thought, \"That's an interesting situation. I wonder who's doing it.\" He also said, \"Wouldn't it be great to learn about Russia, Russia, Russia?\" and that people should hear about it because it \"put our country in danger.\" CNN described his remarks as an effort to revisit longstanding grievances with the FBI over its investigation into Russian interference in the 2016 election, a matter unrelated to the breach.\n\nThe NCIC is used by law enforcement nationwide to share information on warrants and background checks. A former FBI official who led cybercrime investigations told CNN that officers rely on it daily to identify fugitives and check warrants, and expressed concern about whether hackers could compromise the accuracy of the information. The incident is at least the second recent breach involving the bureau. In September, a group called ShinyHunters accessed an FBI jobs website, compromising data on current and former employees; a Canadian cybersecurity researcher and author has since been arrested and faces charges tied to that breach.\n\nThe reported hack follows a series of high-profile outages and disruptions affecting the FAA's air traffic control system, banks, the National Security Agency, and Apple, as well as a reported breach of a U.S. Department of Agriculture system this week. The administration has sought to reassure the public about cybersecurity. On Thursday, FBI Director Kash Patel appeared on Fox News to highlight the bureau's work, citing Operation Winter Shield, an effort to urge companies to update their systems, which CNN reported was completed months ago. The scope of the NCIC intrusion, the identity of those responsible, and any consequences for law enforcement operations remain unresolved pending the FBI's investigation.",
+    "sources": [
+      {
+        "name": "huffpost.com",
+        "url": "https://huffpost.com/entry/trump-fbi-hack-reaction_n_6b01df93e4b0213d8627ee16"
+      },
+      {
+        "name": "edition.cnn.com",
+        "url": "https://edition.cnn.com/2026/11/20/politics/fbi-hacked-again-target-crime-database"
+      },
+      {
+        "name": "cnbc.com",
+        "url": "https://cnbc.com/2026/11/21/trump-fbi-database-hack.html"
+      }
+    ]
+  }
+}
